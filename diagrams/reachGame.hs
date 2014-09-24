@@ -41,7 +41,10 @@ diag'   = states # connectOutside' arrowStyleUCont "stInit"     "stReq"
                  # connectOutside' arrowStyleCont  "stWroteCmd"  "stSending"
                  # connectOutside' arrowStyleUCont "stSending"   "stAck"
                  # connectOutside' arrowStyleUCont "stWroteCmd"  "stErr"
-diag = (diag' <> labels) # pad 1.1
+
+initArrow = arrowBetween (p2 (-0.3, 0)) (p2 (-0.1, 0))
+
+diag = (diag' <> labels <> initArrow) # pad 1.1
 
 main = mainWith (diag :: Diagram B R2)
 
