@@ -57,7 +57,17 @@ The two simplest objectives are safety and reachability. A safety game is define
 
 The dual of a safety game is a reachability game. A reachability game is defined by a set $REACH \subseteq S$ that player 1 must force the game to visit at least once, regardless of the labels that player 2 picks. Formally, a reachability run is winning if $\exists i. s_i \in REACH$
 
-As a prelude to what is coming, we could create a crude formalism for driver synthesis using only reachability games. Consider, for example the simple UART given in figure x. Explain how getting to the goal is a reachability game.
+As a concrete example, we could create a crude formalism for driver synthesis using only a reachability game. Consider, for example, figure x, which shows the state machine for a game to control a hypothetical network controller. Solid lines indicate controllable transitions and dashed lines indicate uncontrollable transitions. Execution begins in the leftmost state where the OS may initiate a network transfer by choosing the `send' label. The goal of the game is the rightmost state (labelled `G') as this is the point where player 1 has completed the request. So, to win, player 1 (who controls the transitions with solid lines) must ensure that execution of the state machine reaches the goal. 
+
+The network device has two 8-bit registers, command (abbreviated cmd) and data. Writing 0x01 to the command register starts the transfer, and eventually whatever is in the data register gets written out to the network. Note that the actual sending of the data is an uncontrollable event. 
+
+The correct sequence to win the game, therefore, is to write the data register and then the control register after the OS performs a send request. This takes us to state `S5' where the only move by player 2 is `evt\_send' taking us to the goal. 
+
+If the command register is written first and then the data register there is potential for the environment to play the `evt\_send' label before the data is written, potentially resulting in the wrong data being sent. This is the transition that terminates in the `E' state (for error). The `E' state is a dead end, so it is not possible to reach the goal. 
+
+So, if player 1 takes the top half of the diamond (ie. writes data before command) then it will be guaranteed to reach the goal and the reachability game is winning for player 1. The strategy to reach the goal tells us the sequence of labels the driver must play to get to the goal. In principle, this could be turned into a driver for our simple network device.
+
+This simplistic formalism for driver synthesis has several shortcomings that we will deal with in the following sections.
 
 \subsection{\buchi, fairness and GR(1) games}
 
