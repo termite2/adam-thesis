@@ -97,7 +97,7 @@ We now have a formalism for the driver synthesis problem as a game. A practical 
 
 In this section I will introduce the basic synthesis algorithms for games of increasing complexity. Then, I will explain the techniques I use to handle large state spaces, namely untracked variable abstraction and predicate abstraction.
 
-\subsection{Controllable predecessor}
+\subsubsection{Controllable predecessor}
 
 \subsubsection{Safety and reachability}
 
@@ -173,7 +173,7 @@ Thus, we will eventually reach a fixed point, and, this is when we should stop i
 
 \subsection{Binary decision diagrams}
 
-The algorithm described so far appears very inefficient. Consider a reachability game. We are performing a backwards breadth-first search starting from $REACH$. If we were to implement it directly as described, we would need a set abstract datatype to represent the winning set. Some of the games we have solved with Termite have upwards of $2^80$ states, even after abstraction. Clearly, explicitly representing the winning set will never succeed. 
+The algorithm described so far appears very inefficient. Consider a reachability game. We are performing a backwards breadth-first search starting from $REACH$. If we were to implement it directly as described, we would need a set abstract datatype to represent the winning set. Some of the games we have solved with Termite have upwards of $2^{80}$ states, even after abstraction. Clearly, explicitly representing the winning set will never succeed. 
 
 Identical problems are encountered in model checking. The breakthrough that revolutionised model checking was to represent state sets implicitly as an equation over state variables that is true iff the state is in the set. 
 
@@ -368,6 +368,8 @@ state space.
 \subsubsection{Generating sane code}
 
 \subsection{Limitations}
+
+\subsection{A realistic example}
 
 \subsection{Case studies}
 
