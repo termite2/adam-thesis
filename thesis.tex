@@ -57,7 +57,14 @@ The two simplest objectives are safety and reachability. A safety game is define
 
 The dual of a safety game is a reachability game. A reachability game is defined by a set $REACH \subseteq S$ that player 1 must force the game to visit at least once, regardless of the labels that player 2 picks. Formally, a reachability run is winning if $\exists i. s_i \in REACH$
 
-As a concrete example, we could create a crude formalism for driver synthesis using only a reachability game. Consider, for example, figure x, which shows the state machine for a game to control a hypothetical network controller. Solid lines indicate controllable transitions and dashed lines indicate uncontrollable transitions. Execution begins in the leftmost state where the OS may initiate a network transfer by choosing the `send' label. The goal of the game is the rightmost state (labelled `G') as this is the point where player 1 has completed the request. So, to win, player 1 (who controls the transitions with solid lines) must ensure that execution of the state machine reaches the goal. 
+As a concrete example, we could create a crude formalism for driver synthesis using only a reachability game. Consider, for example, figure \ref{fig:reach}, which shows the state machine for a game to control a hypothetical network controller. Solid lines indicate controllable transitions and dashed lines indicate uncontrollable transitions. Execution begins in the leftmost state where the OS may initiate a network transfer by choosing the `send' label. The goal of the game is the rightmost state (labelled `G') as this is the point where player 1 has completed the request. So, to win, player 1 (who controls the transitions with solid lines) must ensure that execution of the state machine reaches the goal. 
+
+\begin{figure}[t]
+\centering
+\includegraphics{diagrams/reachgame.pdf}
+\caption{Reachability game for simple network device}
+\label{fig:reach}
+\end{figure}
 
 The network device has two 8-bit registers, command (abbreviated cmd) and data. Writing 0x01 to the command register starts the transfer, and eventually whatever is in the data register gets written out to the network. Note that the actual sending of the data is an uncontrollable event. 
 
