@@ -1,0 +1,64 @@
+Reachability game:
+
+F g
+uX. cpre(G | X)
+
+complement is:
+
+G !g
+vX. cpre'(!G & X)
+
+This is obviously a safety game where the safe region is the complement of the goal.
+
+====================
+Buchi game:
+
+G F g
+vX. uY. cpre((G & X) | Y)
+
+complement is:
+
+F G !g                      (1)
+uX. vY. cpre'((!G | X) & Y) (2)
+
+You might intuitively think that (F G !g) corresponds to a safety game for !g followed by a reachability game for the winning region of the safety game. This is wrong. 
+
+That would be:
+
+AF AG !g  (in CTL)
+uX. cpre' ((vY. cpre'(!G & Y)) | X) (3)
+
+which is not equivalent to (1) and (2). This is expected because the latter does not involve nested fixed points while the first one does.
+
+As an example of why they are not equivalent, consider:
+
+    !g    g   !g
+o----o----o----o
+    /_\       /_\
+
+Where the second state is player 2, ie. not controllable and the state on the left is the initial state.
+     
+This satisfies (1) and (2).
+It does not satisfy (3) though. The safety game for !g will return the rightmost state as winning. Then, the reachability game for the rightmost state will discover the rightmost 2 states, but not the initial state because it will get stuck at the second state. 
+
+What is the intuitive meaning of a counterexample for a Buchi game?
+
+It is a strategy such that whatever you play, it guarantees F G !g (obviously). You, as player 2, may choose to stay in the loop on the second state, guaranteeing !g. Alternatively, you may choose to move to the third state, also guaranteeing !g forever. It is not a strategy that gets you to the fourth state. If you chose to stay in the second state for a really long time, you can still hit the goal again by making a different decision. However, you may only hit the goal a finite number of times. 
+
+===================
+Generalised buchi game:
+
+vX. /\_G uY. cpre((G & X) | Y)
+
+complement is:
+
+uX. \/_G vY. cpre'((!G | X) & Y)
+
+On the first iteration of the outer fixed point this calculates the regions where we can force execution to stay in !g for at least one goal. This includes states that are one step outside each goal as well. It then repeats this with each goal modified to include the previously found region. ie. can we force some goal to be violated forever or enter the previously found set, which is known to be winning. 
+
+What is the intuitive meaning of a counterexample for a generalized Buchi game?
+
+There is one strategy per goal. In any winning state for player 2, there will always be at least one goal with a counterexample strategy. This strategy guarantees that either the goal is violated forever or we enter a set of states that is one iteration of the X fixed point closer to the start. If, while playing against the counterexample, we find that there is no longer any strategy, we must have got one step further in for the X fixed point. At this point we change strategy. These strategy changes can only happen a finite number of times, guaranteeing that at least one goal will be violated forever. 
+
+However, we can not pick at the start which goal this will be. It depends on the strategy we play as player 1. We can only guarantee that some goal will be violated. Also, as in the Buchi example, we cannot force execution into a final set where is it impossible to hit the goal again. 
+

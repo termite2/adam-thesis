@@ -1,0 +1,354 @@
+\documentclass{article}
+
+\usepackage[margin=1in]{geometry}
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+\usepackage{graphicx}
+\usepackage{amssymb}
+
+\title{Device Driver Synthesis}
+\author{Adam Walker}
+
+\newcommand{\buchi}{Buchi }
+\newcommand{\reach}[0]{\textsc{Reach}}
+\newcommand{\safe}[0]{\textsc{Safe}}
+\newcommand{\concrete}[1]{#1\mathord{\downarrow}}
+\newcommand{\abstractm}[1]{#1\mathord{\uparrow^m}}
+\newcommand{\abstractM}[1]{#1\mathord{\uparrow^M}}
+
+\begin{document}
+
+\maketitle
+\tableofcontents
+
+\section{Introduction}
+
+\subsection{Termite}
+\subsection{Contributions}
+\subsection{Chapter outline}
+
+\section{Background}
+
+\section{Related work}
+\subsection{Fault tolerance}
+\subsection{Static analysis}
+\subsection{Other device driver synthesis projects}
+\subsection{Reactive synthesis}
+
+\section{Games}
+
+Two-player games are a useful formalism for reactive synthesis. Many problems in electronic design automation, industrial automation and robotics can be formalised as games. Additionally, the driver synthesis problem can be formalised using games, and, this is the formalism around which Termite is built. Before we present the game formalism, we present the fundamentals of $\omega$ regular games. 
+
+A two player game is played by player 1 against its opponent, player 2. It consists of a possible infinite state space $S$ on which the game is played. The game is always in some state $s \in S$ called the current state. The game progresses from state to state according to a transition relation, $\delta \subseteq (S, L, S)$ where $S$ is the set of states already introduced and $L$ is a set of label variables. A transition $t \in (S, L, S)$ is allowed in the game iff $t \in delta$. 
+
+The meaning of the label depends on the type of game, but for now we will consider turn based games. In a turn based game, $S$ is partitioned into two sets: the player-1 set$\tau_1$ and the player 2 set $\tau_2$, where $\tau_1 \cap \tau_2 = \emptyset$ and $ \tau_1 \cup \tau_2 = S$. When the current state $c$ is in $\tau_1$ player 1 gets to pick $l$ and when $c$ is in $\tau_2$ player 2 gets to pick $l$.
+
+Lastly, each game has an associated set of initial states $I \in 2^S$ where execution of the game begins.
+
+Putting this all together, we can identify a \emph{turn based game structure} $G = \langle S,L,I,\tau_1,\tau_2,\delta \rangle$ with a turn based game.
+
+A game proceeds in an infinite sequence of rounds, starting from some initial state. The infinite sequence of states visited $(s_0, s_1,\ldots) in S^\omega$ is called a path. 
+
+A game is won by player 1 if they can force the path to be within a winning set of state objectives $\Phi \subseteq S^\omega$. Obviously, an arbitrary set of infinite sequences is an extremely general, and not practically useful, way of defining an objective. In the following sections we will consider some more restricted objectives that have practical uses and eventually build up to the type of objectives used by Termite. 
+
+\subsection{Safety and reachability games}
+
+The two simplest objectives are safety and reachability. A safety game is defined by a set $SAFE \subseteq S$ that player 1 must force the game to stay within, regardless of the labels that player 2 picks. Formally, a run is safe if $\forall i. s_i \in SAFE$. 
+
+The dual of a safety game is a reachability game. A reachability game is defined by a set $REACH \subseteq S$ that player 1 must force the game to visit at least once, regardless of the labels that player 2 picks. Formally, a reachability run is winning if $\exists i. s_i \in REACH$
+
+As a prelude to what is coming, we could create a crude formalism for driver synthesis using only reachability games. Consider, for example the simple UART given in figure x. Explain how getting to the goal is a reachability game.
+
+\subsection{\buchi, fairness and GR(1) games}
+
+In this sections we will deal with the shortcomings of modelling the driver synthesis problem as a reachability game.
+
+\subsubsection{We must be able to repeatedly satisfy the OS requests}
+
+\subsubsection{We must be able to rule out invalid behaviors not easily expressed with state machines}
+
+\subsection{Game based formalism for drivers}
+
+\subsection{Solving games}
+
+We now have a formalism for the driver synthesis problem as a game. A practical driver synthesis tool using the game formalism must be able to solve and find strategies for these games for real device and operating system specifications in a reasonable amount of time. The principle challenge of this work is creating a synthesis algorithm that scales well enough to handle the large state machines of real device and operating system specifications. 
+
+In this section I will introduce the basic synthesis algorithms for games of increasing complexity. Then, I will explain the techniques I use to handle large state spaces, namely untracked variable abstraction and predicate abstraction.
+
+\subsection{Controllable predecessor}
+
+\subsubsection{Safety and reachability}
+
+We will start with reachability as it is the easiest to understand. A state is winning in a reachability game if there is some finite $i$ such that we can guarantee that after $i$ rounds of the game, execution will have, at least once, entered a state in $REACH$.
+
+We can define the winning region inductively. It is obviously possible to reach the set $REACH$ from $REACH$ in 0 steps as we are already there. This is the base case. It is also possible to reach $REACH$ from $x \in S$ in $N + 1$ steps or fewer iff it is possible to reach $REACH$ from all of $Y \subseteq 2^S$ in $N$ steps or fewer and $x \in CPRE(Y)$.
+
+This suggests an algorithm. We start with $REACH$, apply $CPRE$ to get the states winning in 1 step, combine with $REACH$ again to get the states reachable in 1 step or less, and then repeat. On each iteration we find the states winning in $N$ or less steps. Two questions remain: 
+
+\begin{itemize}
+    \item An algorithm must terminate, so, when should we stop iterating.
+    \item After termination, has the algorithm found all the winning states. 
+\end{itemize}
+
+Observe that $W_{N+1} \supseteq W_N$. So, on each iteration, we either grow the winning set or it remains the same. Also observe that our set $S$ is finite, which means that $2^S$ is also finite. As set inclusion is a transitive relation, we cannot grow our winning set forever, so eventually we must reach a fixed point of the CPRE function. 
+
+%TODO: $CPRE$ isnt the order preserving function
+Or, if you prefer, the power set of $S$ can be ordered by set inclusion to obtain a complete lattice with supremum $S$ and infimum $\emptyset$. $CPRE$ is an order preserving function, so by the Knaster-Tarski theorem the set of fixed points of $CPRE$ is also a complete lattice. Thus there exists a greatest and least fixed point (as the lattice is complete). The least fixed point of $CPRE$ is clearly obtained by iteration starting from the least element of the lattice, ie. $\emptyset$.
+
+Thus, we will eventually reach a fixed point, and, this is when we should stop iterating as further iterations will not change the winning set. Furthermore, we no that after any finite number $N$ of iterations where $N$ is greater than the number of iterations required to reach the fixed point, the winning region will remain $WIN$. Thus $WIN_N = WIN$ and we have found all winning states.
+
+\begin{algorithm}[t]
+\begin{algorithmic}
+\Function{Reach}{$REACH$}
+\State $Y \gets \varnothing$
+\Loop
+\State $Y' \gets CPre(Y \cup REACH)$
+\If {$Y' = Y$} 
+\State\Return $Y$\EndIf
+\State $Y \gets Y'$
+\EndLoop
+\EndFunction
+\end{algorithmic}
+\caption{Solving a reachability game}
+\label{a:reach}
+\end{algorithm}
+
+\begin{algorithm}[t]
+\begin{algorithmic}
+\Function{Safe}{$SAFE$}
+\State $Y \gets S$
+\Loop
+\State $Y' \gets CPre(Y \cap SAFE)$
+\If {$Y' = Y$} 
+\State\Return $Y$\EndIf
+\State $Y \gets Y'$
+\EndLoop
+\EndFunction
+\end{algorithmic}
+\caption{Solving a safety game}
+\label{a:safe}
+\end{algorithm}
+
+\subsubsection{GR(1)}
+
+\begin{algorithm}[t]
+\begin{algorithmic}
+\Function{Buchi}{$REACH$}
+\State $Y \gets S$
+\Loop
+\State $Y' \gets \Call{Reach}{Y \cap REACH}$
+\If {$Y' = Y$} 
+\State\Return $Y$\EndIf
+\State $Y \gets Y'$
+\EndLoop
+\EndFunction
+\end{algorithmic}
+\caption{Solving a \buchi game}
+\label{a:buchi}
+\end{algorithm}
+
+\subsection{State variable encoding}
+
+\subsection{Binary decision diagrams}
+
+The algorithm described so far appears very inefficient. Consider a reachability game. We are performing a backwards breadth-first search starting from $REACH$. If we were to implement it directly as described, we would need a set abstract datatype to represent the winning set. Some of the games we have solved with Termite have upwards of $2^80$ states, even after abstraction. Clearly, explicitly representing the winning set will never succeed. 
+
+Identical problems are encountered in model checking. The breakthrough that revolutionised model checking was to represent state sets implicitly as an equation over state variables that is true iff the state is in the set. 
+
+\subsection{Synthesis competition}
+
+BDD based solvers as I have described so far are remarkably efficient. To illustrate this point, I entered a simple BDD based solver into the reactive synthesis competition in 2014. The solver won the sequential realizability category (the only one in which it was entered). 
+
+The solver computes fixed points in a straightforward manner as already described, however, it makes use of several BDD based optimisations that are critical to its performance. These optimisations are also critical to the Termite synthesis algorithm, so they are outlined here:
+
+\begin{itemize}
+    \item Dynamic variable ordering using the sifting algorithm.
+    \item No next state variables
+    \item Partitioned transition relations
+    \item Simultaneous conjunction and quantification
+\end{itemize}
+
+\subsection{Abstraction}
+An abstraction is a simplification of the original transition system. An abstraction is used when the game is too large to be solved. Ideally, an abstraction is both small enough to be solved and detailed enough to gain some additional information about the properties of the system. 
+
+One common use of an abstraction is in an abstraction-refinement loop. In an abstraction refinement loop, an initial simple abstraction is found and is solved. Then, the results of the abstraction are used to refine the abstraction, ie. to build another system model that contains slightly more detail than the original abstraction. This is repeated in a loop until the original game is solved. It is often possible to solve the original game with a far less detailed abstraction that the original system. 
+
+Finding an abstraction that is simultaneously small and useful for making progress in solving the game is a difficult task and is what will be dealt with in the following sections. We start with earlier work on three valued abstraction refinement. 
+
+\subsection{Three valued abstraction refinement}
+
+The idea is that given an abstraction, we classify states into one of three categories: winning, losing, and unknown. If we discover that the entire initial set is winning, we know that the original game is winning and we can terminate. Dually, if we discover any initial state that is losing, we know that the entire initial set can never be winning, hence the game is losing and we can terminate. 
+
+At termination, either 
+\begin{itemize}
+\item all of the initial states are classified as winning (but the other states need not be classified), or
+\item one of the initial states is classified as losing (again, no other states need to be classified)
+\end{itemize}
+
+This additional imprecision often allows us to use a less precise abstraction compared to the original algorithm where all states are exactly classified. 
+
+We need to describe what an abstraction actually is and how we use this abstraction to classify states. 
+
+\subsubsection{Abstraction}
+
+An abstraction of a game structure $G$ is a tuple $\langle V, 
+\concrete{}\rangle$, where $V$ is a finite set of abstract states 
+and $\concrete{} : V \rightarrow 2^S $ is the \emph{concretisation 
+function}, which takes an abstract state and returns the possibly 
+empty set of concrete states that the abstract state corresponds 
+to.  We require that $\bigcup_{v\in V}\concrete{v} = S$ and         
+$\concrete{v_1}\cap \concrete{v_2} = \emptyset$ for any $v_1$ and 
+$v_2$, $v_1 \neq v_2$. In the case when $\concrete{v} = \emptyset$ 
+the abstract state $v$ is said to be \emph{inconsistent}.  We 
+extend the $\concrete{}$ operator to sets of abstract states.  For 
+$U\subseteq V$: $\concrete{U} = \bigcup_{u\in U}\concrete{u}$.
+
+\subsubsection{Algorithm}
+In this section we present a modified version of the three-valued 
+abstraction refinement technique of de~Alfaro and 
+Roy~\cite{Alfaro_Roy_07}.  To simplify the presentation, we focus 
+on solving reachability games.  De~Alfaro and Roy present an 
+extension of their method to arbitrary $\omega$-regular games.  
+This extension is directly applicable to the version of the 
+algorithm presented here.
+
+%Given an abstraction $\langle V, \concrete{}\rangle$ of a game 
+%$G$, the three-valued abstraction refinement scheme computes 
+%over- and under-approximations of the winning region of the game.  
+%If necessary, the abstraction is refined in order to narrow down 
+%the gap between the two.
+We start with defining two versions of the abstraction operator: 
+the \emph{may-abstraction} $\abstractm{}$ and the 
+\emph{must-abstraction} $\abstractM{}$. For a set of concrete 
+states $T \subseteq S$:
+$\abstractm{T} = \{v\in V\mid \concrete{v} \cap T \neq 
+\emptyset\}$, $\abstractM{T} = \{v\in V\mid \concrete{v} \subseteq 
+T \}$.
+We say that abstraction is \emph{precise} for a set $T\subseteq S$ 
+if $\concrete{(\abstractm{T})} = \concrete{(\abstractM{T})}$.
+
+Next, we define may and must versions of the abstract controllable 
+predecessor operator:
+\begin{equation}
+    \small
+    Cpre_i^m(U) = \abstractm{Cpre_i(\concrete{U})},~~
+    Cpre_i^M(U) = \abstractM{Cpre_i(\concrete{U})}
+\label{e:cpremM}
+\end{equation}
+These operators have the property:
+$\concrete{Cpre_i^M(U)} \subseteq Cpre_i(\concrete{U}) \subseteq \concrete{Cpre_i^m(U)},$ and hence
+$\concrete{\reach(\abstractM{T}, Cpre_i^M)} \subseteq \reach(T, Cpre_i) \subseteq \concrete{\reach(\abstractm{T}, Cpre_i^m)}.$
+
+The abstract $Cpre_i^m$ and $Cpre_i^M$ operators are defined in 
+terms of the concrete controllable predecessor $Cpre$. As these 
+may not be possible to compute efficiently in practice, we 
+introduce approximate versions, $Cpre_i^{m+}$ and $Cpre_i^{M-}$, 
+such that for all $U\subseteq V$: $\concrete{Cpre_i^m(U)} 
+\subseteq \concrete{Cpre_i^{m+}(U)}$ and 
+$\concrete{Cpre_i^{M-}(U)}
+\subseteq \concrete{Cpre_i^M(U)}.$  The definition of 
+$Cpre_i^{m+}$ and $Cpre_i^{M-}$ is determined by each particular 
+instantiation of the abstraction refinement scheme.  We present 
+our version of these operators in Section~\ref{s:cpre}.  
+
+Figure~\ref{f:reach} illustrates the main idea of our approach, 
+which is presented in algorithm~\ref{alg:generic}.  At every 
+iteration, the algorithm computes the must-winning set $W^M$ that 
+underapproximates, and the may-winning set $W^m$ that 
+overapproximates the true winning set (lines~2--3).  The algorithm 
+terminates if the must-winning set contains the entire initial set 
+or the may-winning set has shrunk beyond the initial set 
+(lines~4--5).  Otherwise, the algorithm refines the abstraction in 
+a way that expands the must-winning set.
+%To this end we identify a set of states from 
+%which player~1 can force the game to $W^M$ in one step.  Since all 
+%states in $W^M$ are must-winning, the new state will be 
+%must-winning as well.  Furthermore, due to the nature of the 
+%reachability game, all winning states can eventually be discovered 
+%in this way.  
+
+\begin{algorithm}[t]
+\caption{Three-valued abstraction refinement for games.}
+\label{alg:generic}
+
+\begin{algorithmic}[1]
+
+% \Function{Solve}{$transitionRelation$, $goal$}
+    \Statex {\bf Input:} A game structure $G = \langle S, L, I, \tau_1, \tau_2, \delta \rangle$, a set 
+    of target states $T\subseteq S$, and an initial abstraction $\alpha=\langle V, \concrete{}, Cpre_1^{m+}, Cpre_1^{M-} \rangle$
+    that is precise for $T$, $I$, and $\tau_i$.
+
+    \Statex {\bf Output:} {\it Yes} if $I \subseteq \reach(T, Cpre_1)$, and {\it No} otherwise.
+
+    \Loop
+        \State $W^M \gets \reach(\abstractM{T}, Cpre_1^{M-})$
+        \State $W^m \gets \reach(\abstractm{T}, Cpre_1^{m+})$
+        \If{$\abstractM{I} \subseteq W^M$} 
+            \State\Return Yes
+        \ElsIf{$\abstractM{I} \nsubseteq W^m$} 
+            \State\Return No
+        \Else       
+            \State $refined \gets \Call{refineCpre}{W^M}$
+            \If {$(\neg refined)$}
+                \State$\Call{refineAbstraction}{W^M}$
+            \EndIf
+        \EndIf
+    \EndLoop
+\end{algorithmic}
+\end{algorithm}
+
+The key observation behind the refinement procedure is that 
+candidate winning states can be found at the \emph{may-must 
+boundary} of the game, i.e., the set $Cpre_1^{m+}(W^M)\setminus 
+W^M$, of all may-predecessors of the must-winning set.  The 
+boundary consists of three regions shown in Figure~\ref{f:reach}: 
+(1) $Cpre_1^{M}(W_M)\setminus W_M$, (2) $Cpre_1^m(W^M)\setminus 
+Cpre_1^{M}(W^M)$, and (3) $Cpre_1^{m+}(W^M)\setminus 
+Cpre_1^{m}(W^M)$.  The first and the third regions can be shrunk 
+by increasing the precision of the $Cpre^{M-}$ and $Cpre^{m+}$ 
+operators respectively.  The second region can only be shrunk by 
+refining the abstraction itself, i.e., partitioning abstract 
+states into smaller regions.
+
+These two types of refinement are performed in lines~7 and~8 of 
+the algorithm.  The \textsc{refineCpre} function computes a more 
+precise version of the controllable predecessor operators.  It 
+returns $false$ iff no such refinement is possible, i.e., 
+$Cpre^{M}(W_M)=Cpre^{M-}(W_M)$ and $Cpre^{m+}(W^M)=Cpre^{m}(W^M)$.  
+The \textsc{refineAbstraction} function refines the abstract state 
+space in a way that expands the set $Cpre^M(W^M)$ with at least 
+one new abstract state.  
+%The repeated application of \textsc{refineCpre} 
+%and \textsc{refineAbstraction} has the effect of eventually 
+%extending the must-winning region $W^M$ with new states, which 
+%guarantees termination of the algorithm.
+
+Algorithm~\ref{alg:generic} differs from \cite{Alfaro_Roy_07}
+in that it uses an additional type of refinement which refines the 
+controllable predecessor operators without changing the abstract
+state space.
+
+%Use reachability
+%The 3 valued abstraction refinement paper uses an abstraction that is precise wrt the initial state. We dont need this. What is precise?
+%Iteratively classify states in may but not must as winning or not.
+%Describe it
+
+\subsubsection{An improved symbolic implementation}
+
+\subsection{Predicate abstraction}
+\subsubsection{Motivation}
+\subsubsection{Algorithm}
+
+\section{Termite}
+
+\subsection{Specifications}
+\subsection{User guided code generation}
+\subsubsection{Generating sane code}
+
+\subsection{Limitations}
+
+\subsection{Case studies}
+
+\section{Conclusions}
+
+\end{document}
