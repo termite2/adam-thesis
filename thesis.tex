@@ -74,9 +74,15 @@ If the command register is written first and then the data register there is pot
 
 So, if player 1 takes the top half of the diamond (ie. writes data before command) then it will be guaranteed to reach the goal and the reachability game is winning for player 1. The strategy to reach the goal tells us the sequence of labels the driver must play to get to the goal. In principle, this could be turned into a driver for our simple network device.
 
+\subsection{\buchi, fairness and GR(1) games}
+
 This simplistic formalism for driver synthesis has several shortcomings that we will deal with in the following sections.
 
-\subsection{\buchi, fairness and GR(1) games}
+\subsubsection{We must be able to repeatedly satisfy the OS requests}
+
+Consider a simplified network controller that does not have a command register. Instead, writing to the data register triggers transmission of the byte. However, there are two ways of writing to the data register. One is a standard register write. The other also performs the register write and then schedules a self destruct sequence to happen immediately after the byte is transmitted. The state machine for this device is shown in figure \ref{fig:buchi}. The goal, in this case, is the set ${S3, S5}$ corresponding to the state after completion of the send request. The problem is that, unless you only ever want to send one byte, this goal does not capture the required behavior. One could easily work around this problem by specifying only ${S3}$ as the goal, 
+
+The solution is to modify the objective of the game. Instead of being able to reach the goal once, we want to be able to reach the goal an infinite number of times. Or, equivalently, we want to always be able to reach the goal again. This kind of objective is called a Buchi objective and a game with a Buchi objective is called a Buchi game. 
 
 \begin{figure}[t]
 \centering
@@ -85,6 +91,14 @@ This simplistic formalism for driver synthesis has several shortcomings that we 
 \label{fig:buchi}
 \end{figure}
 
+\subsubsection{We must be able to rule out invalid behaviors not easily expressed with state machines}
+
+Consider a modification of our simplified network device without a self destruct sequence, but with the ability to check that noone is using the communication medium prior to transmitting. The state machine of this device is given in figure \ref{fig:fair}. After the user requests data transmission by writing to the data register, it executes a loop that checks if the medium is free, and if so, it performs the transmission. 
+
+If we pose this as a reachability game with goal state $G$, then the game is not winnable. The device may stay in the loop forever as it is never guaranteed to exit. Such a behavior should not prevent a driver from being synthesized providing that we have good reason to believe that the loop will eventually exit. Looping forever can be seen as a invalid behavior and we want to synthesize a driver for this system providing the invalid behavior does not occur. 
+
+In model checking these behaviors are eliminated with fairness conditions. Fairness conditions are sets of states which we guarantee will eventually be left, which we refer to as unfair states. In the example, the unfair states are the set ${S2, S3}$. The fairness condition says that we will eventually leave the unfair set, and the only way of doing this is through the $evt\_send$ transition, and the game becomes winning.
+
 \begin{figure}[t]
 \centering
 \includegraphics{diagrams/fairreach.pdf}
@@ -92,11 +106,9 @@ This simplistic formalism for driver synthesis has several shortcomings that we 
 \label{fig:fair}
 \end{figure}
 
-\subsubsection{We must be able to repeatedly satisfy the OS requests}
-
-\subsubsection{We must be able to rule out invalid behaviors not easily expressed with state machines}
-
 \subsection{Game based formalism for drivers}
+
+The combination of fairness and buchi objectives is called a GR(1) objective. Intuitively a GR(1) objective says that we can always reach some goal state provided that we do not get stuck forever in some unfair set of states. We use GR(1) objectives in Termite as we have found that in practice it is sufficient to express our goals.
 
 \subsection{Solving games}
 
@@ -374,6 +386,7 @@ state space.
 \subsection{User guided code generation}
 \subsubsection{Generating sane code}
 
+\subsection{Counterexample guided debugging}
 \subsection{Limitations}
 
 \subsection{A realistic example}
