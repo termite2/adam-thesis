@@ -118,6 +118,10 @@ In this section I will introduce the basic synthesis algorithms for games of inc
 
 \subsubsection{Controllable predecessor}
 
+All of the synthesis algorithms for games I will be describing use a function called the controllable predecessor (abbreviated CPre). CPre is a function from a set of game states ($2^S$) to another set of game states. Given a set $T$, $CPre(T)$ returns the set of states from which player 1 can force execution into $T$ in one step. 
+
+The exact details of $CPre$ do not matter and it can be considered to be a parameter to the game solving algorithms. The function it computes depends on the application and I will be describing the driver synthesis $CPre$ later. For now, the only property of $CPre$ that we require is that it is monotonic, ie. if $X \subseteq Y$ then $CPre(X) \subseteq CPre(Y)$. Clearly, any reasonable $CPre$ function will have this property.
+
 \subsubsection{Safety and reachability}
 
 We will start with reachability as it is the easiest to understand. A state is winning in a reachability game if there is some finite $i$ such that we can guarantee that after $i$ rounds of the game, execution will have, at least once, entered a state in $REACH$.
@@ -127,8 +131,8 @@ We can define the winning region inductively. It is obviously possible to reach 
 This suggests an algorithm. We start with $REACH$, apply $CPRE$ to get the states winning in 1 step, combine with $REACH$ again to get the states reachable in 1 step or less, and then repeat. On each iteration we find the states winning in $N$ or less steps. Two questions remain: 
 
 \begin{itemize}
-    \item An algorithm must terminate, so, when should we stop iterating.
-    \item After termination, has the algorithm found all the winning states. 
+    \item An algorithm must terminate, so, when should we stop iterating?
+    \item After termination, has the algorithm found all the winning states?
 \end{itemize}
 
 Observe that $W_{N+1} \supseteq W_N$. So, on each iteration, we either grow the winning set or it remains the same. Also observe that our set $S$ is finite, which means that $2^S$ is also finite. As set inclusion is a transitive relation, we cannot grow our winning set forever, so eventually we must reach a fixed point of the CPRE function. 
@@ -136,7 +140,19 @@ Observe that $W_{N+1} \supseteq W_N$. So, on each iteration, we either grow the 
 %TODO: $CPRE$ isnt the order preserving function
 Or, if you prefer, the power set of $S$ can be ordered by set inclusion to obtain a complete lattice with supremum $S$ and infimum $\emptyset$. $CPRE$ is an order preserving function, so by the Knaster-Tarski theorem the set of fixed points of $CPRE$ is also a complete lattice. Thus there exists a greatest and least fixed point (as the lattice is complete). The least fixed point of $CPRE$ is clearly obtained by iteration starting from the least element of the lattice, ie. $\emptyset$.
 
-Thus, we will eventually reach a fixed point, and, this is when we should stop iterating as further iterations will not change the winning set. Furthermore, we no that after any finite number $N$ of iterations where $N$ is greater than the number of iterations required to reach the fixed point, the winning region will remain $WIN$. Thus $WIN_N = WIN$ and we have found all winning states.
+Thus, we will eventually reach a fixed point, and, this is when we should stop iterating as further iterations will not change the winning set. Furthermore, we know that after any finite number $N$ of iterations where $N$ is greater than the number of iterations required to reach the fixed point, the winning region will remain $WIN$. Thus $WIN_N = WIN$ and we have found all winning states.
+
+Safety games are the dual of reachability games and are also solved by iterating the controllable predecessor. They will not be described here.
+
+\begin{equation}
+REACH(T) = \mu X. CPre(X \vee T)
+\label{equ:mu_reach}
+\end{equation}
+
+\begin{equation}
+SAFE(T) = \nu X. CPre(X \wedge T)
+\label{equ:mu_safe}
+\end{equation}
 
 \begin{algorithm}[t]
 \begin{algorithmic}
@@ -156,7 +172,7 @@ Thus, we will eventually reach a fixed point, and, this is when we should stop i
 
 \begin{algorithm}[t]
 \begin{algorithmic}
-\Function{Safe}{$SAFE$}
+\Function{Safe}{$SAFE$, $CPre$}
 \State $Y \gets S$
 \Loop
 \State $Y' \gets CPre(Y \cap SAFE)$
@@ -172,12 +188,18 @@ Thus, we will eventually reach a fixed point, and, this is when we should stop i
 
 \subsubsection{GR(1)}
 
+We will build on our algorithm for reachability games to solve Buchi and then GR(1) games. To solve a Buchi game, you first find the set from which you can reach the goal once as you do for a reachability game. Then, you use this set to find the set from which you can reach the goal twice, three times, and so on until you get to another fixed point. 
+
+Imagine you have solved the reachability game $R = REACH(T)$ where $T$ is the Buchi target set and $R$ is the winning region. Then $V = R \wedge T$ is a subset of the goal from which you can reach the goal one more time. Computing $W = REACH(V)$ gets you the set of states from which you can reach the goal twice. Iterating this procedure will eventually lead to a fixed point as $REACH$ is a monotonic function.
+
+This fixed point is the set of states from which you can reach the goal any number of times. Thus, it is the winning set of the Buchi game. The algorithm is given in algorithm \ref{a:buch}.
+
 \begin{algorithm}[t]
 \begin{algorithmic}
-\Function{Buchi}{$REACH$}
+\Function{Buchi}{$T$, $CPre$}
 \State $Y \gets S$
 \Loop
-\State $Y' \gets \Call{Reach}{Y \cap REACH}$
+\State $Y' \gets \Call{Reach}{Y \cap T}$
 \If {$Y' = Y$} 
 \State\Return $Y$\EndIf
 \State $Y \gets Y'$
@@ -187,6 +209,51 @@ Thus, we will eventually reach a fixed point, and, this is when we should stop i
 \caption{Solving a \buchi game}
 \label{a:buchi}
 \end{algorithm}
+
+\begin{equation}
+BUCHI(T) = \nu X. \mu Y. CPre(Y \vee (X \wedge T))
+\label{eqn:mu_buchi}
+\end{equation}
+
+Next, we need to add fairness. Consider a fair reachability game. An unfair region is a region that we can assume execution will leave, regardless of the loops it contains. We modify the controllable predecessor to create a fair controllable predecessor that takes this into account. Intuitively, the algorithm considers a block of unfair states to be winning if the only way out leads to an already winning state. To achieve this, we play a variation of a safety game where we can win if we stay entirely within the unfair set or upon exiting the unfair set we are immediately in the target set $T$. The procedure for the fair controllable predecessor is given in algorithm \ref{a:fair_cpre}. Using $Fair\_CPre$ as the $CPre$ operator in the reachability algorithm (algorithm \ref{a:reach}) yields the fair reachability algorithm. The reader is invited to check that this algorithm correctly determines that all states in figure \ref{fig:fair} are winning.
+
+\begin{algorithm}[t]
+\begin{algorithmic}
+\Function{Fair\_CPre}{$CPre$, $T$}
+\State $Y \gets S$
+\Loop
+\State $Y' \gets \Call{CPre}{Y \cap T}$
+\If {$Y' = Y$} 
+\State\Return $Y$\EndIf
+\State $Y \gets Y'$
+\EndLoop
+\EndFunction
+\end{algorithmic}
+\caption{The fair controllable predecessor}
+\label{a:fair_cpre}
+\end{algorithm}
+
+\begin{equation}
+FAIR\_CPRE(U, T) = \nu X. CPre((U \wedge X) \vee T)
+\label{eqn:mu_fair}
+\end{equation}
+
+Finally, if we combine the Buchi game with the fair controllable predecessor we get a GR(1) game. The procedure is given in algorithm \ref{a:gr1}.
+
+\begin{algorithm}[t]
+\begin{algorithmic}
+\Function{GR(1)}{$CPre$, $T$}
+\State\Return \Call{Buchi}{$T$, Fair\_Cpre(CPre)}
+\EndFunction
+\end{algorithmic}
+\caption{GR(1) game}
+\label{a:gr1}
+\end{algorithm}
+
+\begin{equation}
+GR1(G, U) = \nu X. \mu Y. \nu Z. CPre((U \wedge Z) \vee (G \wedge X) \vee Y)
+\label{equ:mu_gr1}
+\end{equation}
 
 \subsection{State variable encoding}
 
@@ -200,7 +267,7 @@ Identical problems are encountered in model checking. The breakthrough that revo
 
 BDD based solvers as I have described so far are remarkably efficient. To illustrate this point, I entered a simple BDD based solver into the reactive synthesis competition in 2014. The solver won the sequential realizability category (the only one in which it was entered). 
 
-The solver computes fixed points in a straightforward manner as already described, however, it makes use of several BDD based optimisations that are critical to its performance. These optimisations are also critical to the Termite synthesis algorithm, so they are outlined here:
+The solver computes fixed points in a straightforward manner as already described, however, it makes use of several BDD based optimisations that are critical to its performance. These optimisations are also critical to the performance of the Termite synthesis algorithm, so they are outlined here:
 
 \begin{itemize}
     \item Dynamic variable ordering using the sifting algorithm.
@@ -375,6 +442,16 @@ state space.
 %Describe it
 
 \subsubsection{An improved symbolic implementation}
+
+From an email to the german guys:
+
+It's a simple abstraction-refinement loop. At the start, the safety condition is compiled to a BDD. In the master branch of my solver, I then compile update functions for each state variable. In the "untracked" branch, I only compile update functions for each state variable that occurs in the safety condition. However, these update functions may depend on additional state variables. Instead of compiling update functions for these additional state variables, I make them input variables. I refer to these as untracked variables. The state space of the game is now much smaller. The player (ie. not the environement) is free to choose the values of these inputs. This makes the game easier to win for the player.
+
+The simplified game is then solved. If the game is lost, then the player certainly loses. If the player wins, it may because the abstraction made it easer to win the game. To detect this, we do the controllable predecessor one more time, but dont quantify out the untracked variables. We pick a small losing <state, untracked> cube and change the untracked variables to state variables by computing their update functions, and solve the game again. If no such cube exists, the game is winning.
+
+On each refinement iteration, the winning region can only shrink, so we reuse the winning region from solving the last game on the next iteration. Also, if we were solving a reachability game, we would let the environment pick the valuations of the untracked variables and the winning sets would only grow.
+
+In practice, this works very well for the games I am solving to synthesize controllers for computer hardware. It does not work so well on the synthesis competition benchmarks because most of the state is needed to determine whether the game is winning, though, for some reason, it can create simpler abstractions for a lot of the unrealizable benchmarks. 
 
 \subsection{Predicate abstraction}
 \subsubsection{Motivation}
