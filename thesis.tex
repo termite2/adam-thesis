@@ -1,4 +1,4 @@
-\documentclass{article}
+\documentclass{book}
 
 \usepackage[margin=1in]{geometry}
 \usepackage{algorithm}
@@ -21,19 +21,19 @@
 \maketitle
 \tableofcontents
 
-\section{Introduction}
+\chapter{Introduction}
 
-\subsection{Termite}
-\subsection{Contributions}
-\subsection{Chapter outline}
+\section{Termite}
+\section{Contributions}
+\section{Chapter outline}
 
-\section{Background}
+\chapter{Background}
 
-\subsection{Two player games}
+\section{Two player games}
 
 Two-player games are a useful formalism for reactive synthesis. Many problems in electronic design automation, industrial automation and robotics can be formalised as a game. In particular, the driver synthesis problem can be formalised as a game, and, this is the formalism around which Termite is built. Here, we present the fundamentals of $\omega$ regular games. 
 
-\subsubsection{Formalism}
+\subsection{Formalism}
 
 A two player game is played by player~1 against its opponent, player~2. It consists of a possible infinite state space $S$ on which the game is played. The game is always in some state $s \in S$ called the current state. The game progresses from state to state according to a transition relation, $\delta \subseteq S \times L \times S$ where $S$ is the set of states and $L$ is a set of label variables. A transition $t \in S \times L \times S$ is allowed in the game iff $t \in delta$. 
 
@@ -47,13 +47,13 @@ A game proceeds in an infinite sequence of rounds, starting from some initial st
 
 A game is won by player 1 if, by picking suitable labels, they can force the path to be within a winning set of state objectives $\Phi \subseteq S^\omega$, where $S^\Omega$ is the set of all infinite sequences of states in $S$. An arbitrary set of infinite sequences is an extremely general, but not practically useful, way of defining an objective. In the following sections we will consider some more restricted objectives that have practical uses.
 
-\subsubsection{Safety and reachability games}
+\subsection{Safety and reachability games}
 
 The two simplest objectives are safety and reachability. A safety objective is defined by a set $SAFE \subseteq S$ that player 1 must force the game to stay within, regardless of the labels that player 2 picks. Formally, a run is safe if $\forall i. s_i \in SAFE$. 
 
 The dual of a safety objective is a reachability objective. A reachability objective is defined by a set $REACH \subseteq S$ that player 1 must force the game to visit at least once, regardless of the labels that player 2 picks. Formally, a reachability run is winning if $\exists i. s_i \in REACH$
 
-\subsubsection{Strategies, counterexamples}
+\subsection{Strategies, counterexamples}
 
 Given an objective, a game is either winning for player~1 or it is losing. If it is winning, then there exists a strategy for player~1. Informally, a strategy tells player~1, in any state, which label it must play and ensures that if player~1 adheres to the strategy then the objective will be satisfied.
 
@@ -63,7 +63,7 @@ Conversely, if the game is losing for player~1, then there exists a spoiling str
 
 Formally, a counterexample strategy for player~1 is a strategy for player~2 which is a function $\pi_2 : \tau_2 \rightarrow L$ that associates any player~2 state with a label for player~2 to play. Again, we have simplified the definition as there must exist a strategy that only depends on the current state. 
 
-\subsubsection{Buchi, fairness and GR(1) games}
+\subsection{Buchi, fairness and GR(1) games}
 Here we consider objectives that are more complex and more useful in practice.
 
 \paragraph{Buchi}
@@ -78,83 +78,7 @@ Sometimes it is necessary to rule out invalid plays that are not easily ruled ou
 \paragraph{GR(1)}
 A Generalized Reactive 1, or GR(1) objective, is a generalized Buchi objective with multiple fairness conditions. In practice, this turns out to be a very useful type of objective. Formally, a run satisfies a GR(1) objective if $\forall i. \forall UNFAIR \in UNFAIRS \exists j>i. s_j \notin UNFAIR \rightarrow \forall i. \forall BUCHI \in BUCHIS. \exists j>i. s_j \in BUCHI$.
 
-\subsubsection{Solving games}
-
-\subsubsection{Extracting strategies}
-
-\subsubsection{Extracting counterexamples}
-
-
-\subsection{Symbolic games}
-
-\section{Related work}
-\subsection{Fault tolerance}
-\subsection{Static analysis}
-\subsection{Other device driver synthesis projects}
-\subsection{Reactive synthesis}
-
-\section{Games}
-
-
-As a concrete example, we could create a crude formalism for driver synthesis using only a reachability game. Consider, for example, figure \ref{fig:reach}, which shows the state machine for a game to control a hypothetical network controller. Solid lines indicate controllable transitions and dashed lines indicate uncontrollable transitions. Execution begins in the leftmost state where the OS may initiate a network transfer by choosing the `send' label. The goal of the game is the rightmost state (labelled `G') as this is the point where player 1 has completed the request. So, to win, player 1 (who controls the transitions with solid lines) must ensure that execution of the state machine reaches the goal. 
-
-\begin{figure}[t]
-\centering
-\includegraphics{diagrams/reachgame.pdf}
-\caption{Reachability game for simple network device}
-\label{fig:reach}
-\end{figure}
-
-The network device has two 8-bit registers, command (abbreviated cmd) and data. Writing 0x01 to the command register starts the transfer, and eventually whatever is in the data register gets written out to the network. Note that the actual sending of the data is an uncontrollable event. 
-
-The correct sequence to win the game, therefore, is to write the data register and then the control register after the OS performs a send request. This takes us to state `S5' where the only move by player 2 is `evt\_send' taking us to the goal. 
-
-If the command register is written first and then the data register there is potential for the environment to play the `evt\_send' label before the data is written, potentially resulting in the wrong data being sent. This is the transition that terminates in the `E' state (for error). The `E' state is a dead end, so it is not possible to reach the goal. 
-
-So, if player 1 takes the top half of the diamond (ie. writes data before command) then it will be guaranteed to reach the goal and the reachability game is winning for player 1. The strategy to reach the goal tells us the sequence of labels the driver must play to get to the goal. In principle, this could be turned into a driver for our simple network device.
-
-\subsection{\buchi, fairness and GR(1) games}
-
-This simplistic formalism for driver synthesis has several shortcomings that we will deal with in the following sections.
-
-\subsubsection{We must be able to repeatedly satisfy the OS requests}
-
-Consider a simplified network controller that does not have a command register. Instead, writing to the data register triggers transmission of the byte. However, there are two ways of writing to the data register. One is a standard register write. The other also performs the register write and then schedules a self destruct sequence to happen immediately after the byte is transmitted. The state machine for this device is shown in figure \ref{fig:buchi}. The goal, in this case, is the set ${S3, S5}$ corresponding to the state after completion of the send request. The problem is that, unless you only ever want to send one byte, this goal does not capture the required behavior. One could easily work around this problem by specifying only ${S3}$ as the goal, 
-
-The solution is to modify the objective of the game. Instead of being able to reach the goal once, we want to be able to reach the goal an infinite number of times. Or, equivalently, we want to always be able to reach the goal again. This kind of objective is called a Buchi objective and a game with a Buchi objective is called a Buchi game. 
-
-\begin{figure}[t]
-\centering
-\includegraphics{diagrams/buchigame.pdf}
-\caption{Buchi game for simple network device}
-\label{fig:buchi}
-\end{figure}
-
-\subsubsection{We must be able to rule out invalid behaviors not easily expressed with state machines}
-
-Consider a modification of our simplified network device without a self destruct sequence, but with the ability to check that noone is using the communication medium prior to transmitting. The state machine of this device is given in figure \ref{fig:fair}. After the user requests data transmission by writing to the data register, it executes a loop that checks if the medium is free, and if so, it performs the transmission. 
-
-If we pose this as a reachability game with goal state $G$, then the game is not winnable. The device may stay in the loop forever as it is never guaranteed to exit. Such a behavior should not prevent a driver from being synthesized providing that we have good reason to believe that the loop will eventually exit. Looping forever can be seen as a invalid behavior and we want to synthesize a driver for this system providing the invalid behavior does not occur. 
-
-In model checking these behaviors are eliminated with fairness conditions. Fairness conditions are sets of states which we guarantee will eventually be left, which we refer to as unfair states. In the example, the unfair states are the set ${S2, S3}$. The fairness condition says that we will eventually leave the unfair set, and the only way of doing this is through the $evt\_send$ transition, and the game becomes winning.
-
-\begin{figure}[t]
-\centering
-\includegraphics{diagrams/fairreach.pdf}
-\caption{Fair reachability game for simple network device}
-\label{fig:fair}
-\end{figure}
-
-\subsection{Game based formalism for drivers}
-
-The combination of fairness and buchi objectives is called a GR(1) objective. Intuitively a GR(1) objective says that we can always reach some goal state provided that we do not get stuck forever in some unfair set of states. We use GR(1) objectives in Termite as we have found that in practice it is sufficient to express our goals.
-
 \subsection{Solving games}
-
-We now have a formalism for the driver synthesis problem as a game. A practical driver synthesis tool using the game formalism must be able to solve and find strategies for these games for real device and operating system specifications in a reasonable amount of time. The principle challenge of this work is creating a synthesis algorithm that scales well enough to handle the large state machines of real device and operating system specifications. 
-
-In this section I will introduce the basic synthesis algorithms for games of increasing complexity. Then, I will explain the techniques I use to handle large state spaces, namely untracked variable abstraction and predicate abstraction.
-
 \subsubsection{Controllable predecessor}
 
 All of the synthesis algorithms for games I will be describing use a function called the controllable predecessor (abbreviated CPre). CPre is a function from a set of game states ($2^S$) to another set of game states. Given a set $T$, $CPre(T)$ returns the set of states from which player 1 can force execution into $T$ in one step. 
@@ -294,15 +218,94 @@ GR1(G, U) = \nu X. \mu Y. \nu Z. CPre((U \wedge Z) \vee (G \wedge X) \vee Y)
 \label{equ:mu_gr1}
 \end{equation}
 
-\subsection{State variable encoding}
+\subsection{Extracting strategies}
 
+\subsection{Extracting counterexamples}
+
+\section{Symbolic games}
+
+\subsection{Symbolic algorithms}
+\subsection{Strategy generation}
 \subsection{Binary decision diagrams}
+
+\chapter{Related work}
+\section{Fault tolerance}
+\section{Static analysis}
+\section{Other device driver synthesis projects}
+\section{Reactive synthesis}
+
+\chapter{Games}
+
+
+As a concrete example, we could create a crude formalism for driver synthesis using only a reachability game. Consider, for example, figure \ref{fig:reach}, which shows the state machine for a game to control a hypothetical network controller. Solid lines indicate controllable transitions and dashed lines indicate uncontrollable transitions. Execution begins in the leftmost state where the OS may initiate a network transfer by choosing the `send' label. The goal of the game is the rightmost state (labelled `G') as this is the point where player 1 has completed the request. So, to win, player 1 (who controls the transitions with solid lines) must ensure that execution of the state machine reaches the goal. 
+
+\begin{figure}[t]
+\centering
+\includegraphics{diagrams/reachgame.pdf}
+\caption{Reachability game for simple network device}
+\label{fig:reach}
+\end{figure}
+
+The network device has two 8-bit registers, command (abbreviated cmd) and data. Writing 0x01 to the command register starts the transfer, and eventually whatever is in the data register gets written out to the network. Note that the actual sending of the data is an uncontrollable event. 
+
+The correct sequence to win the game, therefore, is to write the data register and then the control register after the OS performs a send request. This takes us to state `S5' where the only move by player 2 is `evt\_send' taking us to the goal. 
+
+If the command register is written first and then the data register there is potential for the environment to play the `evt\_send' label before the data is written, potentially resulting in the wrong data being sent. This is the transition that terminates in the `E' state (for error). The `E' state is a dead end, so it is not possible to reach the goal. 
+
+So, if player 1 takes the top half of the diamond (ie. writes data before command) then it will be guaranteed to reach the goal and the reachability game is winning for player 1. The strategy to reach the goal tells us the sequence of labels the driver must play to get to the goal. In principle, this could be turned into a driver for our simple network device.
+
+\section{\buchi, fairness and GR(1) games}
+
+This simplistic formalism for driver synthesis has several shortcomings that we will deal with in the following sections.
+
+\subsection{We must be able to repeatedly satisfy the OS requests}
+
+Consider a simplified network controller that does not have a command register. Instead, writing to the data register triggers transmission of the byte. However, there are two ways of writing to the data register. One is a standard register write. The other also performs the register write and then schedules a self destruct sequence to happen immediately after the byte is transmitted. The state machine for this device is shown in figure \ref{fig:buchi}. The goal, in this case, is the set ${S3, S5}$ corresponding to the state after completion of the send request. The problem is that, unless you only ever want to send one byte, this goal does not capture the required behavior. One could easily work around this problem by specifying only ${S3}$ as the goal, 
+
+The solution is to modify the objective of the game. Instead of being able to reach the goal once, we want to be able to reach the goal an infinite number of times. Or, equivalently, we want to always be able to reach the goal again. This kind of objective is called a Buchi objective and a game with a Buchi objective is called a Buchi game. 
+
+\begin{figure}[t]
+\centering
+\includegraphics{diagrams/buchigame.pdf}
+\caption{Buchi game for simple network device}
+\label{fig:buchi}
+\end{figure}
+
+\subsection{We must be able to rule out invalid behaviors not easily expressed with state machines}
+
+Consider a modification of our simplified network device without a self destruct sequence, but with the ability to check that noone is using the communication medium prior to transmitting. The state machine of this device is given in figure \ref{fig:fair}. After the user requests data transmission by writing to the data register, it executes a loop that checks if the medium is free, and if so, it performs the transmission. 
+
+If we pose this as a reachability game with goal state $G$, then the game is not winnable. The device may stay in the loop forever as it is never guaranteed to exit. Such a behavior should not prevent a driver from being synthesized providing that we have good reason to believe that the loop will eventually exit. Looping forever can be seen as a invalid behavior and we want to synthesize a driver for this system providing the invalid behavior does not occur. 
+
+In model checking these behaviors are eliminated with fairness conditions. Fairness conditions are sets of states which we guarantee will eventually be left, which we refer to as unfair states. In the example, the unfair states are the set ${S2, S3}$. The fairness condition says that we will eventually leave the unfair set, and the only way of doing this is through the $evt\_send$ transition, and the game becomes winning.
+
+\begin{figure}[t]
+\centering
+\includegraphics{diagrams/fairreach.pdf}
+\caption{Fair reachability game for simple network device}
+\label{fig:fair}
+\end{figure}
+
+\section{Game based formalism for drivers}
+
+The combination of fairness and buchi objectives is called a GR(1) objective. Intuitively a GR(1) objective says that we can always reach some goal state provided that we do not get stuck forever in some unfair set of states. We use GR(1) objectives in Termite as we have found that in practice it is sufficient to express our goals.
+
+\section{Solving games}
+
+We now have a formalism for the driver synthesis problem as a game. A practical driver synthesis tool using the game formalism must be able to solve and find strategies for these games for real device and operating system specifications in a reasonable amount of time. The principle challenge of this work is creating a synthesis algorithm that scales well enough to handle the large state machines of real device and operating system specifications. 
+
+In this section I will introduce the basic synthesis algorithms for games of increasing complexity. Then, I will explain the techniques I use to handle large state spaces, namely untracked variable abstraction and predicate abstraction.
+
+
+\section{State variable encoding}
+
+\section{Binary decision diagrams}
 
 The algorithm described so far appears very inefficient. Consider a reachability game. We are performing a backwards breadth-first search starting from $REACH$. If we were to implement it directly as described, we would need a set abstract datatype to represent the winning set. Some of the games we have solved with Termite have upwards of $2^{80}$ states, even after abstraction. Clearly, explicitly representing the winning set will never succeed. 
 
 Identical problems are encountered in model checking. The breakthrough that revolutionised model checking was to represent state sets implicitly as an equation over state variables that is true iff the state is in the set. 
 
-\subsection{Synthesis competition}
+\section{Synthesis competition}
 
 BDD based solvers as I have described so far are remarkably efficient. To illustrate this point, I entered a simple BDD based solver into the reactive synthesis competition in 2014. The solver won the sequential realizability category (the only one in which it was entered). 
 
@@ -315,14 +318,14 @@ The solver computes fixed points in a straightforward manner as already describe
     \item Simultaneous conjunction and quantification
 \end{itemize}
 
-\subsection{Abstraction}
+\section{Abstraction}
 An abstraction is a simplification of the original transition system. An abstraction is used when the game is too large to be solved. Ideally, an abstraction is both small enough to be solved and detailed enough to gain some additional information about the properties of the system. 
 
 One common use of an abstraction is in an abstraction-refinement loop. In an abstraction refinement loop, an initial simple abstraction is found and is solved. Then, the results of the abstraction are used to refine the abstraction, ie. to build another system model that contains slightly more detail than the original abstraction. This is repeated in a loop until the original game is solved. It is often possible to solve the original game with a far less detailed abstraction that the original system. 
 
 Finding an abstraction that is simultaneously small and useful for making progress in solving the game is a difficult task and is what will be dealt with in the following sections. We start with earlier work on three valued abstraction refinement. 
 
-\subsection{Three valued abstraction refinement}
+\section{Three valued abstraction refinement}
 
 The idea is that given an abstraction, we classify states into one of three categories: winning, losing, and unknown. If we discover that the entire initial set is winning, we know that the original game is winning and we can terminate. Dually, if we discover any initial state that is losing, we know that the entire initial set can never be winning, hence the game is losing and we can terminate. 
 
@@ -336,7 +339,7 @@ This additional imprecision often allows us to use a less precise abstraction co
 
 We need to describe what an abstraction actually is and how we use this abstraction to classify states. 
 
-\subsubsection{Abstraction}
+\subsection{Abstraction}
 
 An abstraction of a game structure $G$ is a tuple $\langle V, 
 \concrete{}\rangle$, where $V$ is a finite set of abstract states 
@@ -350,7 +353,7 @@ the abstract state $v$ is said to be \emph{inconsistent}.  We
 extend the $\concrete{}$ operator to sets of abstract states.  For 
 $U\subseteq V$: $\concrete{U} = \bigcup_{u\in U}\concrete{u}$.
 
-\subsubsection{Algorithm}
+\subsection{Algorithm}
 In this section we present a modified version of the three-valued 
 abstraction refinement technique of de~Alfaro and 
 Roy~\cite{Alfaro_Roy_07}.  To simplify the presentation, we focus 
@@ -480,7 +483,7 @@ state space.
 %Iteratively classify states in may but not must as winning or not.
 %Describe it
 
-\subsubsection{An improved symbolic implementation}
+\subsection{An improved symbolic implementation}
 
 From an email to the german guys:
 
@@ -492,25 +495,27 @@ On each refinement iteration, the winning region can only shrink, so we reuse th
 
 In practice, this works very well for the games I am solving to synthesize controllers for computer hardware. It does not work so well on the synthesis competition benchmarks because most of the state is needed to determine whether the game is winning, though, for some reason, it can create simpler abstractions for a lot of the unrealizable benchmarks. 
 
-\subsubsection{Extension to GR(1) games and correctness proof}
+\subsection{Extension to GR(1) games and correctness proof}
 
-\subsection{Predicate abstraction}
-\subsubsection{Motivation}
-\subsubsection{Algorithm}
+\section{Predicate abstraction}
+\subsection{Motivation}
+\subsection{Algorithm}
 
-\section{Termite}
+\chapter{Termite}
 
-\subsection{Specifications}
-\subsection{Heuristic code generation}
-\subsection{User guided code generation}
+\section{Specifications}
+\section{Heuristic code generation}
+\section{User guided code generation}
 
-\subsection{Counterexample guided debugging}
-\subsection{Limitations}
+\section{Counterexample guided debugging}
+\section{Limitations}
 
-\subsection{A realistic example}
+\section{A realistic example}
 
-\subsection{Case studies}
+\section{Case studies}
 
-\section{Conclusions}
+\chapter{Conclusions}
+
+\chapter{Appendix}
 
 \end{document}
