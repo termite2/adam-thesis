@@ -15,6 +15,7 @@
 \newcommand{\concrete}[1]{#1\mathord{\downarrow}}
 \newcommand{\abstractm}[1]{#1\mathord{\uparrow^m}}
 \newcommand{\abstractM}[1]{#1\mathord{\uparrow^M}}
+\newcommand{\forms}[0]{\mathcal{F}}
 
 \begin{document}
 
@@ -224,7 +225,22 @@ GR1(G, U) = \nu X. \mu Y. \nu Z. CPre((U \wedge Z) \vee (G \wedge X) \vee Y)
 
 \section{Symbolic games}
 
+The algorithm described so far appears very inefficient. Consider a reachability game. We are performing a backwards breadth-first search starting from $REACH$. If we were to implement it directly as described, we would need a set abstract datatype to represent the winning set. Some of the games we have solved with Termite have upwards of $2^{80}$ states, even after abstraction. Clearly, explicitly representing the winning set will never succeed. 
+
+Identical problems are encountered in model checking. The breakthrough that revolutionised model checking was to represent state sets implicitly as a characteristic equation over state variables.
+
+\subsection{State variable encoding}
+
+Symbolic games are defined over a finite set of state variables, $X$, and a finite set of label variables $Y$. We redefine $S$, the set of states, to be the set of possible valuations of each state variable in $X$. That is, each state $s \in S$ is given by a valuation of all of the state variables in $X$. Similarly, we redefine $L$, the set of labels, to be the set of possible valuations of each label variable in $Y$.
+
+For a set $Z$ of variables, we denote by $\forms(Z)$ the set of propositional formulas constructed from the variables in $Z$. The characteristic formula of a set of states $T$ is a function $f \in \forms(X)$ that evaluates to true for the valuation corresponding to a state $s \in T$ and false otherwise. We use characteristic formulas to represent sets of states as it is more compact than explicitly listing each member of the set. This is called a symbolic representation.
+
+Likewise, $\delta$ is specified by a formula in $\forms(X \bigcup Y \bigcup X')$, where $X' = \{x' \mid x \in X \}$ is the set of next state variables.
+
 \subsection{Symbolic algorithms}
+
+We can redefine Algorithms 1-4 using characteristic functions instead of explicit sets. The algorithms are superficially similar except they use conjunction and disjunction to modify sets instead of explicit set intersection and union. TODO: should I show the algorithms again with symbolicness?
+
 \subsection{Strategy generation}
 \subsection{Binary decision diagrams}
 
@@ -301,9 +317,6 @@ In this section I will introduce the basic synthesis algorithms for games of inc
 
 \section{Binary decision diagrams}
 
-The algorithm described so far appears very inefficient. Consider a reachability game. We are performing a backwards breadth-first search starting from $REACH$. If we were to implement it directly as described, we would need a set abstract datatype to represent the winning set. Some of the games we have solved with Termite have upwards of $2^{80}$ states, even after abstraction. Clearly, explicitly representing the winning set will never succeed. 
-
-Identical problems are encountered in model checking. The breakthrough that revolutionised model checking was to represent state sets implicitly as an equation over state variables that is true iff the state is in the set. 
 
 \section{Synthesis competition}
 
