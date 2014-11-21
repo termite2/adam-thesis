@@ -296,8 +296,7 @@ Optimal variable orderings may be found using exact algorithms, but these are pr
 
 The CUDD BDD package performs \emph{dynamic variable ordering}, which means that once the number of BDD nodes the package knows about grows past a certain threshold, the package automatically performs the requested reordering algorithm on all BDDs that exist in the manager. Dynamic variable ordering is critical to the performance of game solving algorithms that utilise BDDs and therefore we always enable it.
 
-\chapter{Games}
-
+\chapter{Driver synthesis as a Game}
 
 As a concrete example, we could create a crude formalism for driver synthesis using only a reachability game. Consider, for example, figure \ref{fig:reach}, which shows the state machine for a game to control a hypothetical network controller. Solid lines indicate controllable transitions and dashed lines indicate uncontrollable transitions. Execution begins in the leftmost state where the OS may initiate a network transfer by choosing the `send' label. The goal of the game is the rightmost state (labelled `G') as this is the point where player 1 has completed the request. So, to win, player 1 (who controls the transitions with solid lines) must ensure that execution of the state machine reaches the goal. 
 
@@ -352,17 +351,9 @@ In model checking these behaviors are eliminated with fairness conditions. Fairn
 
 The combination of fairness and buchi objectives is called a GR(1) objective. Intuitively a GR(1) objective says that we can always reach some goal state provided that we do not get stuck forever in some unfair set of states. We use GR(1) objectives in Termite as we have found that in practice it is sufficient to express our goals.
 
-\section{Solving games}
+\chapter{Solving games efficiently}
 
-We now have a formalism for the driver synthesis problem as a game. A practical driver synthesis tool using the game formalism must be able to solve and find strategies for these games for real device and operating system specifications in a reasonable amount of time. The principle challenge of this work is creating a synthesis algorithm that scales well enough to handle the large state machines of real device and operating system specifications. 
-
-In this section I will introduce the basic synthesis algorithms for games of increasing complexity. Then, I will explain the techniques I use to handle large state spaces, namely untracked variable abstraction and predicate abstraction.
-
-
-\section{State variable encoding}
-
-\section{Binary decision diagrams}
-
+We have a formalism for the driver synthesis problem as a game. A practical driver synthesis tool using the game formalism must be able to solve and find strategies for these games for real device and operating system specifications in a reasonable amount of time. The principle challenge of this work is creating a synthesis algorithm that scales well enough to handle the large state machines of real device and operating system specifications. 
 
 \section{Synthesis competition}
 
@@ -560,7 +551,7 @@ In practice, this works very well for the games I am solving to synthesize contr
 \subsection{Motivation}
 \subsection{Algorithm}
 
-\chapter{Termite}
+\chapter{User guided synthesis}
 
 \section{Specifications}
 \section{Heuristic code generation}
@@ -572,8 +563,6 @@ In practice, this works very well for the games I am solving to synthesize contr
 \section{A realistic example}
 
 \section{Case studies}
-
-\chapter{Conclusions}
 
 \chapter{Appendix}
 
