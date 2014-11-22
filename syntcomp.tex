@@ -1,0 +1,76 @@
+Our tool, Simple BDD Solver, is a substantial simplification of the solver that was developed for the Termite project (http://www.ertos.nicta.com.au/research/drivers/synthesis/) adapted to safety games given in the AIGER format. 
+
+It uses the standard symbolic algorithm to compute the winning set of states as a greatest fixed point. Binary decision diagrams are used as the symbolic algorithm. In particular, it computes:
+
+\begin{equation}
+\label{eqn:mu}
+\nu X. \forall U. \exists C. \forall S'. ((TRANS(S, U, C, S') \rightarrow X') \wedge SAFE(S, U, C))
+\end{equation}
+
+Where $U$ is the set of uncontrollable inputs, $C$ is the set of controllable inputs, $SAFE$ is the specified safety condition and $X'$ is the next state copy of $X$.
+
+The optimisations, in order of importance, that we have used are:
+\begin{itemize}
+    \item Dynamic variable reordering using the sifting algorithm
+    \item Partitioned transition relations
+    \item Direct substitution with \textsc{Cudd\_VectorCompose}
+    \item Dereference unused BDDs as soon as possible
+    \item Rearrange the computed formula to avoid creating large BDDs
+    \item Simultaneous conjunction and quantification with \textsc{Cudd\_BddAndAbstract}
+    \item Terminate early where possible
+\end{itemize}
+
+\begin{algorithm}
+\caption{Controllable predecessor}
+\label{alg:syntcomp_cpre}
+
+\begin{algorithmic}
+
+\State $substituted \gets \Call{Cudd\_VectorCompose}{target, trel}$
+\State $safeSub     \gets \Call{Cudd\_bddAndAbstract}{C, SAFE, substituted}$
+\State $winning     \gets \Call{Cudd\_bddUnivAbstract}{U, safeSub}$
+\State \Return $winning$
+
+\end{algorithmic}
+\end{algorithm}
+
+\begin{algorithm}
+\caption{Simple BDD Solver}
+\label{alg:syntcomp}
+
+\begin{algorithmic}
+
+\State $win \gets \Call{Cudd\_ReadLogicOne}{}$
+\Loop
+    \State $res \gets \Call{CPre}{fair, res}$
+    \State $win \gets \Call{Cudd\_bddLeq}{init, res}$
+    \If{!win} 
+        \State \Return $False$
+    \EndIf
+\EndLoop
+
+\end{algorithmic}
+\end{algorithm}
+
+We do not try to find a good static variable ordering at the start and instead rely on the sifting algorithm for finding good variable orderings dynamically. In our experience, the sifting algorithm provides the best trade off between the quality of the resulting ordering and time taken to find it. 
+
+\begin{equation}
+\label{eqn:mu2}
+\nu X. \forall U. \exists C. (\forall S'. (TRANS(S, U, C, S') \rightarrow X') \wedge SAFE(S, U, C))
+\end{equation}
+
+We can arrange equation \ref{eqn:mu} to move the conjunction with the safety condition outside of the innermost universal quantification, as shown in equation \ref{eqn:mu2}, as the safety condition does not depend on the next state variables. This avoids building the potentially large BDD of the conjunction.
+
+We do not compute the transition relation as a monolithic BDD defined over current state, input variables and next state. This would likely be very large and slow down the algorithm considerably. Instead, we keep it in a conjunctively partitioned form with one partition for each next state variable. We can do this because the next state of any state variable only depends on the current and input variables and not any other variables. 
+
+Furthermore, the next state of any state variable is deterministic. This means that we can represent it directly as a function of current state and input variables. We use a BDD defined over current state and input variables to represent this function. So, our transition relation is a list of BDDs, one for each state variables, each of which only depend on currents state and input variables. 
+
+To compute $\forall S'. TRANS(S, U, C, S') \rightarrow X'$, we use the CUDD function \textsc{Cudd\_VectorCompose} to substitute each update function into X. This avoids building the monolithic transition relation and, importantly, it avoids having to ever declare a next state copy of each state variable in the BDD manager. 
+
+We perform simultaneous conjunction and quantification wherever possible. The existential quantification is performed at the same time as conjunction with the safety condition using \textsc{Cudd\_BddAndAbstract}. This avoids building the potentially large BDD representing the conjunction.
+
+We terminate early when possible. As we are computing a greatest fixed point, we start with the universal set and progressively shrink it to find the winning region. Each time we shrink the winning region, we check that is it still a superset of the initial set. This allows us to terminate early if it is not as we know there is no way we can win in this case. We use the function \textsc{Cudd\_bddLeq} for this purpose as it allows us to efficiently check that one BDD implies another without constructing any intermediate BDDs.
+
+Lastly, we dereference BDDs that are no longer needed as soon as possible. Each live BDD is reordered during reordering and counted when the algorithm checks to see if the total BDD size in the manager is reduced. These unused BDDs should not count toward the total node count and time is wasted reordering them.
+
+The solver is written in the Haskell functional programming language. Altogether, the AIGER parser, compiler, command line argument parser, interface to BDD library and solver are just over 300 lines of code. The code is available online at: https://github.com/adamwalker/syntcomp.
