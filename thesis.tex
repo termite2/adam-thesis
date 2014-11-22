@@ -4,6 +4,7 @@
 \usepackage{algorithm}
 \usepackage{algpseudocode}
 \usepackage{graphicx}
+\usepackage{amsmath}
 \usepackage{amssymb}
 
 \title{Device Driver Synthesis}
@@ -355,18 +356,13 @@ The combination of fairness and buchi objectives is called a GR(1) objective. In
 
 We have a formalism for the driver synthesis problem as a game. A practical driver synthesis tool using the game formalism must be able to solve and find strategies for these games for real device and operating system specifications in a reasonable amount of time. The principle challenge of this work is creating a synthesis algorithm that scales well enough to handle the large state machines of real device and operating system specifications. 
 
+The straightforward symbolic solver that uses BDDs as the symbolic data structure is remarkably efficient. In fact, it is the current state of the art in reactive synthesis. I will use this as the starting point for my description of Termite's game solver.
+
+I will begin by describing my entry to the reactive synthesis competition in 2014. The solver won the sequential realizability category, the only category in which it was entered.  
+
 \section{Synthesis competition}
 
-BDD based solvers as I have described so far are remarkably efficient. To illustrate this point, I entered a simple BDD based solver into the reactive synthesis competition in 2014. The solver won the sequential realizability category (the only one in which it was entered). 
-
-The solver computes fixed points in a straightforward manner as already described, however, it makes use of several BDD based optimisations that are critical to its performance. These optimisations are also critical to the performance of the Termite synthesis algorithm, so they are outlined here:
-
-\begin{itemize}
-    \item Dynamic variable ordering using the sifting algorithm.
-    \item No next state variables
-    \item Partitioned transition relations
-    \item Simultaneous conjunction and quantification
-\end{itemize}
+\input{syntcomp}
 
 \section{Abstraction}
 An abstraction is a simplification of the original transition system. An abstraction is used when the game is too large to be solved. Ideally, an abstraction is both small enough to be solved and detailed enough to gain some additional information about the properties of the system. 
