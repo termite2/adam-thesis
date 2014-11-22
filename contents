@@ -1,0 +1,51 @@
+Background
+    -2 player games
+         -Formalism (games, players, strategies, cex)
+         -Safety and reachability
+         -Buchi fairness gr1
+         -Solving games (using set comprehensions)
+         -Extracting strategies
+         -Extracting Counterexamples
+    -Symbolic game solving
+         -Symbolic algorithms
+         -Strategy geenration
+         -BDDs - a way of symbolic
+
+Driver synthesis as a game
+    -Scope
+    -Formalism 
+        -Concurrent, nondet player choice, fair scheduler
+        -Device and OS state machines and synchronization
+            -Introduce state spaces, parallel composition, synchronization
+            -example: with red arrows to error states
+        -GR(1) based formalism, progressive 
+    -Specification
+        -Adam
+        -TSL
+
+Solving games efficiently
+    -Basic BDD solver and syntcomp
+    -3 valued abs refinement overview
+        -A smarter symbolic algorithm
+            -Syntactic computation of update functions (trivial)
+            -Untracked vars
+            -GR1 + correctness proof
+            -Strategy generation
+    -Predicate abstraction
+         -Motivation
+         -Syntactic computation of update functions
+         -Rest of FMCAD
+
+User guided synthesis
+    -Motivation for user guided
+    -User's perspective - I2C
+    -Code generation
+        -State simulation
+        -Turning BDDs into code
+    -Counterexamples
+    -Limitations (possibly chapter)
+
+Appendix
+    -Adam TSL reference
+    -TSL reference
+    -I2C example
