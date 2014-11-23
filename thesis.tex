@@ -184,9 +184,9 @@ SAFE(T) = \nu X. CPre(X \wedge T)
 \label{a:safe}
 \end{algorithm}
 
-\subsubsection{GR(1)}
+\subsubsection{Buchi}
 
-We will build on our algorithm for reachability games to solve Buchi and then GR(1) games. To solve a Buchi game, you first find the set from which you can reach the goal once as you do for a reachability game. Then, you use this set to find the set from which you can reach the goal twice, three times, and so on until you get to another fixed point. 
+To solve a Buchi game, you first find the set from which you can reach the goal once as you do for a reachability game. Then, you use this set to find the set from which you can reach the goal twice, three times, and so on until you get to another fixed point. 
 
 Imagine you have solved the reachability game $R = REACH(T)$ where $T$ is the Buchi target set and $R$ is the winning region. Then $V = R \wedge T$ is a subset of the goal from which you can reach the goal one more time. Computing $W = REACH(V)$ gets you the set of states from which you can reach the goal twice. Iterating this procedure will eventually lead to a fixed point as $REACH$ is a monotonic function.
 
@@ -212,6 +212,42 @@ This fixed point is the set of states from which you can reach the goal any numb
 BUCHI(T) = \nu X. \mu Y. CPre(Y \vee (X \wedge T))
 \label{eqn:mu_buchi}
 \end{equation}
+
+\subsubsection{Generalized Buchi}
+
+Solving a generalized buchi game is similar to a buchi game except that you find the set from which you can reach any goal once, then any goal twice, etc. The algorithm is a small modification to the buchi algorithm and is given in algorithm \ref{alg:gen_buchi}.
+
+\begin{algorithm}[t]
+\begin{algorithmic}
+\Function{Generalized\_Buchi}{$T$, $CPre$}
+\State $Y \gets S$
+\Loop
+
+\State $Y' \gets S$
+
+\For{\textbf{each} G in Goals}
+
+\State $Y' \gets Y' \wedge \Call{Reach}{Y \cap G}$
+
+\EndFor
+
+\If {$Y' = Y$} 
+\State\Return $Y$\EndIf
+\State $Y \gets Y'$
+
+\EndLoop
+\EndFunction
+\end{algorithmic}
+\caption{Solving a generalized \buchi game}
+\label{alg:gen_buchi}
+\end{algorithm}
+
+\begin{equation}
+    GEN\_BUCHI(T) = \nu X. \prod_{G \in GOALS} \mu Y. CPre(Y \vee (X \wedge G))
+\label{eqn:mu_buchi}
+\end{equation}
+
+\subsubsection{GR(1)}
 
 Next, we need to add fairness. Consider a fair reachability game. An unfair region is a region that we can assume execution will leave, regardless of the loops it contains. We modify the controllable predecessor to create a fair controllable predecessor that takes this into account. Intuitively, the algorithm considers a block of unfair states to be winning if the only way out leads to an already winning state. To achieve this, we play a variation of a safety game where we can win if we stay entirely within the unfair set or upon exiting the unfair set we are immediately in the target set $T$. The procedure for the fair controllable predecessor is given in algorithm \ref{a:fair_cpre}. Using $Fair\_CPre$ as the $CPre$ operator in the reachability algorithm (algorithm \ref{a:reach}) yields the fair reachability algorithm. The reader is invited to check that this algorithm correctly determines that all states in figure \ref{fig:fair} are winning.
 
