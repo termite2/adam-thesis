@@ -299,6 +299,29 @@ The CUDD BDD package performs \emph{dynamic variable ordering}, which means that
 
 \chapter{Driver synthesis as a Game}
 
+\section{Scope}
+What goes here?
+
+\section{Formalism}
+
+\subsection{Concurrent games}
+
+Our game formalism for termite makes use of concurrent games. Concurrent games differ from simpler turn based games in that in each state both players get to pick a label and the next state that the game transitions to is some function of both of those labels. Turn based games are a special case of concurrent games where in player~i states the next state is entirely determined by the label played by player~i and the other player's label is ignored. 
+
+It is important to specify which player gets to pick their label first and if the second player gets to have knowledge of the label that the first player picks when choosing their label. In Termite, player~1 (the driver) has to pick first and the environment (device and operating system) gets to pick second with knowledge of the label that the driver picked. This makes the game more difficult to win for the driver.
+
+We call the part of the label that the driver gets to pick $C$ (for controllable) and the part that the environment gets to pick $U$ (for uncontrollable). Our transition relation is defined over the current state $S$, as well as the label $C$ and $U$. Our controllable predecessor becomes:
+
+\begin{equation}
+    CPre(X) = \exists C. \forall U. \forall N. TRANS(S, C, U) \rightarrow X'
+\end{equation}
+
+We define a special variable that is part of the environment's label called \textsc{Turn}.
+
+\subsection{Device and OS state machines and synchronization}
+
+\subsection{GR(1) based formalism}
+
 As a concrete example, we could create a crude formalism for driver synthesis using only a reachability game. Consider, for example, figure \ref{fig:reach}, which shows the state machine for a game to control a hypothetical network controller. Solid lines indicate controllable transitions and dashed lines indicate uncontrollable transitions. Execution begins in the leftmost state where the OS may initiate a network transfer by choosing the `send' label. The goal of the game is the rightmost state (labelled `G') as this is the point where player 1 has completed the request. So, to win, player 1 (who controls the transitions with solid lines) must ensure that execution of the state machine reaches the goal. 
 
 \begin{figure}[t]
