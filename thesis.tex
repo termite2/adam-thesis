@@ -291,6 +291,32 @@ GR1(G, U) = \nu X. \mu Y. \nu Z. CPre((U \wedge Z) \vee (G \wedge X) \vee Y)
 
 \subsection{Extracting strategies}
 
+Once we have solved a game and determined that it is winning, we can extract a strategy. In driver synthesis, the strategy is used to generate the driver. A strategy is a relation between states and labels to play that are guaranteed to get you closer to the goal. Strategy extraction requires a straightforward modification to the game solving algorithm.
+
+When extracting a strategy for a reachability game we need to remember, for each iteration, how we got one step closer to the goal. The algorithm is given in algorithm \ref{alg:reach_strat}. 
+
+The strategy relation is initialized to the empty set. Then, we perform an iteration of the controllable predecessor. This time we use \textsc{CPre\_Strat}, which, in addition to computing the next reachable set, also computes a relation between the newly discovered winning states and the labels that take execution from these newly discovered states one step closer to the goal.
+
+On each iteration we combine this strategy for the newly discovered states with the strategy for the previously discovered states until we reach a fixed point as before. In the end, the strategy relates each state in the final winning region to a label that takes the game one step closer to the goal.
+
+\begin{algorithm}[t]
+\begin{algorithmic}
+\Function{Reach}{$REACH$}
+\State $Y \gets \varnothing$
+\State $STRAT \gets \varnothing$
+\Loop
+\State $(Y', STRAT') \gets CPre\_Strat(Y \cup REACH)$
+\If {$Y' = Y$} 
+\State\Return $(Y, STRAT)$\EndIf
+\State $STRAT \gets STRAT \cup STRAT'$
+\State $Y \gets Y'$
+\EndLoop
+\EndFunction
+\end{algorithmic}
+\caption{Extracting a strategy for a reachability game}
+\label{alg:reach_strat}
+\end{algorithm}
+
 \subsection{Extracting counterexamples}
 
 \section{Symbolic games}
