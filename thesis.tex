@@ -31,6 +31,39 @@
 
 \chapter{Background}
 
+\section{$\mu$-calculus}
+
+\subsection{Syntax}
+
+The $\mu$-calculus is a logic capable of expressing greatest and least solutions of fixed point equations $X = f(X)$ where $f$ is a monotone function. The set of formulas of $\mu$-calculus is defined as follows:
+
+Let $P$ be a set of propositions, $A$ be a set of actions and $V$ be a set of variables. Then
+\begin{itemize}
+    \item each proposition and each variable is a formula
+    \item if $\phi$ and $\psi$ are formulas then $\phi \wedge \psi$ is a formula
+    \item if $\phi$ is a formula then $\neg \phi$ is a formula
+    \item if $\phi$ is a formula and $a$ is and action then $[a]\phi$ is a formula
+    \item if $\phi$ is a formula and $Z$ a variable then $\nu X.\phi$ is a formula provided that every free occurrence of $Z$ occurs under an even number of negations
+\end{itemize}
+
+\subsection{Semantics}
+
+Given a labelled transition system $(S, R, V)$ where
+\begin{itemize}
+    \item S is a set of states
+    \item $R \subseteq S \times A \times S$
+    \item $V : Var \rightarrow 2^S$ maps each proposition to the set of states where the proposition is true
+\end{itemize}
+
+A $\mu$-calculus formula is interpreted as follows:
+\begin{itemize}
+    \item $p$ holds in the set of states $V(p)$
+    \item $\phi \wedge \psi$ holds in the set of states where both $\phi$ and $\psi$ hold
+    \item $\neg \phi$ holds in every state where $\phi$ does not hold 
+    \item $[a]\phi$ holds in a state $s$ if every $a$-transition leading out of $s$ leads to a state where $\phi$ holds
+    \item $\nu Z. \phi$ holds in any set of states $T$ such that when the variable $Z$ is set to $T$ then $\phi$ holds for all of $T$. It is the greatest fixpoint of $\phi$.
+\end{itemize}
+
 \section{Two player games}
 
 Two-player games are a useful formalism for reactive synthesis. Many problems in electronic design automation, industrial automation and robotics can be formalised as a game. In particular, the driver synthesis problem can be formalised as a game, and, this is the formalism around which Termite is built. Here, we present the fundamentals of $\omega$ regular games. 
