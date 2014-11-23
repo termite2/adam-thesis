@@ -222,13 +222,10 @@ Solving a generalized buchi game is similar to a buchi game except that you find
 \Function{Generalized\_Buchi}{$T$, $CPre$}
 \State $Y \gets S$
 \Loop
-
 \State $Y' \gets S$
 
 \For{\textbf{each} G in Goals}
-
 \State $Y' \gets Y' \wedge \Call{Reach}{Y \cap G}$
-
 \EndFor
 
 \If {$Y' = Y$} 
@@ -291,9 +288,11 @@ GR1(G, U) = \nu X. \mu Y. \nu Z. CPre((U \wedge Z) \vee (G \wedge X) \vee Y)
 
 \subsection{Extracting strategies}
 
+\subsubsection{Reachability}
+
 Once we have solved a game and determined that it is winning, we can extract a strategy. In driver synthesis, the strategy is used to generate the driver. A strategy is a relation between states and labels to play that are guaranteed to get you closer to the goal. Strategy extraction requires a straightforward modification to the game solving algorithm.
 
-When extracting a strategy for a reachability game we need to remember, for each iteration, how we got one step closer to the goal. The algorithm is given in algorithm \ref{alg:reach_strat}. 
+When extracting a strategy for a reachability game we need to record, for each iteration, how we got one step closer to the goal. The algorithm is given in algorithm \ref{alg:reach_strat}. 
 
 The strategy relation is initialized to the empty set. Then, we perform an iteration of the controllable predecessor. This time we use \textsc{CPre\_Strat}, which, in addition to computing the next reachable set, also computes a relation between the newly discovered winning states and the labels that take execution from these newly discovered states one step closer to the goal.
 
@@ -301,7 +300,7 @@ On each iteration we combine this strategy for the newly discovered states with 
 
 \begin{algorithm}[t]
 \begin{algorithmic}
-\Function{Reach}{$REACH$}
+\Function{Reach\_Strat}{$REACH$}
 \State $Y \gets \varnothing$
 \State $STRAT \gets \varnothing$
 \Loop
@@ -316,6 +315,46 @@ On each iteration we combine this strategy for the newly discovered states with 
 \caption{Extracting a strategy for a reachability game}
 \label{alg:reach_strat}
 \end{algorithm}
+
+\subsubsection{Buchi}
+
+Like a reachability strategy, a strategy for a buchi game must ensure that we eventually get to the goal. However, it must also ensure that once we get to the goal it is still possible to reach the goal again. 
+
+A buchi strategy must guarantee that we can reach the intersection of the goal and the winning region, which will be non-empty if the game is winnable. The algorithm for computing the strategy in a buchi game is given in algorithm \ref{alg:buchi_strat}.
+
+\begin{algorithm}[t]
+\begin{algorithmic}
+\Function{Buchi\_Strat}{$REACH$}
+\State $win \gets \Call{Buchi}{REACH}$
+\State \Return \Call{Reach\_Strat}{$win \cap REACH$}
+\EndFunction
+\end{algorithmic}
+\caption{Extracting a strategy for a buchi game}
+\label{alg:buchi_strat}
+\end{algorithm}
+
+\subsubsection{Generalized buchi}
+
+Like a generalized buchi strategy must ensure that we can always get to any of the goals. A generalized buchi strategy must guarantee that we can reach the intersection of any of the goals and the winning region, which will be non-empty if the game is winnable. The algorithm for computing the strategy in a generalized buchi game is given in algorithm \ref{alg:gen_buchi_strat}. It returns one strategy for each goal that ensures you can get to the goal while remaining in the winning region. 
+
+\begin{algorithm}[t]
+\begin{algorithmic}
+\Function{Gen\_Buchi\_Strat}{$REACH$}
+\State $win \gets \Call{Generalized\_Buchi}{REACH}$
+
+\For{\textbf{each} G in Goals}
+\State \Return \Call{Reach\_Strat}{$win \cap G$}
+\EndFor
+
+\EndFunction
+\end{algorithmic}
+\caption{Extracting a strategy for a generalized buchi game}
+\label{alg:gen_buchi_strat}
+\end{algorithm}
+
+\subsubsection{Fair reachability}
+
+\subsubsection{GR(1)}
 
 \subsection{Extracting counterexamples}
 
