@@ -354,6 +354,8 @@ Like a generalized buchi strategy must ensure that we can always get to any of t
 
 \subsubsection{Fair reachability}
 
+A strategy for a fair reachability game must ensure that we can reach the goal assuming that an unfair condition is not forever true. Conceptually, it tries to keep execution within an unfair region for which the only way out takes us a step closer to the goal. The algorithm for computing the strategy in a fair reachability game is given in algorithm \ref{alg:fair_reach_strat}.
+
 \subsubsection{GR(1)}
 
 \subsection{Extracting counterexamples}
@@ -382,6 +384,13 @@ We can redefine Algorithms 1-4 using characteristic functions instead of explici
 A binary decision diagram is an efficient data structure for manipulating large propositional formulas. 
 
 \subsubsection{Binary decision trees}
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=0.5\linewidth]{diagrams/decistree.pdf}
+\caption{A binary decision tree for $x \vee y$}
+\label{fig:decis_tree}
+\end{figure}
 
 Figure \ref{fig:decis_tree} shows a decision tree for the disjunction of two variables. The root node represents the disjunction function. The child nodes, or internal nodes, represent variables and the leaf nodes, or terminal nodes represent the outcome of the function. Terminal nodes are labelled either True or False. Given a valuation of A and B, we can evaluate the function by starting at the root and taking the solid arc if the variable represented by the node is assigned to True in the valuation and taking the dashed arc if the value is assigned to False. 
 
