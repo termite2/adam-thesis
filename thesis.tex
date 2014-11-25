@@ -562,17 +562,19 @@ We need to describe what an abstraction actually is and how we use this abstract
 
 \subsection{Abstraction}
 
-An abstraction of a game structure $G$ is a tuple $\langle V, 
-\concrete{}\rangle$, where $V$ is a finite set of abstract states 
-and $\concrete{} : V \rightarrow 2^S $ is the \emph{concretisation 
-function}, which takes an abstract state and returns the possibly 
-empty set of concrete states that the abstract state corresponds 
-to.  We require that $\bigcup_{v\in V}\concrete{v} = S$ and         
-$\concrete{v_1}\cap \concrete{v_2} = \emptyset$ for any $v_1$ and 
-$v_2$, $v_1 \neq v_2$. In the case when $\concrete{v} = \emptyset$ 
-the abstract state $v$ is said to be \emph{inconsistent}.  We 
-extend the $\concrete{}$ operator to sets of abstract states.  For 
-$U\subseteq V$: $\concrete{U} = \bigcup_{u\in U}\concrete{u}$.
+An abstraction of a game structure $G$ is a tuple $\langle V, \concrete{}\rangle$, where 
+\begin{itemize}
+    \item $V$ is a finite set of abstract states and 
+    \item $\concrete{} : V \rightarrow 2^S $ is the \emph{concretisation function}, which takes an abstract state and returns the possibly empty set of concrete states that the abstract state corresponds to.  
+\end{itemize}
+        
+We require that 
+\begin{itemize}
+    \item $\bigcup_{v\in V}\concrete{v} = S$, ie. the abstraction covers the entire state space. 
+    \item $\concrete{v_1}\cap \concrete{v_2} = \emptyset$ for any $v_1$ and $v_2$, $v_1 \neq v_2$, ie. the abstraction partitions the state space.
+\end{itemize}
+
+In the case when $\concrete{v} = \emptyset$ the abstract state $v$ is said to be \emph{inconsistent}. We extend the $\concrete{}$ operator to sets of abstract states as follows: for $U\subseteq V$: $\concrete{U} = \bigcup_{u\in U}\concrete{u}$.
 
 \subsection{Algorithm}
 In this section we present a modified version of the three-valued 
@@ -671,40 +673,9 @@ a way that expands the must-winning set.
 The key observation behind the refinement procedure is that 
 candidate winning states can be found at the \emph{may-must 
 boundary} of the game, i.e., the set $Cpre_1^{m+}(W^M)\setminus 
-W^M$, of all may-predecessors of the must-winning set.  The 
-boundary consists of three regions shown in Figure~\ref{f:reach}: 
-(1) $Cpre_1^{M}(W_M)\setminus W_M$, (2) $Cpre_1^m(W^M)\setminus 
-Cpre_1^{M}(W^M)$, and (3) $Cpre_1^{m+}(W^M)\setminus 
-Cpre_1^{m}(W^M)$.  The first and the third regions can be shrunk 
-by increasing the precision of the $Cpre^{M-}$ and $Cpre^{m+}$ 
-operators respectively.  The second region can only be shrunk by 
-refining the abstraction itself, i.e., partitioning abstract 
-states into smaller regions.
+W^M$, of all may-predecessors of the must-winning set. 
 
-These two types of refinement are performed in lines~7 and~8 of 
-the algorithm.  The \textsc{refineCpre} function computes a more 
-precise version of the controllable predecessor operators.  It 
-returns $false$ iff no such refinement is possible, i.e., 
-$Cpre^{M}(W_M)=Cpre^{M-}(W_M)$ and $Cpre^{m+}(W^M)=Cpre^{m}(W^M)$.  
-The \textsc{refineAbstraction} function refines the abstract state 
-space in a way that expands the set $Cpre^M(W^M)$ with at least 
-one new abstract state.  
-%The repeated application of \textsc{refineCpre} 
-%and \textsc{refineAbstraction} has the effect of eventually 
-%extending the must-winning region $W^M$ with new states, which 
-%guarantees termination of the algorithm.
-
-Algorithm~\ref{alg:generic} differs from \cite{Alfaro_Roy_07}
-in that it uses an additional type of refinement which refines the 
-controllable predecessor operators without changing the abstract
-state space.
-
-%Use reachability
-%The 3 valued abstraction refinement paper uses an abstraction that is precise wrt the initial state. We dont need this. What is precise?
-%Iteratively classify states in may but not must as winning or not.
-%Describe it
-
-\subsection{An improved symbolic implementation}
+\subsection{A symbolic implementation}
 
 From an email to the german guys:
 
