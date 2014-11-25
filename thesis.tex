@@ -392,13 +392,13 @@ A binary decision diagram is an efficient data structure for manipulating large 
 \label{fig:decis_tree}
 \end{figure}
 
-Figure \ref{fig:decis_tree} shows a decision tree for the disjunction of two variables. The root node represents the disjunction function. The child nodes, or internal nodes, represent variables and the leaf nodes, or terminal nodes represent the outcome of the function. Terminal nodes are labelled either True or False. Given a valuation of A and B, we can evaluate the function by starting at the root and taking the solid arc if the variable represented by the node is assigned to True in the valuation and taking the dashed arc if the value is assigned to False. 
+Figure \ref{fig:decis_tree} shows a decision tree for the disjunction of two variables. The root node represents the disjunction function. The child nodes, or internal nodes, represent variables and the leaf nodes, or terminal nodes represent the outcome of the function. Terminal nodes are labelled either True or False. Given a valuation of X and Y, we can evaluate the function by starting at the root and taking the solid edge if the variable represented by the node is assigned to True in the valuation and taking the dashed edge if the value is assigned to False. 
 
-For example, in the figure...
+For example, in figure \ref{fig:decis_tree}, for the valuation $x=True$ and $y=False$, we start at the root node which is labelled x as x is this node's decision variable. X is assigned to True so we follow the solid edge to the next decision node which is labelled y. Y is assigned to false so we take the dashed edge and arrive at a terminal node whos value is 1, meaning that the function evaluates to 1 for this variable valuation.
 
 \subsubsection{Ordered binary decision trees}
 
-If the order in which the variables appear along all paths starting from the root node and ending at a terminal node are the same, then the decision tree is called an ordered decision tree.
+If the order in which the variables appear along all paths starting from the root node and ending at a terminal node are the same, then the decision tree is called an ordered decision tree. The decision tree in figure \ref{fig:decis_tree} is ordered.
 
 \subsubsection{Reduced ordered binary decision diagrams}
 

@@ -17,12 +17,12 @@ t4   = (text "1" # fontSize fs <> roundedRect 10 10 1) # named "t4" # moveTo (p2
 elseStyle = with & shaftStyle %~ dashingG [1, 0.5] 0
 
 states = root <> n1 <> n2 <> t1 <> t2 <> t3 <> t4
-diag = states # connectOutside "root" "n1"
-              # connectOutside' elseStyle "root" "n2"
-              # connectOutside "n1" "t1"
-              # connectOutside' elseStyle "n1" "t2"
-              # connectOutside "n2" "t3"
-              # connectOutside' elseStyle "n2" "t4"
+diag = states # connectOutside' elseStyle "root" "n1"
+              # connectOutside "root" "n2"
+              # connectOutside' elseStyle "n1" "t1"
+              # connectOutside "n1" "t2"
+              # connectOutside' elseStyle "n2" "t3"
+              # connectOutside "n2" "t4"
 
 main = mainWith (diag :: Diagram B R2)
 
