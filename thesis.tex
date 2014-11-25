@@ -556,9 +556,7 @@ At termination, either
 \item one of the initial states is classified as losing (again, no other states need to be classified)
 \end{itemize}
 
-This additional imprecision often allows us to use a less precise abstraction compared to the original algorithm where all states are exactly classified. 
-
-We need to describe what an abstraction actually is and how we use this abstraction to classify states. 
+This additional imprecision often allows us to use a less precise abstraction compared to the original algorithm where all states are exactly classified. The use of a coarser abstraction is usually computationally more efficient. If none of the termination conditions are met then we need to refine the abstraction. A correct abstraction refinement scheme will guarantee that one of the termination conditions is eventually met after enough refinements are performed.
 
 \subsection{Abstraction}
 
@@ -577,68 +575,47 @@ We require that
 In the case when $\concrete{v} = \emptyset$ the abstract state $v$ is said to be \emph{inconsistent}. We extend the $\concrete{}$ operator to sets of abstract states as follows: for $U\subseteq V$: $\concrete{U} = \bigcup_{u\in U}\concrete{u}$.
 
 \subsection{Algorithm}
-In this section we present a modified version of the three-valued 
-abstraction refinement technique of de~Alfaro and 
-Roy~\cite{Alfaro_Roy_07}.  To simplify the presentation, we focus 
-on solving reachability games.  De~Alfaro and Roy present an 
-extension of their method to arbitrary $\omega$-regular games.  
-This extension is directly applicable to the version of the 
-algorithm presented here.
+In this section we present a modified version of the three-valued abstraction refinement technique of de~Alfaro and Roy~\cite{Alfaro_Roy_07}. To simplify the presentation, we focus on solving reachability games. 
 
-%Given an abstraction $\langle V, \concrete{}\rangle$ of a game 
-%$G$, the three-valued abstraction refinement scheme computes 
-%over- and under-approximations of the winning region of the game.  
-%If necessary, the abstraction is refined in order to narrow down 
-%the gap between the two.
-We start with defining two versions of the abstraction operator: 
-the \emph{may-abstraction} $\abstractm{}$ and the 
-\emph{must-abstraction} $\abstractM{}$. For a set of concrete 
-states $T \subseteq S$:
-$\abstractm{T} = \{v\in V\mid \concrete{v} \cap T \neq 
-\emptyset\}$, $\abstractM{T} = \{v\in V\mid \concrete{v} \subseteq 
-T \}$.
-We say that abstraction is \emph{precise} for a set $T\subseteq S$ 
-if $\concrete{(\abstractm{T})} = \concrete{(\abstractM{T})}$.
+We start with defining two versions of the abstraction operator: the \emph{may-abstraction} $\abstractm{}$ and the \emph{must-abstraction} $\abstractM{}$. For a set of concrete states $T \subseteq S$:
 
-Next, we define may and must versions of the abstract controllable 
-predecessor operator:
 \begin{equation}
-    \small
-    Cpre_i^m(U) = \abstractm{Cpre_i(\concrete{U})},~~
-    Cpre_i^M(U) = \abstractM{Cpre_i(\concrete{U})}
-\label{e:cpremM}
+\abstractm{T} = \{v\in V\mid \concrete{v} \cap T \neq \emptyset\} 
 \end{equation}
+
+\begin{equation}
+\abstractM{T} = \{v\in V\mid \concrete{v} \subseteq T \}
+\end{equation}
+
+We say that an abstraction is \emph{precise} for a set $T\subseteq S$ if :
+
+\begin{equation}
+\concrete{(\abstractm{T})} = \concrete{(\abstractM{T})}
+\end{equation}
+
+Next, we define may and must versions of the abstract controllable predecessor operator:
+
+\begin{equation}
+    Cpre_i^m(U) = \abstractm{Cpre_i(\concrete{U})}
+\end{equation}
+
+\begin{equation}
+    Cpre_i^M(U) = \abstractM{Cpre_i(\concrete{U})}
+\end{equation}
+
 These operators have the property:
-$\concrete{Cpre_i^M(U)} \subseteq Cpre_i(\concrete{U}) \subseteq \concrete{Cpre_i^m(U)},$ and hence
-$\concrete{\reach(\abstractM{T}, Cpre_i^M)} \subseteq \reach(T, Cpre_i) \subseteq \concrete{\reach(\abstractm{T}, Cpre_i^m)}.$
 
-The abstract $Cpre_i^m$ and $Cpre_i^M$ operators are defined in 
-terms of the concrete controllable predecessor $Cpre$. As these 
-may not be possible to compute efficiently in practice, we 
-introduce approximate versions, $Cpre_i^{m+}$ and $Cpre_i^{M-}$, 
-such that for all $U\subseteq V$: $\concrete{Cpre_i^m(U)} 
-\subseteq \concrete{Cpre_i^{m+}(U)}$ and 
-$\concrete{Cpre_i^{M-}(U)}
-\subseteq \concrete{Cpre_i^M(U)}.$  The definition of 
-$Cpre_i^{m+}$ and $Cpre_i^{M-}$ is determined by each particular 
-instantiation of the abstraction refinement scheme.  We present 
-our version of these operators in Section~\ref{s:cpre}.  
+\begin{equation}
+\concrete{Cpre_i^M(U)} \subseteq Cpre_i(\concrete{U}) \subseteq \concrete{Cpre_i^m(U)}
+\end{equation}
 
-Figure~\ref{f:reach} illustrates the main idea of our approach, 
-which is presented in algorithm~\ref{alg:generic}.  At every 
-iteration, the algorithm computes the must-winning set $W^M$ that 
-underapproximates, and the may-winning set $W^m$ that 
-overapproximates the true winning set (lines~2--3).  The algorithm 
-terminates if the must-winning set contains the entire initial set 
-or the may-winning set has shrunk beyond the initial set 
-(lines~4--5).  Otherwise, the algorithm refines the abstraction in 
-a way that expands the must-winning set.
-%To this end we identify a set of states from 
-%which player~1 can force the game to $W^M$ in one step.  Since all 
-%states in $W^M$ are must-winning, the new state will be 
-%must-winning as well.  Furthermore, due to the nature of the 
-%reachability game, all winning states can eventually be discovered 
-%in this way.  
+And therefore:
+
+\begin{equation}
+\concrete{\reach(\abstractM{T}, Cpre_i^M)} \subseteq \reach(T, Cpre_i) \subseteq \concrete{\reach(\abstractm{T}, Cpre_i^m)}
+\end{equation}
+
+Figure~\ref{f:reach} illustrates the main idea of our approach, which is presented in algorithm~\ref{alg:generic}.  At every iteration, the algorithm computes the must-winning set $W^M$ that underapproximates, and the may-winning set $W^m$ that overapproximates the true winning set (lines~2--3).  The algorithm terminates if the must-winning set contains the entire initial set or the may-winning set has shrunk beyond the initial set (lines~4--5).  Otherwise, the algorithm refines the abstraction in a way that expands the must-winning set.
 
 \begin{algorithm}[t]
 \caption{Three-valued abstraction refinement for games.}
@@ -670,10 +647,7 @@ a way that expands the must-winning set.
 \end{algorithmic}
 \end{algorithm}
 
-The key observation behind the refinement procedure is that 
-candidate winning states can be found at the \emph{may-must 
-boundary} of the game, i.e., the set $Cpre_1^{m+}(W^M)\setminus 
-W^M$, of all may-predecessors of the must-winning set. 
+The key observation behind the refinement procedure is that candidate winning states can be found at the \emph{may-must boundary} of the game, i.e., the set $Cpre_1^{m+}(W^M)\setminus W^M$, of all may-predecessors of the must-winning set. 
 
 \subsection{A symbolic implementation}
 
