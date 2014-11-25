@@ -402,6 +402,13 @@ If the order in which the variables appear along all paths starting from the roo
 
 \subsubsection{Reduced ordered binary decision diagrams}
 
+\begin{figure}[t]
+\centering
+\includegraphics[width=0.5\linewidth]{diagrams/bdd.pdf}
+\caption{A binary decision diagram}
+\label{fig:bdd}
+\end{figure}
+
 A reduced ordered binary decision diagram (from now on, just BDD) is created by sharing subtrees as much as possible within an ordered binary decision tree.
 
 In particular: 
@@ -410,6 +417,8 @@ In particular:
     \item Internal nodes with the same children are merged.
     \item Nodes with two identical children are removed and all incoming nodes are redirected to the child.
 \end{itemize}
+
+Figure \ref{fig:bdd} is an example of a BDD.
 
 \subsubsection{Complement arcs}
 
