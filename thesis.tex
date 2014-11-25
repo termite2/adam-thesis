@@ -6,6 +6,7 @@
 \usepackage{graphicx}
 \usepackage{amsmath}
 \usepackage{amssymb}
+\usepackage{mathtools}
 
 \title{Device Driver Synthesis}
 \author{Adam Walker}
@@ -625,23 +626,20 @@ Figure~\ref{f:reach} illustrates the main idea of our approach, which is present
 
 % \Function{Solve}{$transitionRelation$, $goal$}
     \Statex {\bf Input:} A game structure $G = \langle S, L, I, \tau_1, \tau_2, \delta \rangle$, a set 
-    of target states $T\subseteq S$, and an initial abstraction $\alpha=\langle V, \concrete{}, Cpre_1^{m+}, Cpre_1^{M-} \rangle$
+    of target states $T\subseteq S$, and an initial abstraction $\alpha=\langle V, \concrete{} \rangle$
     that is precise for $T$, $I$, and $\tau_i$.
 
     \Statex {\bf Output:} {\it Yes} if $I \subseteq \reach(T, Cpre_1)$, and {\it No} otherwise.
 
     \Loop
-        \State $W^M \gets \reach(\abstractM{T}, Cpre_1^{M-})$
-        \State $W^m \gets \reach(\abstractm{T}, Cpre_1^{m+})$
+        \State $W^M \gets \reach(\abstractM{T}, Cpre_1^M)$
+        \State $W^m \gets \reach(\abstractm{T}, Cpre_1^m)$
         \If{$\abstractM{I} \subseteq W^M$} 
             \State\Return Yes
         \ElsIf{$\abstractM{I} \nsubseteq W^m$} 
             \State\Return No
         \Else       
-            \State $refined \gets \Call{refineCpre}{W^M}$
-            \If {$(\neg refined)$}
-                \State$\Call{refineAbstraction}{W^M}$
-            \EndIf
+            \State$\Call{refineAbstraction}{W^M}$
         \EndIf
     \EndLoop
 \end{algorithmic}
@@ -650,6 +648,47 @@ Figure~\ref{f:reach} illustrates the main idea of our approach, which is present
 The key observation behind the refinement procedure is that candidate winning states can be found at the \emph{may-must boundary} of the game, i.e., the set $Cpre_1^{m+}(W^M)\setminus W^M$, of all may-predecessors of the must-winning set. 
 
 \subsection{A symbolic implementation}
+
+The description of three valued abstraction refinement leaves a lot unspecified. In particular
+
+\begin{itemize}
+    \item How is the initial abstraction specified
+    \item How is the abstraction refined
+\end{itemize}
+
+Additionally, it is not clear how to compute the controllable predecessor efficiently. As usual, the answer is to use a symbolic algorithm. I will describe an abstraction-refinement loop for boolean games. This means that all the variables are boolean and the concrete state space of the game is the Cartesian product of each of these variables.
+
+\subsubsection{Initial abstraction}
+
+The initial abstraction for a boolean reachability game is created from only the variables that are mentioned in the goal. If this set of variables is $G$ then our initial abstraction is $\langle V, \concrete{} \rangle$, where:
+\begin{itemize}
+    \item $V$, the abstract state space, is the Cartesian product of all of the variables in $G$.
+    \item $\concrete{a}$ is the set of concrete states for which the abstract variables specified by $a$ take the same values as their corresponding concrete state variables.
+\end{itemize}
+
+This abstraction satisfies our two requirements for a valid abstraction.
+
+\subsubsection{Controllable predecessor}
+
+The controllable predecessor is constructed using the transition relation. For efficiency, the transition relation will be constructed incrementally. As the state variables in our initial abstraction are only the variables in $G$, these are the only ones we need to compute the transition relation for.
+
+Assuming that the transition relation for the concrete system is given as update functions, one for each concrete variable, then computation of the abstract transition relation is straightforward. We just compile the update functions for only those variables that appear in $G$.
+
+However, there is the complication that these update functions may depend on additional variables that are not in $G$. For now we will ignore this problem and compile them anyway. We denote this extra set of variables $F$ for free for reasons that will become clear soon.
+
+We define the two controllable predecessors:
+
+\begin{equation}
+    Cpre_1^M(X) = \forall F. \exists L. \forall n. TRANS \rightarrow X
+\end{equation}
+
+\begin{equation}
+    Cpre_1^m(X) = \exists F. \exists L. \forall n. TRANS \rightarrow X
+\end{equation}
+
+We treat the free variables ($F$) as input variables. Their values are chosen by player~2 when computing $Cpre_1^M$ and by player~1 when computing $Cpre_1^m$. 
+
+\subsubsection{Refinement}
 
 From an email to the german guys:
 
@@ -680,6 +719,36 @@ Every recursive call drops one fixed point quantifier, so eventually we reach a 
 \section{Predicate abstraction}
 \subsection{Motivation}
 \subsection{Algorithm}
+
+\begin{algorithm}[t]
+\caption{Three-valued abstraction refinement for games.}
+\label{alg:generic}
+
+\begin{algorithmic}[1]
+
+% \Function{Solve}{$transitionRelation$, $goal$}
+    \Statex {\bf Input:} A game structure $G = \langle S, L, I, \tau_1, \tau_2, \delta \rangle$, a set 
+    of target states $T\subseteq S$, and an initial abstraction $\alpha=\langle V, \concrete{}, Cpre_1^{m+}, Cpre_1^{M-} \rangle$
+    that is precise for $T$, $I$, and $\tau_i$.
+
+    \Statex {\bf Output:} {\it Yes} if $I \subseteq \reach(T, Cpre_1)$, and {\it No} otherwise.
+
+    \Loop
+        \State $W^M \gets \reach(\abstractM{T}, Cpre_1^{M-})$
+        \State $W^m \gets \reach(\abstractm{T}, Cpre_1^{m+})$
+        \If{$\abstractM{I} \subseteq W^M$} 
+            \State\Return Yes
+        \ElsIf{$\abstractM{I} \nsubseteq W^m$} 
+            \State\Return No
+        \Else       
+            \State $refined \gets \Call{refineCpre}{W^M}$
+            \If {$(\neg refined)$}
+                \State$\Call{refineAbstraction}{W^M}$
+            \EndIf
+        \EndIf
+    \EndLoop
+\end{algorithmic}
+\end{algorithm}
 
 \chapter{User guided synthesis}
 
