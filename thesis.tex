@@ -668,6 +668,13 @@ The initial abstraction for a boolean reachability game is created from only the
 
 This abstraction satisfies our two requirements for a valid abstraction.
 
+\begin{figure}[t]
+\centering
+\includegraphics[width=0.5\linewidth]{diagrams/statespace.pdf}
+\caption{Abstract state space}
+\label{fig:fair}
+\end{figure}
+
 \subsubsection{Controllable predecessor}
 
 The controllable predecessor is constructed using the transition relation. For efficiency, the transition relation will be constructed incrementally. As the state variables in our initial abstraction are only the variables in $G$, these are the only ones we need to compute the transition relation for.
