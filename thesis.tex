@@ -619,7 +619,7 @@ And therefore:
 
 Figure~\ref{f:reach} illustrates the main idea of our approach, which is presented in algorithm~\ref{alg:generic}.  At every iteration, the algorithm computes the must-winning set $W^M$ that underapproximates, and the may-winning set $W^m$ that overapproximates the true winning set (lines~2--3).  The algorithm terminates if the must-winning set contains the entire initial set or the may-winning set has shrunk beyond the initial set (lines~4--5).  Otherwise, the algorithm refines the abstraction in a way that expands the must-winning set.
 
-\begin{algorithm}[t]
+\begin{algorithm}
 \caption{Three-valued abstraction refinement for games.}
 \label{alg:generic}
 
@@ -653,8 +653,8 @@ The key observation behind the refinement procedure is that candidate winning st
 The description of three valued abstraction refinement leaves a lot unspecified. In particular
 
 \begin{itemize}
-    \item How is the initial abstraction specified
-    \item How is the abstraction refined
+    \item How is the initial abstraction specified?
+    \item How is the abstraction refined?
 \end{itemize}
 
 Additionally, it is not clear how to compute the controllable predecessor efficiently. As usual, the answer is to use a symbolic algorithm. I will describe an abstraction-refinement loop for boolean games. This means that all the variables are boolean and the concrete state space of the game is the Cartesian product of each of these variables.
@@ -721,7 +721,7 @@ We treat the free variables ($F$) as input variables. Their values are chosen by
 
 \subsubsection{Refinement}
 
-\begin{algorithm}[t]
+\begin{algorithm}
 
 \caption{Pseudocode of \textsc{refineAbstraction}}
 \label{alg:refineAbstraction}
@@ -753,7 +753,7 @@ There are two straightforward optimisations we can perform to speed up the abstr
 
 $W^M$ is, by definition, the set of states from which we know we can win with the current abstraction. If we refine the abstraction, this set can only grow, so it must at least include $W^M$ from the last iteration. This means that, after refinement when we solve the game again, we may begin iterating the controllable predecessor from the previously found $W^M$. This effectively saves us from having to discover again that this set is winning with the new abstraction. The modified algorithm is given in algorithm \ref{alg:three_val_reach_reuse}.
 
-\begin{algorithm}[t]
+\begin{algorithm}
 \caption{Three-valued abstraction refinement for games.}
 \label{alg:three_val_reach_reuse}
 
@@ -786,7 +786,7 @@ $W^M$ is, by definition, the set of states from which we know we can win with th
 
 If we expect the game to be winning, and we are only interested in solving the game to compute the strategy, we may avoid computing $W^m$ entirely. The purpose of computing $W^m$ is to terminate early if our abstraction is precise enough to determine that we cannot win. If we already know that we can win or we expect it is likely that we can win, then it is not worth computing. The modified algorithm is given in algorithm \ref{alg:opt_three_val_reach}. It terminates when it discovers that the game is winning or when it finds that there are no refinements that guarantee that a new winning state will be found. The second termination condition happens when we were wrong and, in fact, the game was not winning. If we had computed a may winning set in addition, we would have discovered this much earlier so this algorithm is not a good choice when there is a reasonable possibility that the game is not winning.
 
-\begin{algorithm}[t]
+\begin{algorithm}
 \caption{Three-valued abstraction refinement for games.}
 \label{alg:opt_three_val_reach}
 
@@ -824,7 +824,7 @@ If we expect the game to be winning, and we are only interested in solving the g
 
 Safety games are solved dually to reachability games. The algorithm with the optimisation where the computed winning set is reused is given in algorithm \ref{alg:three_val_safe}.
 
-\begin{algorithm}[t]
+\begin{algorithm}
 \caption{Three-valued abstraction refinement for games.}
 \label{alg:three_val_safe}
 
@@ -853,7 +853,7 @@ Safety games are solved dually to reachability games. The algorithm with the opt
 \end{algorithmic}
 \end{algorithm}
 
-\begin{algorithm}[t]
+\begin{algorithm}
 
 \caption{Pseudocode of \textsc{refineAbstraction}}
 \label{alg:refineAbstractionSafe}
@@ -869,7 +869,7 @@ Safety games are solved dually to reachability games. The algorithm with the opt
 
 \subsection{Extension to GR(1) games and correctness proof}
 
-\begin{algorithm}[t]
+\begin{algorithm}
 \caption{Three-valued abstraction refinement for games.}
 \label{alg:generic}
 
@@ -894,7 +894,7 @@ Safety games are solved dually to reachability games. The algorithm with the opt
 \end{algorithmic}
 \end{algorithm}
 
-\begin{algorithm}[t]
+\begin{algorithm}
 
 \caption{Pseudocode of \textsc{refineAbstraction}}
 \label{alg:refineAbstraction}
@@ -927,7 +927,7 @@ Every recursive call drops one fixed point quantifier, so eventually we reach a 
 \subsection{Motivation}
 \subsection{Algorithm}
 
-\begin{algorithm}[t]
+\begin{algorithm}
 \caption{Three-valued abstraction refinement for games.}
 \label{alg:generic}
 
