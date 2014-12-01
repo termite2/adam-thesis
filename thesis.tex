@@ -709,6 +709,10 @@ In practice, this works very well for the games I am solving to synthesize contr
 
 \subsection{Optimisation}
 
+\subsubsection{Reuse $W^M$ from last iteration}
+
+$W^M$ is, by definition, the set of states from which we know we can win with the current abstraction. If we refine the abstraction, this set can only grow, so it must at least include $W^M$ from the last iteration. This means that, after refinement when we solve the game again, we may begin iterating the controllable predecessor from the previously found $W^M$. This effectively saves us from discovering that this set is winning again with the new abstraction. The modified algorithm is given in algorithm \ref{alg:three_val_reach_reuse}
+
 \begin{algorithm}[t]
 \caption{Three-valued abstraction refinement for games.}
 \label{alg:three_val_reach_reuse}
@@ -737,6 +741,10 @@ In practice, this works very well for the games I am solving to synthesize contr
     \EndLoop
 \end{algorithmic}
 \end{algorithm}
+
+\subsubsection{Do not compute $W^m$}
+
+If we expect the game to be winning, and we are only interested in solving the game to compute the strategy, we may avoid computing $W^m$ entirely. The purpose of computing $W^m$ is to terminate early if our abstraction is precise enough to determine that we cannot win. If we already know that we can win or we expect it is likely that we can win, then it is not worth computing. The modified algorithm is given in algorithm \ref{alg:opt_three_val_reach}. It terminates when it discovers that the game is winning or when it finds that there are no refinements that guarantee that a new winning state will be found. The second termination condition happens when we were wrong and, in fact, the game was not winning. If we had computed a may winning set in addition, we would have discovered this much earlier so this algorithm is not a good choice when there is a reasonable possibility that the game is not winning.
 
 \begin{algorithm}[t]
 \caption{Three-valued abstraction refinement for games.}
