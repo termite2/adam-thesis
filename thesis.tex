@@ -557,7 +557,7 @@ At termination, either
 \item one of the initial states is classified as losing (again, no other states need to be classified)
 \end{itemize}
 
-This additional imprecision often allows us to use a less precise abstraction compared to the original algorithm where all states are exactly classified. The use of a coarser abstraction is usually computationally more efficient. If none of the termination conditions are met then we need to refine the abstraction. A correct abstraction refinement scheme will guarantee that one of the termination conditions is eventually met after enough refinements are performed.
+This additional imprecision often allows us to use a less precise abstraction compared to the original algorithm where all states are exactly classified. The use of a coarser abstraction is usually computationally more efficient. If none of the termination conditions are met then we need to refine the abstraction. A correct abstraction refinement scheme will guarantee that one of the termination conditions is eventually met after enough refinements are performed. A good abstraction refinement scheme will ensure that when the algorithm terminates the abstraction is not unnecessarily fine.
 
 \subsection{Abstraction}
 
@@ -696,6 +696,20 @@ We define the two controllable predecessors:
 We treat the free variables ($F$) as input variables. Their values are chosen by player~2 when computing $Cpre_1^M$ and by player~1 when computing $Cpre_1^m$. 
 
 \subsubsection{Refinement}
+
+\begin{algorithm}[t]
+
+\caption{Pseudocode of \textsc{refineAbstraction}}
+\label{alg:refineAbstraction}
+
+\begin{algorithmic}[1]
+\Function{refineAbstraction}{$W^M$}
+    \State $U^M \gets CpreU_1^{M-}(W^M) \land \overline{W^M}$
+    \State $toPromote \gets \vec{\omega}~\cap~$\Call{support}{\textsc{shortPrime}($U^M$)}
+    \State $\Call{promote}{toPromote}$
+\EndFunction
+\end{algorithmic}
+\end{algorithm}
 
 From an email to the german guys:
 
