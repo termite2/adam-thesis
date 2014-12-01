@@ -709,9 +709,11 @@ In practice, this works very well for the games I am solving to synthesize contr
 
 \subsection{Optimisation}
 
-\subsubsection{Reuse $W^M$ from last iteration}
+There are two straightforward optimisations we can perform to speed up the abstraction refinement loop. The first is critical in practice as it drastically improves the performance of the algorithm.
 
-$W^M$ is, by definition, the set of states from which we know we can win with the current abstraction. If we refine the abstraction, this set can only grow, so it must at least include $W^M$ from the last iteration. This means that, after refinement when we solve the game again, we may begin iterating the controllable predecessor from the previously found $W^M$. This effectively saves us from discovering that this set is winning again with the new abstraction. The modified algorithm is given in algorithm \ref{alg:three_val_reach_reuse}
+\subsubsection{Reuse $W^M$ from the last abstraction-refinement iteration}
+
+$W^M$ is, by definition, the set of states from which we know we can win with the current abstraction. If we refine the abstraction, this set can only grow, so it must at least include $W^M$ from the last iteration. This means that, after refinement when we solve the game again, we may begin iterating the controllable predecessor from the previously found $W^M$. This effectively saves us from having to discover again that this set is winning with the new abstraction. The modified algorithm is given in algorithm \ref{alg:three_val_reach_reuse}.
 
 \begin{algorithm}[t]
 \caption{Three-valued abstraction refinement for games.}
