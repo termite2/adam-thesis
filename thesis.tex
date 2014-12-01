@@ -7,6 +7,7 @@
 \usepackage{amsmath}
 \usepackage{amssymb}
 \usepackage{mathtools}
+\usepackage{listings}
 
 \title{Device Driver Synthesis}
 \author{Adam Walker}
@@ -658,11 +659,34 @@ The description of three valued abstraction refinement leaves a lot unspecified.
 
 Additionally, it is not clear how to compute the controllable predecessor efficiently. As usual, the answer is to use a symbolic algorithm. I will describe an abstraction-refinement loop for boolean games. This means that all the variables are boolean and the concrete state space of the game is the Cartesian product of each of these variables.
 
+For clarity, I have created a running example which I will refer to throughout the description of the symbolic algorithm. The example is given in figure \ref{fig:running_example}.
+
+\lstset{
+    numbers=left,
+    frame=single
+}
+
+\begin{figure}
+    \begin{lstlisting}[mathescape]
+
+Goal: X==True $\wedge$ Y==True
+Init: X==False $\wedge$ Y==False
+
+a1: X := True;
+a2: Y := U;
+a3: U := True;
+a3: V := True;
+
+\end{lstlisting}
+\caption{The game specification for our running example}
+\label{fig:running_example}
+\end{figure}
+
 \subsubsection{Initial abstraction}
 
 The initial abstraction for a boolean reachability game is created from only the variables that are mentioned in the goal. If this set of variables is $G$ then our initial abstraction is $\langle V, \concrete{} \rangle$, where:
 \begin{itemize}
-    \item $V$, the abstract state space, is the Cartesian product of all of the variables in $G$.
+    \item $V$, the abstract state space, is the Cartesian product of the domains of the variables in $G$.
     \item $\concrete{a}$ is the set of concrete states for which the abstract variables specified by $a$ take the same values as their corresponding concrete state variables.
 \end{itemize}
 
