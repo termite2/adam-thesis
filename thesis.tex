@@ -666,7 +666,7 @@ The initial abstraction for a boolean reachability game is created from only the
     \item $\concrete{a}$ is the set of concrete states for which the abstract variables specified by $a$ take the same values as their corresponding concrete state variables.
 \end{itemize}
 
-This abstraction satisfies our two requirements for a valid abstraction. The abstraction is illustrated in figure \ref{fig:abs_state_sp}. The abstract states are illustrated by the solid squares. There is one state for each valuation of $X$ and $Y$, the variables that occur in the goal. Each abstract state is partitioned into four concrete states, one for each valuation of the concrete variables that were dropped from the abstraction, $U$ and $V$. 
+This abstraction satisfies our two requirements for a valid abstraction. The abstraction is illustrated in figure \ref{fig:abs_state_sp}. The abstract states are illustrated by the solid squares. There is one state for each valuation of $X$ and $Y$, the variables that occur in the goal. Each abstract state is partitioned into four concrete states, one for each valuation of the concrete variables that were dropped from the abstraction, $U$ and $V$. It is clear from the figure that the abstraction forms a partition of the concrete state space and that it covers the entire concrete state space.
 
 \begin{figure}[t]
 \centering
