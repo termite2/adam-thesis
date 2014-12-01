@@ -728,7 +728,7 @@ We treat the free variables ($F$) as input variables. Their values are chosen by
 
 \begin{algorithmic}[1]
 \Function{refineAbstraction}{$W^M$}
-    \State $U^M \gets CpreU_1^{M-}(W^M) \land \overline{W^M}$
+    \State $U^M \gets CpreU_1^M(W^M) \land \overline{W^M}$
     \State $toPromote \gets \vec{\omega}~\cap~$\Call{support}{\textsc{shortPrime}($U^M$)}
     \State $\Call{promote}{toPromote}$
 \EndFunction
@@ -820,7 +820,94 @@ If we expect the game to be winning, and we are only interested in solving the g
     \item The algorithm reuses earlier work by reusing the winning set.
 \end{itemize}
 
+\subsection{Safety games}
+
+Safety games are solved dually to reachability games. The algorithm with the optimisation where the computed winning set is reused is given in algorithm \ref{alg:three_val_safe}.
+
+\begin{algorithm}[t]
+\caption{Three-valued abstraction refinement for games.}
+\label{alg:three_val_safe}
+
+\begin{algorithmic}[1]
+
+% \Function{Solve}{$transitionRelation$, $goal$}
+    \Statex {\bf Input:} A game structure $G = \langle S, L, I, \tau_1, \tau_2, \delta \rangle$, a set 
+    of target states $T\subseteq S$, and an initial abstraction $\alpha=\langle V, \concrete{} \rangle$
+    that is precise for $T$, $I$, and $\tau_i$.
+
+    \Statex {\bf Output:} {\it Yes} if $I \subseteq \safe(T, Cpre_1)$, and {\it No} otherwise.
+
+    \State $W^M \gets \emptyset$
+
+    \Loop
+        \State $W^M \gets \safe(\abstractM{T} \wedge W^m, Cpre_1^M)$
+        \State $W^m \gets \safe(\abstractm{T} \wedge W^m, Cpre_1^m)$
+        \If{$\abstractM{I} \subseteq W^M$} 
+            \State\Return Yes
+        \ElsIf{$\abstractM{I} \nsubseteq W^m$} 
+            \State\Return No
+        \Else       
+            \State$\Call{refineAbstraction}{W^m}$
+        \EndIf
+    \EndLoop
+\end{algorithmic}
+\end{algorithm}
+
+\begin{algorithm}[t]
+
+\caption{Pseudocode of \textsc{refineAbstraction}}
+\label{alg:refineAbstractionSafe}
+
+\begin{algorithmic}[1]
+\Function{refineAbstraction}{$W^m$}
+\State $U^m \gets \overline{CpreU_1^{m}(W^m)} \land W^M$
+    \State $toPromote \gets \vec{\omega}~\cap~$\Call{support}{\textsc{shortPrime}($U^m$)}
+    \State $\Call{promote}{toPromote}$
+\EndFunction
+\end{algorithmic}
+\end{algorithm}
+
 \subsection{Extension to GR(1) games and correctness proof}
+
+\begin{algorithm}[t]
+\caption{Three-valued abstraction refinement for games.}
+\label{alg:generic}
+
+\begin{algorithmic}[1]
+
+% \Function{Solve}{$transitionRelation$, $goal$}
+    \Statex {\bf Input:} A game structure $G = \langle S, L, I, \tau_1, \tau_2, \delta \rangle$, a set of sets of target states $T\subseteq 2^S$, a set of sets of fair states $F\subseteq 2^S$, and an initial abstraction $\alpha=\langle V, \concrete{} \rangle$ that is precise for $T$, $F$, $I$, and $\tau_i$.
+
+    \Statex {\bf Output:} {\it Yes} if $I \subseteq \textsc{Buchi}(T, F, Cpre_1)$, and {\it No} otherwise.
+
+    \Loop
+    \State $W^M \gets \textsc{Buchi}(\abstractM{T}, \abstractM{F}, Cpre_1^M)$
+    \State $W^m \gets \textsc{Buchi}(\abstractm{T}, \abstractm{F}, Cpre_1^m)$
+        \If{$\abstractM{I} \subseteq W^M$} 
+            \State\Return Yes
+        \ElsIf{$\abstractM{I} \nsubseteq W^m$} 
+            \State\Return No
+        \Else       
+            \State$\Call{refineAbstraction}{W^M}$
+        \EndIf
+    \EndLoop
+\end{algorithmic}
+\end{algorithm}
+
+\begin{algorithm}[t]
+
+\caption{Pseudocode of \textsc{refineAbstraction}}
+\label{alg:refineAbstraction}
+
+\begin{algorithmic}[1]
+\Function{refineAbstraction}{$W^M$}
+    \State $U^M \gets CpreU_1^{M-}(W^M) \land \overline{W^M}$
+    \State $toPromote \gets \vec{\omega}~\cap~$\Call{support}{\textsc{shortPrime}($U^M$)}
+    \State $\Call{promote}{toPromote}$
+\EndFunction
+\end{algorithmic}
+\end{algorithm}
+
 
 from the FMCAD paper
 
