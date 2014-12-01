@@ -711,6 +711,35 @@ In practice, this works very well for the games I am solving to synthesize contr
 
 \begin{algorithm}[t]
 \caption{Three-valued abstraction refinement for games.}
+\label{alg:three_val_reach_reuse}
+
+\begin{algorithmic}[1]
+
+% \Function{Solve}{$transitionRelation$, $goal$}
+    \Statex {\bf Input:} A game structure $G = \langle S, L, I, \tau_1, \tau_2, \delta \rangle$, a set 
+    of target states $T\subseteq S$, and an initial abstraction $\alpha=\langle V, \concrete{} \rangle$
+    that is precise for $T$, $I$, and $\tau_i$.
+
+    \Statex {\bf Output:} {\it Yes} if $I \subseteq \reach(T, Cpre_1)$, and {\it No} otherwise.
+
+    \State $W^M \gets \emptyset$
+
+    \Loop
+        \State $W^M \gets \reach(\abstractM{T} \vee W^M, Cpre_1^M)$
+        \State $W^m \gets \reach(\abstractm{T} \vee W^M, Cpre_1^m)$
+        \If{$\abstractM{I} \subseteq W^M$} 
+            \State\Return Yes
+        \ElsIf{$\abstractM{I} \nsubseteq W^m$} 
+            \State\Return No
+        \Else       
+            \State$\Call{refineAbstraction}{W^M}$
+        \EndIf
+    \EndLoop
+\end{algorithmic}
+\end{algorithm}
+
+\begin{algorithm}[t]
+\caption{Three-valued abstraction refinement for games.}
 \label{alg:opt_three_val_reach}
 
 \begin{algorithmic}[1]
