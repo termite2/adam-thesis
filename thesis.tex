@@ -707,6 +707,35 @@ On each refinement iteration, the winning region can only shrink, so we reuse th
 
 In practice, this works very well for the games I am solving to synthesize controllers for computer hardware. It does not work so well on the synthesis competition benchmarks because most of the state is needed to determine whether the game is winning, though, for some reason, it can create simpler abstractions for a lot of the unrealizable benchmarks. 
 
+\subsection{Optimisation}
+
+\begin{algorithm}[t]
+\caption{Three-valued abstraction refinement for games.}
+\label{alg:opt_three_val_reach}
+
+\begin{algorithmic}[1]
+
+% \Function{Solve}{$transitionRelation$, $goal$}
+    \Statex {\bf Input:} A game structure $G = \langle S, L, I, \tau_1, \tau_2, \delta \rangle$, a set 
+    of target states $T\subseteq S$, and an initial abstraction $\alpha=\langle V, \concrete{} \rangle$
+    that is precise for $T$, $I$, and $\tau_i$.
+
+    \Statex {\bf Output:} {\it Yes} if $I \subseteq \reach(T, Cpre_1)$, and {\it No} otherwise.
+
+    \Loop
+        \State $W^M \gets \reach(\abstractM{T}, Cpre_1^M)$
+        \If{$\abstractM{I} \subseteq W^M$} 
+            \State\Return Yes
+        \Else       
+            \State $res \gets \Call{refineAbstraction}{W^M}$
+            \If{$res == False$}
+                \State\Return No
+            \EndIf
+        \EndIf
+    \EndLoop
+\end{algorithmic}
+\end{algorithm}
+
 \subsection{Extension to GR(1) games and correctness proof}
 
 from the FMCAD paper
