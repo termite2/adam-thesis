@@ -760,7 +760,7 @@ There are two straightforward optimisations we can perform to speed up the abstr
 $W^M$ is, by definition, the set of states from which we know we can win with the current abstraction. If we refine the abstraction, this set can only grow, so it must at least include $W^M$ from the last iteration. This means that, after refinement when we solve the game again, we may begin iterating the controllable predecessor from the previously found $W^M$. This effectively saves us from having to discover again that this set is winning with the new abstraction. The modified algorithm is given in algorithm \ref{alg:three_val_reach_reuse}.
 
 \begin{algorithm}
-\caption{Three-valued abstraction refinement for games.}
+\caption{Three-valued abstraction algorithm optimised to reuse previously discovered winning regions.}
 \label{alg:three_val_reach_reuse}
 
 \begin{algorithmic}[1]
@@ -793,7 +793,7 @@ $W^M$ is, by definition, the set of states from which we know we can win with th
 If we expect the game to be winning, and we are only interested in solving the game to compute the strategy, we may avoid computing $W^m$ entirely. The purpose of computing $W^m$ is to terminate early if our abstraction is precise enough to determine that we cannot win. If we already know that we can win or we expect it is likely that we can win, then it is not worth computing. The modified algorithm is given in algorithm \ref{alg:opt_three_val_reach}. It terminates when it discovers that the game is winning or when it finds that there are no refinements that guarantee that a new winning state will be found. The second termination condition happens when we were wrong and, in fact, the game was not winning. If we had computed a may winning set in addition, we would have discovered this much earlier so this algorithm is not a good choice when there is a reasonable possibility that the game is not winning.
 
 \begin{algorithm}
-\caption{Three-valued abstraction refinement for games.}
+\caption{Three-valued abstraction refinement for games optimised to not compute $W^m$}
 \label{alg:opt_three_val_reach}
 
 \begin{algorithmic}[1]
@@ -831,7 +831,7 @@ If we expect the game to be winning, and we are only interested in solving the g
 Safety games are solved dually to reachability games. The algorithm with the optimisation where the computed winning set is reused is given in algorithm \ref{alg:three_val_safe}.
 
 \begin{algorithm}
-\caption{Three-valued abstraction refinement for games.}
+\caption{Three-valued abstraction refinement for safety games.}
 \label{alg:three_val_safe}
 
 \begin{algorithmic}[1]
@@ -861,7 +861,7 @@ Safety games are solved dually to reachability games. The algorithm with the opt
 
 \begin{algorithm}
 
-\caption{Pseudocode of \textsc{refineAbstraction}}
+\caption{Pseudocode of \textsc{refineAbstraction for safety games}}
 \label{alg:refineAbstractionSafe}
 
 \begin{algorithmic}[1]
@@ -888,8 +888,8 @@ or
 \end{equation}
 
 \begin{algorithm}
-\caption{Three-valued abstraction refinement for games.}
-\label{alg:generic}
+\caption{Three-valued abstraction refinement for $\mu$-calculus games}
+\label{alg:generic_mu_calc}
 
 \begin{algorithmic}[1]
 
@@ -914,7 +914,7 @@ or
 
 \begin{algorithm}
 
-\caption{Pseudocode of \textsc{refineAbstraction}}
+\caption{Pseudocode of \textsc{refineAbstraction} for $\mu$-calculus games}
 \label{alg:refineAbstraction}
 
 \begin{algorithmic}[1]
