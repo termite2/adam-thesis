@@ -860,14 +860,26 @@ Safety games are solved dually to reachability games. The algorithm with the opt
 
 \begin{algorithmic}[1]
 \Function{refineAbstraction}{$W^m$}
-\State $U^m \gets \overline{CpreU_1^{m}(W^m)} \land W^M$
+\State $U^m \gets \overline{CpreU_1^{m}(W^m)} \land W^m$
     \State $toPromote \gets \vec{\omega}~\cap~$\Call{support}{\textsc{shortPrime}($U^m$)}
     \State $\Call{promote}{toPromote}$
 \EndFunction
 \end{algorithmic}
 \end{algorithm}
 
-\subsection{Extension to GR(1) games and correctness proof}
+\subsection{Arbitrary $\omega$-regular games}
+
+We generalise the algorithm to games specified by $\mu$-calculus formulas in prefix normal form, ie, formulas of the form:
+
+\begin{equation}
+\nu X. \mu Y. \ldots \phi(X, Y, \ldots)
+\end{equation}
+
+or
+
+\begin{equation}
+\mu X. \nu Y. \ldots \phi(X, Y, \ldots)
+\end{equation}
 
 \begin{algorithm}
 \caption{Three-valued abstraction refinement for games.}
@@ -876,13 +888,13 @@ Safety games are solved dually to reachability games. The algorithm with the opt
 \begin{algorithmic}[1]
 
 % \Function{Solve}{$transitionRelation$, $goal$}
-    \Statex {\bf Input:} A game structure $G = \langle S, L, I, \tau_1, \tau_2, \delta \rangle$, a set of sets of target states $T\subseteq 2^S$, a set of sets of fair states $F\subseteq 2^S$, and an initial abstraction $\alpha=\langle V, \concrete{} \rangle$ that is precise for $T$, $F$, $I$, and $\tau_i$.
+    \Statex {\bf Input:} A game structure $G = \langle S, L, I, \tau_1, \tau_2, \delta \rangle$, a specification formula in prefix normal form $\phi$, and an initial abstraction $\alpha=\langle V, \concrete{} \rangle$ that is precise for each set that occurs in $\phi$, $I$, and $\tau_i$.
 
-    \Statex {\bf Output:} {\it Yes} if $I \subseteq \textsc{Buchi}(T, F, Cpre_1)$, and {\it No} otherwise.
+    \Statex {\bf Output:} {\it Yes} if $I \subseteq \textsc{Win}(\phi, Cpre_1)$, and {\it No} otherwise.
 
     \Loop
-    \State $W^M \gets \textsc{Buchi}(\abstractM{T}, \abstractM{F}, Cpre_1^M)$
-    \State $W^m \gets \textsc{Buchi}(\abstractm{T}, \abstractm{F}, Cpre_1^m)$
+    \State $W^M \gets \textsc{Solve}(\phi, Cpre_1^M)$
+    \State $W^m \gets \textsc{Solve}(\phi, Cpre_1^m)$
         \If{$\abstractM{I} \subseteq W^M$} 
             \State\Return Yes
         \ElsIf{$\abstractM{I} \nsubseteq W^m$} 
@@ -900,16 +912,36 @@ Safety games are solved dually to reachability games. The algorithm with the opt
 \label{alg:refineAbstraction}
 
 \begin{algorithmic}[1]
-\Function{refineAbstraction}{$W^M$}
-    \State $U^M \gets CpreU_1^{M-}(W^M) \land \overline{W^M}$
-    \State $toPromote \gets \vec{\omega}~\cap~$\Call{support}{\textsc{shortPrime}($U^M$)}
-    \State $\Call{promote}{toPromote}$
+\Function{refineAbstraction}{$\phi$}
+
+    \If{$\phi = \nu X. \psi$}
+
+        \State $W^m \gets \textsc{Solve}(\phi, Cpre_1^m)$
+
+        \State $U^m \gets \overline{CpreU_1^{m}(W^m)} \land W^m$
+        \If{$U^m \neq False$}
+            \State $toPromote \gets \vec{\omega}~\cap~$\Call{support}{\textsc{shortPrime}($U^m$)}
+            \State $\Call{promote}{toPromote}$
+        \Else
+            \State \Call{refineAbstraction}{$\psi [X = W^m]$}
+        \EndIf
+
+    \ElsIf{$\phi = \mu X. \psi$}
+
+        \State $W^M \gets \textsc{Solve}(\phi, Cpre_1^M)$
+
+        \State $U^M \gets CpreU_1^{M-}(W^M) \land \overline{W^M}$
+        \If{$U^m \neq False$}
+            \State $toPromote \gets \vec{\omega}~\cap~$\Call{support}{\textsc{shortPrime}($U^M$)}
+            \State $\Call{promote}{toPromote}$
+        \Else
+            \State \Call{refineAbstraction}{$\psi [X = W^M]$}
+        \EndIf
+
+    \EndIf
 \EndFunction
 \end{algorithmic}
 \end{algorithm}
-
-
-from the FMCAD paper
 
 The algorithm begins in the same way as the reachability algorithm. We solve the game with the current abstraction to find $W^m$ and $W^M$ and terminate if these allow us to determine the outcome. We then refine and solve again. Again, as in the reachability case, we aim to grow $W^M$ and shrink $W^m$ so that, if we do not terminate early, they will eventually become the same set. This guarantees termination through one of the if conditions. Predicate promotion and consistency refinement are the same as before but operate on different boundary states. We describe the algorithm to find these boundaries. 
 
@@ -922,6 +954,14 @@ Making refinements only as described above does not guarantee that eventually $W
 Note, that any refinements found in some step would have been found in a subsequent step had that step been skipped. We find that giving priority to the outermost fixed point results in better abstractions and as refinements for outer fixed points are cheaper to compute it makes sense to prioritise them.
 
 Every recursive call drops one fixed point quantifier, so eventually we reach a formula of the form $Q X. \phi(X)$ where $X$ is either $\mu$ or $\nu$ and proceed as in the safety or reachability case. Termination is guaranteed for these, and, by induction for the rest of the specification.
+
+\subsection{GR(1) games}
+
+GR(1) games are a specific case of the above where the formula is:
+
+\begin{equation}
+    \nu X. \mu Y. \nu Z. Cpre((U \wedge Z) \vee (G \wedge X) \vee Y)
+\end{equation}
 
 \section{Predicate abstraction}
 \subsection{Motivation}
