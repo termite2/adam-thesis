@@ -9,6 +9,7 @@
 \usepackage{mathtools}
 \usepackage{listings}
 \usepackage{amsthm}
+\usepackage{subcaption}
 
 \title{Device Driver Synthesis}
 \author{Adam Walker}
@@ -1006,11 +1007,15 @@ The first step involves potentially expensive analysis of concrete transitions o
 \end{figure}
 
 \begin{figure}
+
+    \caption{Game specification}
+
+    \begin{subfigure}{\linewidth}
     \caption{Turn functions, initial and target sets}
     $\tau_1=(bsy=false)~~\tau_2=(bsy=true)~~I=\top~~T=(req=mem)$
-\end{figure}
+    \end{subfigure}
 
-\begin{figure}
+    \begin{subfigure}{\linewidth}
     \caption{Variable update functions}
     \begin{tabular}{|p{0.9\linewidth}|}
         \hline
@@ -1033,6 +1038,8 @@ The first step involves potentially expensive analysis of concrete transitions o
         $ \\
         \hline
     \end{tabular}
+    \end{subfigure}
+
 \end{figure}
 
 \begin{figure}
