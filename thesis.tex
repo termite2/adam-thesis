@@ -984,6 +984,81 @@ We address the problem by further approximating the expensive controllable prede
 The first step involves potentially expensive analysis of concrete transitions of the system and is therefore computed approximately. More specifically, solving the abstract game requires overapproximating moves available to one of the players, while underapproximating moves available to the other~\cite{Henzinger_JM_03}.  The former is achieved by allowing an abstract action in an abstract state if it is available in at least one corresponding concrete state, the latter allows an action only if it is available in all corresponding concrete states. We compute the overapproximation by initially allowing all actions in all states and gradually refining the abstraction by eliminating spurious actions.  Conversely, we start with an empty underapproximation and add available actions as necessary.
 
 \subsection{Motivation}
+
+\begin{figure}
+    \caption{Game variables}
+    \begin{tabular}{|p{0.13\linewidth}p{0.22\linewidth}p{0.45\linewidth}|}
+        \hline
+        {\bf var} & {\bf type} & {\bf description} \\
+        \hline\hline
+        \multicolumn{3}{|c|}{state vars ($X$)} \\
+        \hline
+        $mem$ & $int32$ & device memory           \\
+        $dat$ & $int32$ & data register           \\
+        $bsy$ & $bool$  & device busy bit         \\
+        $req$ & $int32$ & value to write to $mem$ \\
+        \hline\hline
+        \multicolumn{3}{|c|}{label vars ($Y$)}    \\
+        \hline
+        $val$ & $int32$ & value to write to $dat$ \\
+        \hline
+    \end{tabular}
+\end{figure}
+
+\begin{figure}
+    \caption{Turn functions, initial and target sets}
+    $\tau_1=(bsy=false)~~\tau_2=(bsy=true)~~I=\top~~T=(req=mem)$
+\end{figure}
+
+\begin{figure}
+    \caption{Variable update functions}
+    \begin{tabular}{|p{0.9\linewidth}|}
+        \hline
+        $
+        \begin{aligned}
+            &dat' = \begin{cases}
+                        val, & \text{if } \neg bsy \\
+                        dat, & \text{otherwise}
+                    \end{cases}\\
+            &bsy' = \begin{cases} 
+                        true,   & \text{if } \neg bsy \\
+                        false,  & \text{if } bsy \\
+                    \end{cases}\\
+            &mem' = \begin{cases}
+                        dat, & \text{if } bsy \\
+                        mem, & \text{otherwise}
+                    \end{cases}\\
+            &req' = req\\
+        \end{aligned}
+        $ \\
+        \hline
+    \end{tabular}
+\end{figure}
+
+\begin{figure}
+    \caption{Abstract variables and corresponding predicates}
+    \begin{tabular}{|p{0.14\linewidth}|p{0.5\linewidth}|}
+        \hline
+        {\bf a.var} & {\bf predicate} \\
+        \hline\hline
+        \multicolumn{2}{|c|}{state predicates} \\
+        \hline
+        $\sigma_1$ & $req=dat$   \\
+        $\sigma_2$ & $req=mem$   \\
+        \hline\hline
+        \multicolumn{2}{|c|}{untracked predicates} \\
+        \hline
+        $\omega_1$ & $bsy=false$ \\
+        $\omega_2$ & $req=5$     \\
+        \hline\hline
+        \multicolumn{2}{|c|}{label predicates} \\
+        \hline
+        $\lambda_1$ & $val=req$  \\
+        $\lambda_2$ & $val=5$    \\
+        \hline
+    \end{tabular}
+\end{figure}
+
 \subsection{Algorithm}
 
 We instantiate the three-valued abstraction refinement scheme for predicate abstraction instead of simple boolean variables. Consider a symbolic game $G = \langle S, L, I, \tau_1, \tau_2, \delta \rangle$ defined over state variables $X$ and label variables $Y$. Let $\Sigma\subseteq\forms(X)$ be a finite set of boolean predicates over state variables. We refer to $\Sigma$ as \emph{state predicates}. We introduce boolean variables $\vect{\sigma}=(\sigma_1\ldots\sigma_n)$ to represent values of predicates $\Sigma$. Given a boolean variable $\sigma$, $\|\sigma\|$ denotes its corresponding state or label predicate. $\|\vect{\sigma}\|$ denotes the vector of all state predicates in $\Sigma$.
