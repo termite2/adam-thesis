@@ -1834,6 +1834,8 @@ TLMs are written in high-level hardware description languages like SystemC and D
 %software and hardware products for compatibility with the given 
 %device.
 
+\subsubsection{Running example}
+
 The top part of Figure~\ref{f:ex} shows a fragment of a model of a trivial serial controller device used as a running example.  The fragment specifies the send logic of the controller, which allows software to send data characters over the serial line.  The model is implemented as a \tsl \emph{template}.  The template encapsulates data and code that manipulates the data, similar to a class in OOP.
 
 The software interface of the device consists of data, command, and status registers declared in line~2.  The registers can be accessed from software via the \src{write\_dat}, \src{write\_cmd}, \src{read\_cmd}, and \src{read\_status} methods (lines~4--11).  The \src{controllable} qualifier denotes a method that is available to the driver and can be invoked from synthesized code.
@@ -1873,6 +1875,8 @@ The OS model specifies the API mandated by the OS for all drivers of the given t
 
 Additionally, each particular device can support non-standard features, e.g., device-specific configuration options or transfer modes.  These features must be added as extensions to the generic OS specification in order to synthesize support for them in the driver.  \tsl supports such extensions in a systematic way via the template inheritance mechanism.  We do not describe this in detail due to limited space.
 
+\subsubsection{Running example}
+
 The OS model is written in the form of a test harness that simulates all possible sequences of driver invocations issued by the OS.  The \src{os} template in Figure~\ref{f:ex} shows the OS model for our running example.  The main part of the model is the \src{psend} process.  At every iteration of the loop, it non-deterministically chooses an 8-bit value (line~34) and calls the \src{send} method of the driver, passing this value as an argument.  It then waits for the driver to acknowledge the transmission of the byte (line~38) before issuing another request.  The driver acknowledges the transmission via the \src{send\_ack} callback (line~42).  The callback sets the \src{acked} flag, which unblocks the \src{psend} process.
 
 We keep the specification concise by modeling the state of the driver-OS interface, as opposed to the internal OS state and behavior.  For example, the \src{acked} variable (line~30) serves to model the flow of data between the OS and the driver and is not necessarily present in the OS implementation.
@@ -1889,6 +1893,8 @@ In addition to simulating I/O requests to the driver, the OS model also specifie
 In order to develop such specifications, we need a way to refer to relevant state and behavior of the device from the OS model.  At the same time, in order to maximize specification reuse, we would like to keep the OS specification device-independent.  To reconcile these conflicting requirements, we introduce a \emph{virtual interface} between the device and OS model.  This interface consists of callbacks used by the device model to notify the OS model about important hardware events.  The virtual interface does not represent real runtime interactions between the device and the OS, but serves as part of the correctness specification.
 
 We define a virtual interface for each class of devices.  Such \emph{device-class} interfaces are both device and OS-independent.  The device-class interface can be extended with additional device-specific callbacks as required to specify a driver for a particular device.
+
+\subsubsection{Running example}
 
 In our example, we define a device-class interface consisting of two virtual callbacks: \src{evt\_send} and \src{ev\_send\_failed}, invoked respectively when the device successfully transmits and fails to transmit a byte.  These callbacks are invoked in lines~17 and 19 of the device model.  The \src{evt\_send} handler is shown in line~48 of the OS model.  The assertion in line~49 specifies that the send event is only allowed to occur if there is an outstanding send request in progress and the value being sent is the same as the one requested by the OS.  We reset the \src{inprogress} flag to false in line~50, thus marking the current request as completed; line~51 sets the \src{success} flag to true, thus indicating that the transfer completed without an error.  The \src{evt\_send\_fail} handler is identical, except that it sets the \src{success} flag to false.  The flags are checked by the \src{send\_ack} method, which asserts that the driver is only allowed to acknowledge a completed request (\src{!inprogress}) that has not been acknowledged yet (\src{!acked}) and that the completion status reported by the driver must match the one recorded in the \src{success} flag.
 
