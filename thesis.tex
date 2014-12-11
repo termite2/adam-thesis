@@ -2045,6 +2045,50 @@ This example illustrates how \termite supports incremental changes to the driver
 \termite does not automatically instrument synthesized code for debugging, logging, accounting, etc.  However, the user can add such instrumentation manually.  \termite interprets such code as no-ops and, as with any manual code, never makes any modifications to it.
 
 \section{Counterexample guided debugging}
+
+An important practical issue in game-based synthesis is the complexity of diagnosing synthesis failures due to defects in the input specifications.  In the event that \termite fails to solve the game, the user needs to trace the failure back to the specification defect.  However, the failure does not carry any information about the defect, which makes the problem harder to resolve.
+
+In \termite we propose a new approach to troubleshooting synthesis failures based on the use of \emph{counterexample strategies}.  A counterexample strategy is a strategy on behalf of the environment that prevents the driver from winning the game.  It is obtained by solving the \emph{dual game}, where, in order to win, the environment must permanently force the game out of one of the goal regions.  A winning strategy in the dual game is guaranteed to exist whenever solving of the primary game fails.
+
+%    \item By exploring the counterexample strategy, the user can 
+%        identify the defect in the input specification.  This is 
+%        similar to the use of counterexamples in software 
+%        verification, where for each discovered bug the 
+%        verification tool generates a counterexample trace that 
+%        triggers the bug.  However, a counterexample strategy 
+%        cannot in the general case be represented by a single 
+%        execution trace, as the choice of spoiling moves for the 
+%        environment depends on the actions performed by the 
+%        driver.
+
+In order to detect and fix the defect in an input specification, the driver developer relies on their  understanding of the OS and device logic.  The role of the counterexample strategy is to guide the developer towards the defect.  To automate this process, we developed a powerful visual debugging tool that allows the user to interactively simulate intended driver behavior and observe environment responses to it.  The user plays the game on behalf of the driver, while the tool responds on behalf of the environment, according to the counterexample strategy.
+ 
+In a typical debugging session, the debugger, following the counterexample strategy, generates a sequence of requests that are guaranteed to win against the driver.  The user plays against these requests by specifying device commands that, they believe, represent a correct way to handle the request.  Since this sequence of requests \emph{cannot} be handled correctly given the current input specification, at some point in the game the user runs into an unexpected behavior of one of the players, e.g., one of user-provided commands does not change the state of the device as expected or the environment performs an uncontrollable transition that violates an assertion.  Based on this information, the user can revise the faulty specification.
+
+%       
+%        To this end, we developed a powerful visual debugging tool 
+%        that allows the user to interactively simulate intended 
+%        driver behaviour and observe enviroment responses to it.  
+%        The user plays the game on behalf of the driver, while the 
+%        tool responds on behalf of the enviroment 
+%        
+%        We rely on the fact that the driver developer has a good 
+%        understanding of the OS and device logic.  Given that 
+%        there does not exist a specification-compliant driver 
+%        implementation, our goal is to help the developer to 
+%        identify a discrepancy between their mental model of the 
+%        system behaviour and the acual behaviour as described in 
+%        the input specifications.  To this end, we developed a 
+%        powerful visual debugging tool that allows the user to 
+%        interactively simulate intended driver behaviour and 
+%        observe enviroment responses to it.  The user plays the 
+%        game on behalf of the driver, while the tool responds on 
+%        behalf of the enviroment.
+
+At every step of the interactive debugging session, the debugger either chooses a spoiling uncontrollable action based on the counterexample strategy or, if the system is inside a controllable placeholder, allows the user to choose a controllable action to execute on behalf of the driver.  In the former case the spoiling uncontrollable action corresponds to a transition in one of the \tsl processes.  The user can explore this transition by stepping through it, exactly as they would in a conventional debugger.  In the latter case, the user provides the action that they would like to perform by typing and executing corresponding code statements.
+
+The tool supports a number of features aimed to make the debugging process as simple as possible for the user. We mention two of them here.  First, the debugger interactively prompts actions available to the driver at each step.  Second, the debugger keeps the entire history of the game and allows the user to go back to one of previously explored states and try a different behavior from there.
+
 \section{Limitations}\label{s:limitations}
 
 In Section~\ref{s:user-guided}, we described one limitation of \termite, namely the lack of support for grey-box synthesis.  In this section we discuss other limitations, which, we hope, will help define the agenda for continuing research in driver synthesis.
