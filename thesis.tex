@@ -11,6 +11,8 @@
 \usepackage{amsthm}
 \usepackage{subcaption}
 \usepackage{xspace}
+\usepackage{url}
+\usepackage{multirow}
 
 \title{Device Driver Synthesis}
 \author{Adam Walker}
@@ -2082,7 +2084,175 @@ Drivers execute in a concurrent OS environment and must handle invocations from 
 
 \section{A realistic example}
 
-\section{Case studies}
+\section{Implementation}
+
+We implemented all components of the Termite toolkit, including the TSL compiler, the game solver, the counterexample debugger, the user-guided code generator, and the TSL-to-C compiler, in Haskell.  Our implementation uses the CUDD BDD library for efficient symbolic manipulations over boolen relations, and the Z3 SMT solver for satisfiability queries over the theory of bit vectors, as described in~\cite{Walker_Ryzhyk_14}.  Termite is publicly available under the BSD license and can be downloaded from the project website \texttt{\url{http://termite2.org}}. The version of \termite presented here consists of 30,000 lines of code.  The estimated overall project effort is 10 person years. 
+
+\section{Evaluation}
+We evaluate \termite by synthesizing drivers for eight I/O devices.  Specifically, we synthesized drivers for a UVC-compliant USB webcam, the 16550 UART serial controller, the DS12887 real-time clock, and the IDE disk controller for Linux, as well as seL4~\cite{Klein_EHACDEEKNSTW_09} drivers for I2C, SPI, and UART controllers on the Samsung exynos 5 chipset\footnote{At the time of writing, the exynos drivers have not yet been tested due to hardware availability issues; however we confirmed via manual inspection that they implement the same device control sequences as existing manually developed drivers.} and SPI controller on the STM32F10 chipset.  With the exception of the IDE disk, these devices are representative of peripherals found in a typical embedded platform, such as a smartphone.  Our synthesized drivers implement data transfer, configuration and error handling.  The main barrier to synthesizing drivers for more advanced devices, e.g., high-performance network controllers, is the current lack of support for synthesis of DMA code in the current version of \termite.  
+
+\subsection{Modelling complexity} 
+Models of UART and DS12887 devices were developed based on existing publicly available device models~\cite{ds12887, uart}.  Models of other devices were derived from their vendor-provided documentation, following standard TLM modeling guidelines~\cite{dml_ug}.  OS models for the relevant device classes were created based on Linux kernel documentation and source code.  
+
+Table~\ref{t:size} summarises the size, in lines of code, of device and OS models in our case studies.  Developing a complete set of specifications for each driver took approximately one week, of which only one to three days were spent building the models and the rest of the time was spent studying device and OS documentation.  This efficiency can be attributed to the choice of the right level of abstraction and modeling language.  In particular, the use of transaction-level device modeling abstracts away complicated internal device machinery by focusing on high-level events relevant to driver synthesis, while the \tsl language allows modeling the driver environment using standard programming techniques, as illustrated by our running example.
+
+\begin{table}
+    \begin{minipage}{\linewidth}
+    \center
+    %\begin{tabular}{|p{0.15\linewidth}|p{0.15\linewidth}p{0.15\linewidth}|p{0.15\linewidth}p{0.15\linewidth}|}
+    \begin{tabular}{|l|c|c|c|c|}
+        \hline
+%        & \multicolumn{4}{|c|}{size (lines of code)} \\
+%        \cline{2-5}
+        & \multicolumn{2}{|c|}{input spec} & \multicolumn{2}{c|}{driver} \\
+        \cline{2-5}
+                     & OS  & device & synthesized & native \\
+        \hline
+        \hline
+        webcam       & 102 & 385    & 113         & 307 \\
+        16450 UART   & 122 & 167    & 74          & 261 \\
+        exynos UART  & 128 & 252    & 37          & 166 \\
+        STM SPI      & 73  & 244    & 24          & 64  \\
+        exynos SPI   & 88  & 239    & 40          & 183 \\
+        exynos I2C   & 146 & 180    & 79          & 211 \\
+        RT clock     & 118 & 252    & 84          & 183 \\
+        IDE          & 188 & 480    & 94\footnote{Excluding 36 lines of manually written code that manipulates the DMA descriptor table.} & 474 \\
+        \hline
+    \end{tabular}
+    \end{minipage}
+    \caption{Size (in lines of code) of input specifications and of synthesized and equivalent manually written drivers.}
+    \label{t:size}
+\end{table}
+
+Interestingly, we found the most error-prone step in developing specifications for driver synthesis to be defining correct relative ordering of OS-level and device-level events with the help of the virtual interface (Section~\ref{s:virt}).  Na\"ive specifications tend to be either too restrictive, leading to synthesis failures, or too liberal, leading to incorrect synthesized drivers. As we gained more experience synthesizing different types of drivers, we identified common modeling patterns that help avoid errors in virtual interface specifications.  
+
+As a common example, most virtual interfaces contain callbacks that signal a change to one of device configuration parameters, e.g., transfer speed, parity, etc.  A na\"ive OS model may only allow such a callback to be triggered when the OS has requested a change to the corresponding device setting.  However, many devices only allow setting multiple configuration parameters simultaneously, so that setting any individual parameter triggers multiple callbacks, thus making the specification non-synthesizable.  The problem can be rectified by changing the device specification to only trigger callbacks if the new value of the parameter is different from the old one; however this bloats the device model due to the extra checks.  A better solution, used in all our models, is to design the OS specification to allow configuration callbacks to be triggered at any time, provided that the new value of the parameter is equal to the last value requested by the OS. 
+
+\subsection{Synthesis time} 
+Table~\ref{t:perf} summarises the performance of the \termite game solver in our case studies.  The second column of the table characterises the complexity of the two-player game constructed by the \tsl compiler from the input specifications in terms of the number of states variables and the total number of bits in these variables.  The third column shows the number of iterations of the abstraction refinement loop required to solve the game.  The next column shows the size of the abstract game at the final iteration, in terms of the number of predicates in the abstract state space of the game.  These results demonstrate the dramatic reduction of the problem dimension achieved by our abstraction refinement method.  The second-last column shows that the \termite game solver was able to find the most general winning strategy within a few minutes in all case studies.
+
+\begin{table}
+    \center
+    \begin{tabular}{|l|ccccc|}
+        \hline
+                       & \multirow{2}{*}{vars(bits)} & refine- & predi- & synt.     & verif.   \\
+                       &                             & ments   & cates  & time (s)  & time (s) \\
+        \hline
+        \hline
+        webcam         & 128 (125565)                & 47      & 192    & 215       & 794 \\
+        16450 UART     & 81  (407)                   & 65      & 128    & 210       & 464 \\
+        exynos UART    & 80  (1185)                  & 54      & 111    & 645       & 82 \\
+        STM SPI        & 68  (389)                   & 29      & 63     & 67        & 31 \\
+        exynos SPI     & 83  (933)                   & 31      & 72     & 25        & 44 \\
+        exynos I2C     & 65  (303)                   & 21      & 56     & 45        & 96 \\
+        RT clock       & 92  (810)                   & 25      & 74     & 56        & 127 \\
+        IDE            & 114 (1333)                  & 42      & 105    & 285       & 778 \\
+        \hline
+    \end{tabular}
+    \caption{Performance of the \termite game solver.}
+    \label{t:perf}
+\end{table}
+
+We compared the performance of the \termite game solver against a state-of-the-art abstraction refinement algorithm for games~\cite{Alfaro_Roy_07} as well as against the standard symbolic algorithm for solving games without abstraction~\cite{Piterman_PS_06}.  In all case studies, the \termite solver was the only one to find a winning strategy within a two-hour limit.  We refer the reader to~\cite{Walker_Ryzhyk_14} for a more detailed performance analysis of the \termite synthesis algorithm.
+
+The final column of Table~\ref{t:perf} shows the time that it took \termite to verify a complete driver.  Recall that the \termite synthesis algorithm doubles as a verification algorithm and can be used to verify drivers written in \tsl.  We used complete synthesized drivers, containing a combination of manual and automatically generated code, as inputs to \termite.  We have been able to successfully verify all of our drivers.  We also experimented with introducing faults to synthesized drivers.  \termite was able to detect these faults and produce correct counterexample strategies.  In most cases verification took longer than synthesis.  The reason for this is that \termite has not yet been optimized for verification workloads.  This is one area for future improvement.
+
+%\termite is the first synthesis tool based on abstraction 
+%refinement, so we cannot compare it against other 
+%abstraction-based algorithms.  We benchmark \termite against a 
+%highly optimized implementation of the state of the art algorithm 
+%for solving GR-1 games (without abstraction) by Piterman et 
+%al.~\cite{Piterman_PS_06}.  This algorithm was not able to solve 
+%any of our case studies within a two-hour time limit.  We 
+%therefore produced a simplified version of the IDE case study with 
+%only 75 state bits (instead of 1333 in the original 
+%specification), which the Piterman et al. algorithm solved in 
+%57 minutes.  For comparison, \termite solved this simplified 
+%example in under 1 second.
+
+\subsection{User-guided code generation and debugging} 
+We evaluate the key contribution of this paper, namely the user-guided debugging and code generation technique.  Each line of code in a \termite-generated driver originates from one of three sources: it can be (1) synthesized automatically by the tool, (2) developed offline and given to \termite as part of the driver template, or (3) added or modified by the user during an interactive code generation session.  A perfect synthesis tool, capable of generating a complete driver fully automatically while producing code that meets all non-functional requirements, would eliminate the need for manual code altogether.  We do not believe that such a tool is feasible in the near future.  We therefore explore the tradeoffs that arise when using our current, imperfect, tool.  In particular, we would like to empirically characterize situations when the user can rely on the synthesizer to automatically produce near-optimal code, and when they are better off completely or partially implementing certain functionality manually.  These tradeoffs are likely to change as the tool improves.
+
+Based on our experience so far, automatic synthesis is most helpful in generating code that performs device configuration or starts a data transfer.  This code may involve a long sequence of commands to the device, which must be issued in the right order and with correct arguments.  The synthesis algorithm of \termite proved more effective at doing this than human developers, producing correct code that only requires minimal cosmetic changes in most cases.  For example, Figure~\ref{f:screenshot_write} shows a screenshot of \termite with a synthesized implementation of the IDE driver \src{write()} function, which starts a data transfer to the device.  The function writes request parameters into appropriate device data registers and sets bit fields in command registers to prepare the device for data transfer.  One deficiency in this auto-generated implementation is that it uses absolute values instead of symbolic constants for bit fields.
+
+As another example of suboptimal synthesized code, consider the following synthesized fragment
+
+\begin{tsllisting}[frame=single]
+void packet_received() {
+  if (((packet_data[9:9] == 1) && 
+       (packet_data[14:14] == 1))) {
+    os.ack_packet(1,1,packet_data[16:32]);
+  } else if ((dev.packet_data[9:9] == 1)) {
+    os.ack_packet(1,0,packet_data);
+  } else if ((dev.packet_data[14:14] == 1)) {
+    os.ack_packet(0,1,packet_data[16:32]);
+  } else {
+    os.ack_packet(0,0,packet_data[16:32]);
+  };
+};
+\end{tsllisting}
+
+which can be replaced by an equivalent one-liner
+
+\begin{tsllisting}[frame=single]
+os.ack_packet(packet_data[9:9],
+    packet_data[14:14],packet_data[16:32]);
+\end{tsllisting}
+
+\noindent While both issues can, and will, be addressed by an improved code generation algorithm, our experience shows that unaccounted corner cases will arise occasionally.  Therefore, the ability to manually modify synthesized code without sacrificing correctness is crucial for a practical synthesis tool.
+
+Limitations of \termite are most noticeable in synthesizing interrupt handler code responsible for processing I/O completions.  This involves querying device state to determine which operations completed and with what status, reporting results to the OS, and clearing interrupt status registers.  Since \termite does not support grey-box synthesis, it can not generate this code automatically and instead produces code that directly accesses device-internal state (see Section~\ref{s:user-guided}).  \termite correctly reports such situations and allows the user to mitigate them by manually editing synthesized code.  In practice, however, we found it easier to develop most of the interrupt handler logic offline, as part of the driver template, and rely on \termite to (a) establish correctness of this code and (b) extend it to a complete implementation.
+
+\begin{figure}
+    \center
+    \includegraphics[width=\linewidth]{diagrams/screenshot_write.png}
+    \caption{Screenshot of \termite with a synthesized implementation of the IDE driver.  Automatically generated code is highlighted.}
+    \label{f:screenshot_write}
+\end{figure}
+
+In our case studies, 60\% to 90\% of the code was generated fully automatically, with the rest of the code produced in a user-guided fashion.  Once an initial version of device and OS specifications was ready, it took us several hours to generate the driver implementation for each of our case studies.  Three quarters of this time was spent debugging the input specifications, with the rest of it spent generating driver source code with the help of the user-guided code generation GUI.
+
+We found counterexample-driven debugging to be crucial to the productivity of synthesis-based development.  Before the debugger was available, we had to rely on code inspection to identify defects in the input specifications, which proved to be a frustrating and unpredictably long process.  The \termite debugger streamlines this process, giving us the confidence that any failure can be localised by following well-defined steps.  A typical debugging session takes a few minutes and involves entering only a few commands manually before the defect is localised. 
+
+%We found the incremental approach to debugging and synthesis to 
+%be the most effective.  Incremental synthesis 
+%
+%synthesise a single driver function or a small group of related 
+%functions before adding m
+%
+%This is achieved by disabling invocations of all but one I/O 
+%operations in the OS model. 
+%
+%Incremental synthesis
+
+%In all case studies, we have been able to achieve human-readable 
+%code structure that one would expect in a manually developed 
+%driver.  60\% to 90\% of the code was generated fully 
+%automatically and did not require any manual changes.  The rest of 
+%the code was produced in a user-guided fashion, as described in 
+%Section~\ref{s:user-guided}.  Human involvement was required for 
+%three reasons.  First, it was necessary to get around the 
+%white-box assumption, causing automatically generated code to 
+%access variables outside the syntactic scope of the driver, as 
+%explained in Section~\ref{s:user-guided}.  Second, it was used to 
+%enforce a particular preferred implementation among several 
+%functionally equivalent alternatives.  A common example of such a 
+%situation, illustrated in Section~\ref{s:user-guided}, is 
+%implementing I/O completions using interrupts instead of polling.  
+%Finally, we relied on manual intervention to improve the structure 
+%of synthesized code to make it compliant with the standard Linux 
+%driver structure.
+
+\subsection{Size of synthesized code} 
+The last two columns of Table~\ref{t:size} compare the size of synthesized drivers to existing manually developed drivers.  Synthesised drivers are significantly more compact than conventional drivers for two main reasons.  First, as explained in Section~\ref{s:limitations}, we only synthesize the driver logic directly responsible for controlling the device.  Conventional drivers typically contain a large amount of boilerplate code managing various OS resources.  We believe that this code can and should be synthesized using complementary techniques.  At the moment we implement this functionality manually as a wrapper around the synthesized driver. 
+
+Second, conventional device drivers are often designed to support multiple similar devices with slightly different interfaces and capabilities.  This leads to code bloat, as the driver must implement multiple versions of various operations, as well as logic to dynamically discover device capabilities and choose the right implementation to use.  In contrast, every \termite driver supports one specific device model with a fixed set of features.  Drivers for similar devices can share common specification code, but are synthesized as separate source code modules.  This approach leads to simpler code and is preferable for platforms with a fixed set of peripheral devices, such as smartphones, where shipping drivers that support only the required devices enables smaller system image.
+  
+\subsection{Specification reuse}  
+Our specification methodology ensures mutual independence of device and OS specifications, and thus facilitates their reuse.  We have not yet carried out a substantial evaluation of such reuse; however we report our limited experience based on synthesizing two SPI drivers for the seL4 OS.  The corresponding OS specification was initially developed during the work on the SPI driver for the exynos chipset.  It was later used to synthesize a driver for the STM32F10 chipset.  We were able to reuse most of the original specification.  Minor changes (8 lines of code) were required in the part of the specification describing configuration functionality of the driver, since the STM SPI controller supports a number of ad hoc transfer modes.  We expect to observe similar pattern for other devices and operating systems: generic OS specifications can be reused with localized, device-specific changes required to support non-standard device features.
+
+\subsection{Performance of synthesized drivers} 
+Our synthesized drivers implement effectively identical device control logic to their conventional counterparts and therefore have similar performance.  We benchmarked the USB webcam driver, which is the most performance-critical one among our case studies.  We measured CPU load and data throughput generated by the conventional and synthesized drivers for varying bitrates.  We obtained identical results, modulo measurement errors, for both drivers in all cases.
 
 \chapter{Appendix}
 
