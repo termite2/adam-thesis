@@ -2037,7 +2037,34 @@ This example illustrates how \termite supports incremental changes to the driver
 \termite does not automatically instrument synthesized code for debugging, logging, accounting, etc.  However, the user can add such instrumentation manually.  \termite interprets such code as no-ops and, as with any manual code, never makes any modifications to it.
 
 \section{Counterexample guided debugging}
-\section{Limitations}
+\section{Limitations}\label{s:limitations}
+
+In Section~\ref{s:user-guided}, we described one limitation of \termite, namely the lack of support for grey-box synthesis.  In this section we discuss other limitations, which, we hope, will help define the agenda for continuing research in driver synthesis.
+
+%The core of a device driver entails translating I/O requests from 
+%the OS into sequences of low-level device commands and responses.  
+%We focus on synthesizing driver logic that performs these 
+%functions, and this is where game-based synthesis really shines, 
+%as it helps to implement tedious and error-prone logic with 
+%minimal manual effort and without bugs.
+
+
+%The other important limitation of \termite is that its game-based 
+%synthesis engine currently assumes the white-box view of the 
+%system, where the driver can fully observe the state of the 
+%system, including internal device state.  As a result, 
+%automatically synthesized driver code may refer to state variables 
+%outside of its syntactic scope.  As we explain in 
+%Section~\ref{s:user-guided}, our user-guided synthesis approach 
+%resolve such situations by relying on manual user input.
+
+Most importantly, \termite does not currently support automatic synthesis of direct memory access (DMA) management code.  Many modern devices transfer data directly to and from main memory, where it is buffered in data structures such as circular buffers and linked lists.  These data structures can have very large or infinite state spaces and cannot be easily modeled within the finite state machine-based framework of \termite.  Efficient synthesis for DMA requires enhancing the synthesis algorithm to use a more compact representation of DMA data structures, which is the focus of our ongoing research.  At this time, code for manipulating DMA data structures must be written manually.  This code is not interpreted or verified by \termite.  For example, we use this approach to synthesize a DMA-capable IDE disk driver (Section~\ref{s:eval}).
+
+Device drivers in modern OSs contain a significant amount of boilerplate code that is not directly related to the task of controlling the device.  This includes binding the driver to I/O resources (memory mapped regions, interrupts, timers), registering the driver with various OS subsystems, allocating DMA memory regions, creating sysfs entries, etc.  While much of this functionality could be synthesized within the game-based framework, we do not believe that this is the correct approach.  Previous research has demonstrated that this boilerplate code can be generated in a principled way from declarative specifications of the driver's requirements and capabilities~\cite{Spear_RHHL_06}.  This technique has lower computational complexity than game solving and better captures the essence of the task.  A practical driver synthesis tool cancombine game-based synthesis of the core driver logic responsible for controlling the device with declarative synthesis of boilerplate code.  As a result, the current version of \termite assumes this boilerplate code is written manually as a wrapper around the synthesized driver.
+
+Drivers execute in a concurrent OS environment and must handle invocations from multiple threads, as well as asynchronous hardware interrupts.  We separate synthesis for concurrency into a separate step.  Drivers synthesized by \termite are correct assuming a sequential environment, where driver entry points are invoked atomically.  The resulting sequential driver is then processed by a separate tool that performs a sequence of transformations of the driver source code, which preserve the driver's sequential behavior, while making the driver thread-safe.  Such transformations include adding locks around critical code sections, inserting memory barriers, and reordering instructions to avoid race conditions.  Concurrency synthesis is still work in progress and is beyond the scope of this paper.  Our preliminary results are published in~\cite{Cerny_HRRT_13, Cerny_HRRT_14}.
+
+\termite does not explicitly support specification and synthesis of timed behaviors.  Instead, it uses a pragmatic approach that allows it to synthesize time-sensitive behavior without having to explicitly reason about time.  To this end, \termite conservatively approximates timed operations by fairness constraints: it ignores the exact duration of each device operation, but keeps the knowledge that the operation will complete \emph{eventually}, and synthesizes a driver that waits for the completion.  \termite is also able to handle time-out conditions, modeled as external events.  However, at this time it is not capable of generating device drivers for hard real-time systems, where the driver must guarantee completion of I/O operations by a certain deadline.
 
 \section{A realistic example}
 
