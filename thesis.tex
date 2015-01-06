@@ -1,6 +1,27 @@
 \documentclass{book}
 
-\usepackage[margin=1in]{geometry}
+%
+% UNSW margin guidelines:
+%
+%   Top >= 30mm
+%   Bottom >= 20mm
+%   Left >= 40mm (do they mean inner?)
+%   Right >= 20mm (do they mean outer?)
+%
+\usepackage[
+        inner=36mm, % NOPRINT
+        outer=36mm, % NOPRINT
+        top=30mm,
+        bottom=35mm,
+        headsep=10mm,
+        headheight=20pt,
+        footskip=12mm,
+        includehead=false,
+        includefoot=false,
+        marginparwidth=30mm,
+        heightrounded=true
+        ]{geometry}
+
 \usepackage{algorithm}
 \usepackage{algpseudocode}
 \usepackage{graphicx}
