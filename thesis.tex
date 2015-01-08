@@ -47,6 +47,10 @@
 \newdateformat{monthyear}{\monthname[\THEMONTH] \THEYEAR}
 \usepackage{booktabs}
 
+% Author-year citation, and inline bib entries
+\usepackage[authoryear,square]{natbib}
+\usepackage{bibentry}
+
 \newcommand{\buchi}{Buchi }
 \newcommand{\reach}[0]{\textsc{Reach}}
 \newcommand{\safe}[0]{\textsc{Safe}}
@@ -105,6 +109,9 @@
     {\chapformat}
 
 \begin{document}
+
+% Bibentry needs this, so that it can see the bibitems
+\nobibliography*
 
 \frontmatter
 
@@ -201,6 +208,10 @@ For Lord Xenu, ruler of the Galactic Confederacy.
 \listoftables
 
 \chapter{Publications}
+\begin{itemize}
+    \item \bibentry{Ryzhyk_WKLRSV_14}
+    \item \bibentry{Walker_Ryzhyk_14}
+\end{itemize}
 
 \mainmatter
 
