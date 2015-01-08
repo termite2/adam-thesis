@@ -9,7 +9,7 @@ main = shakeArgs shakeOptions{shakeFiles=".shake/"} $ do
 
     "thesis.pdf" %> \out -> do
         files <- getDirectoryFiles "diagrams" ["//*.hs"]
-        need $ "thesis.tex" : map (\x -> "diagrams" </> x -<.> "pdf") files
+        need $ ["thesis.tex", "background.tex", "game.tex", "intro.tex", "solving.tex", "syntcomp.tex", "userguided.tex"] ++ map (\x -> "diagrams" </> x -<.> "pdf") files
         cmd "pdflatex" ["thesis.tex"]
 
     "diagrams/*.pdf" %> \out -> do
