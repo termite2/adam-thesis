@@ -11,7 +11,7 @@ Let $P$ be a set of propositions, $A$ be a set of actions and $V$ be a set of va
     \item each proposition and each variable is a formula
     \item if $\phi$ and $\psi$ are formulas then $\phi \wedge \psi$ is a formula
     \item if $\phi$ is a formula then $\neg \phi$ is a formula
-    \item if $\phi$ is a formula and $a$ is and action then $[a]\phi$ is a formula
+    \item if $\phi$ is a formula and $a$ is an action then $[a]\phi$ is a formula
     \item if $\phi$ is a formula and $Z$ a variable then $\nu X.\phi$ is a formula provided that every free occurrence of $Z$ occurs under an even number of negations
 \end{itemize}
 
@@ -19,8 +19,8 @@ Let $P$ be a set of propositions, $A$ be a set of actions and $V$ be a set of va
 
 Given a labelled transition system $(S, R, V)$ where
 \begin{itemize}
-    \item S is a set of states
-    \item $R \subseteq S \times A \times S$
+    \item S is the set of states
+    \item $R \subseteq S \times A \times S$ is the transition relation
     \item $V : Var \rightarrow 2^S$ maps each proposition to the set of states where the proposition is true
 \end{itemize}
 
@@ -30,10 +30,12 @@ A $\mu$-calculus formula is interpreted as follows:
     \item $\phi \wedge \psi$ holds in the set of states where both $\phi$ and $\psi$ hold
     \item $\neg \phi$ holds in every state where $\phi$ does not hold 
     \item $[a]\phi$ holds in a state $s$ if every $a$-transition leading out of $s$ leads to a state where $\phi$ holds
-    \item $\nu Z. \phi$ holds in any set of states $T$ such that when the variable $Z$ is set to $T$ then $\phi$ holds for all of $T$. It is the greatest fixpoint of $\phi$.
+    \item $\nu Z. \phi$ holds in any set of states $T$ such that when the variable $Z$ is set to $T$ in $\phi$ then $\phi$ holds for all of $T$. It is the greatest fixpoint of $\phi$.
 \end{itemize}
 
 \section{Two player games}
+
+\todo{Define omega regular}
 
 Two-player games are a useful formalism for reactive synthesis. Many problems in electronic design automation, industrial automation and robotics can be formalised as a game. In particular, the driver synthesis problem can be formalised as a game, and, this is the formalism around which Termite is built. Here, we present the fundamentals of $\omega$ regular games. 
 
@@ -49,38 +51,39 @@ Putting this all together, we can identify a \emph{turn based game structure} $G
 
 A game proceeds in an infinite sequence of rounds, starting from some initial state. The infinite sequence of states visited $(s_0, s_1,\ldots) \in S^\omega$ is called a path. 
 
-A game is won by player 1 if, by picking suitable labels, they can force the path to be within a winning set of state objectives $\Phi \subseteq S^\omega$, where $S^\Omega$ is the set of all infinite sequences of states in $S$. An arbitrary set of infinite sequences is an extremely general, but not practically useful, way of defining an objective. In the following sections we will consider some more restricted objectives that have practical uses.
+A game is won by player 1 if, by picking suitable labels, they can force the path to be within a winning set of objectives $\Phi \subseteq S^\omega$, where $S^\omega$ is the set of all infinite sequences of states in $S$. An arbitrary set of infinite sequences is an extremely general, but not practically useful, way of defining an objective. In the following sections we will consider some more restricted objectives that have practical uses.
 
-\subsection{Safety and reachability games}
+\subsection{Safety and reachability}
 
-The two simplest objectives are safety and reachability. A safety objective is defined by a set $SAFE \subseteq S$ that player 1 must force the game to stay within, regardless of the labels that player 2 picks. Formally, a run is safe if $\forall i. s_i \in SAFE$. 
+The two simplest objectives are safety and reachability. A safety objective is defined by a set $\safeobj \subseteq S$ that player 1 must force the game to stay within, regardless of the labels that player 2 picks. Formally, a run is safe if $\forall i. s_i \in \safeobj$. 
 
-The dual of a safety objective is a reachability objective. A reachability objective is defined by a set $REACH \subseteq S$ that player 1 must force the game to visit at least once, regardless of the labels that player 2 picks. Formally, a reachability run is winning if $\exists i. s_i \in REACH$
+The dual of a safety objective is a reachability objective. A reachability objective is defined by a set $\reachobj \subseteq S$ that player 1 must force the game to visit at least once, regardless of the labels that player 2 picks. Formally, a reachability run is winning if $\exists i. s_i \in \reachobj$
+
+\paragraph{Buchi}
+A Buchi objective is defined by a set $\buchiobj \subseteq S$ that player~1 must always be able to force execution of the game into. This differs from a reachability game in that the region must always be reachable, not just once. When it has been reached once, it must be reachable again, and so on. So, it must be reachable infinitely many times. Formally, a run is buchi winning if $\forall i. \exists j>i. s_j \in \buchiobj$
+
+\paragraph{Generalized Buchi}
+A Generalized Buchi objective is defined by a set of sets $\genbuchiobj \subseteq 2^S$. Player~1 must always be able to force execution into each set $\buchiobj \in \genbuchiobj$. Formally, a run satisfies a generalized Buchi objective if $\forall i. \forall \buchiobj \in \genbuchiobj. \exists j>i. s_j \in \buchiobj$.
+
+\paragraph{Fairness}
+Sometimes it is necessary to rule out invalid plays that are not easily ruled out by changing the state machine. For this we use fairness conditions. A fairness condition is a set of states which we may assume that all valid runs of the game eventually leave. If a spoiling strategy exists that results in an unfair run, it does not count. Formally, a run satisfies a fair reachability objective if $\forall i. \exists j>i. s_j \in FAIR \rightarrow \exists i. s_i \in \reachobj$. 
+
+\paragraph{GR(1)}
+A Generalized Reactive 1, or GR(1) \cite{gr1} objective, is a generalized Buchi objective with multiple fairness conditions. In practice, this turns out to be a very useful type of objective. Formally, a run satisfies a GR(1) objective if $\forall i. \forall FAIR \in FAIRS \exists j>i. s_j \in FAIR \rightarrow \forall i. \forall \buchiobj \in \genbuchiobj. \exists j>i. s_j \in \buchiobj$.
 
 \subsection{Strategies, counterexamples}
 
+\todo{prove determinacy}
+\todo{Define strategy, winnable}
+
 Given an objective, a game is either winning for player~1 or it is losing. If it is winning, then there exists a strategy for player~1. Informally, a strategy tells player~1, in any state, which label it must play and ensures that if player~1 adheres to the strategy then the objective will be satisfied.
 
+\todo{Below is bullshit}
 Formally, a strategy for player~1 is a function $\pi_1 : S^* \times \tau_1 \rightarrow L$ that, in any player~1 state, associates the history of the game with a label to play. It is known that for complete information games, as we are considering, if there exists a strategy, then there also exists one that only depends on the current state. Thus, we can simplify the definition of a strategy for player~1 to be a function $\pi_1 : \tau_1 \rightarrow L$ that only depends on the current state.
 
 Conversely, if the game is losing for player~1, then there exists a spoiling strategy for player~2, that is, a strategy for player~2 that ensures that, no matter which labels player~1 picks, there is no way that player~1 can satisfy its objective.
 
 Formally, a counterexample strategy for player~1 is a strategy for player~2 which is a function $\pi_2 : \tau_2 \rightarrow L$ that associates any player~2 state with a label for player~2 to play. Again, we have simplified the definition as there must exist a strategy that only depends on the current state. 
-
-\subsection{Buchi, fairness and GR(1) games}
-Here we consider objectives that are more complex and more useful in practice.
-
-\paragraph{Buchi}
-A Buchi objective is defined by a set $BUCHI \subseteq S$ that player~1 must always be able to force execution of the game into. This differs from a reachability game in that the region must always be reachable, not just once. When it has been reached once, it must be reachable again, and so on. So, it must be reachable infinitely many times. Formally, a run is buchi winning if $\forall i. \exists j>i. s_j \in BUCHI$
-
-\paragraph{Generalized Buchi}
-A Generalized Buchi objective is defined by a set of sets $BUCHIS \subseteq 2^S$. Player~1 must always be able to force execution into each set $BUCHI \in BUCHIS$. Formally, a run satisfies a generalized Buchi objective if $\forall i. \forall BUCHI \in BUCHIS. \exists j>i. s_j \in BUCHI$.
-
-\paragraph{Fairness}
-Sometimes it is necessary to rule out invalid plays that are not easily ruled out by changing the state machine. For this we use fairness conditions. A fairness condition is a set of states which we may assume that all valid runs of the game eventually leave. If a spoiling strategy exists that results in an unfair run, it does not count. Formally, a run satisfies a fair reachability objective if $\forall i. \exists j>i. s_j \notin UNFAIR \rightarrow \exists i. s_i \in REACH$. 
-
-\paragraph{GR(1)}
-A Generalized Reactive 1, or GR(1) objective, is a generalized Buchi objective with multiple fairness conditions. In practice, this turns out to be a very useful type of objective. Formally, a run satisfies a GR(1) objective if $\forall i. \forall UNFAIR \in UNFAIRS \exists j>i. s_j \notin UNFAIR \rightarrow \forall i. \forall BUCHI \in BUCHIS. \exists j>i. s_j \in BUCHI$.
 
 \subsection{Solving games}
 \subsubsection{Controllable predecessor}
@@ -91,11 +94,11 @@ The exact details of $CPre$ do not matter and it can be considered to be a param
 
 \subsubsection{Safety and reachability}
 
-We will start with reachability as it is the easiest to understand. A state is winning in a reachability game if there is some finite $i$ such that we can guarantee that after $i$ rounds of the game, execution will have, at least once, entered a state in $REACH$.
+We will start with reachability as it is the easiest to understand. A state is winning in a reachability game if there is some finite $i$ such that we can guarantee that after $i$ rounds of the game, execution will have, at least once, entered a state in $\reachobj$.
 
-We can define the winning region inductively. It is obviously possible to reach the set $REACH$ from $REACH$ in 0 steps as we are already there. This is the base case. It is also possible to reach $REACH$ from $x \in S$ in $N + 1$ steps or fewer iff it is possible to reach $REACH$ from all of $Y \subseteq 2^S$ in $N$ steps or fewer and $x \in CPRE(Y)$.
+We can define the winning region inductively. It is obviously possible to reach the set $\reachobj$ from $\reachobj$ in 0 steps as we are already there. This is the base case. It is also possible to reach $\reachobj$ from $x \in S$ in $N + 1$ steps or fewer iff there exists $Y\subseteq 2^S$ such that it is possible to reach $\reachobj$ from all of $Y \subseteq 2^S$ in $N$ steps or fewer and $x \in CPRE(Y)$.
 
-This suggests an algorithm. We start with $REACH$, apply $CPRE$ to get the states winning in 1 step, combine with $REACH$ again to get the states reachable in 1 step or less, and then repeat. On each iteration we find the states winning in $N$ or less steps. Two questions remain: 
+This suggests an algorithm. We start with $\reachobj$, apply $CPRE$ to get the states winning in 1 step, combine with $\reachobj$ again to get the states reachable in 1 step or less, and then repeat. After $N$ iterations, we find the states winning in $N$ or less steps. The algorithm is given in Algorithm \ref{a:reach}. Two questions remain: 
 
 \begin{itemize}
     \item An algorithm must terminate, so, when should we stop iterating?
@@ -105,28 +108,28 @@ This suggests an algorithm. We start with $REACH$, apply $CPRE$ to get the state
 Observe that $W_{N+1} \supseteq W_N$. So, on each iteration, we either grow the winning set or it remains the same. Also observe that our set $S$ is finite, which means that $2^S$ is also finite. As set inclusion is a transitive relation, we cannot grow our winning set forever, so eventually we must reach a fixed point of the CPRE function. 
 
 %TODO: $CPRE$ isnt the order preserving function
-Or, if you prefer, the power set of $S$ can be ordered by set inclusion to obtain a complete lattice with supremum $S$ and infimum $\emptyset$. $CPRE$ is an order preserving function, so by the Knaster-Tarski theorem the set of fixed points of $CPRE$ is also a complete lattice. Thus there exists a greatest and least fixed point (as the lattice is complete). The least fixed point of $CPRE$ is clearly obtained by iteration starting from the least element of the lattice, ie. $\emptyset$.
+A more formal proof of termination is based in the Knaster-Tarski theorem \cite{knaster_tarski}. The power set of $S$ can be ordered by set inclusion to obtain a complete lattice with supremum $S$ and infimum $\emptyset$. $CPRE$ is an order preserving function, so by the Knaster-Tarski theorem the set of fixed points of $CPRE$ is also a complete lattice. Thus there exists a greatest and least fixed point (as the lattice is complete). The least fixed point of $CPRE$ is clearly obtained by iteration starting from the least element of the lattice, ie. $\emptyset$. 
 
 Thus, we will eventually reach a fixed point, and, this is when we should stop iterating as further iterations will not change the winning set. Furthermore, we know that after any finite number $N$ of iterations where $N$ is greater than the number of iterations required to reach the fixed point, the winning region will remain $WIN$. Thus $WIN_N = WIN$ and we have found all winning states.
 
 Safety games are the dual of reachability games and are also solved by iterating the controllable predecessor. They will not be described here.
 
 \begin{equation}
-REACH(T) = \mu X. CPre(X \vee T)
+    \mathit{REACH}(T) = \mu X. CPre(X \vee T)
 \label{equ:mu_reach}
 \end{equation}
 
 \begin{equation}
-SAFE(T) = \nu X. CPre(X \wedge T)
+\mathit{SAFE}(T) = \nu X. CPre(X \wedge T)
 \label{equ:mu_safe}
 \end{equation}
 
 \begin{algorithm}[t]
 \begin{algorithmic}
-\Function{Reach}{$REACH$}
+\Function{Reach}{$\reachobj$}
 \State $Y \gets \varnothing$
 \Loop
-\State $Y' \gets CPre(Y \cup REACH)$
+\State $Y' \gets CPre(Y \cup \reachobj)$
 \If {$Y' = Y$} 
 \State\Return $Y$\EndIf
 \State $Y \gets Y'$
@@ -139,10 +142,10 @@ SAFE(T) = \nu X. CPre(X \wedge T)
 
 \begin{algorithm}[t]
 \begin{algorithmic}
-\Function{Safe}{$SAFE$, $CPre$}
+\Function{Safe}{$\safeobj$, $CPre$}
 \State $Y \gets S$
 \Loop
-\State $Y' \gets CPre(Y \cap SAFE)$
+\State $Y' \gets CPre(Y \cap \safeobj)$
 \If {$Y' = Y$} 
 \State\Return $Y$\EndIf
 \State $Y \gets Y'$
@@ -155,11 +158,11 @@ SAFE(T) = \nu X. CPre(X \wedge T)
 
 \subsubsection{Buchi}
 
-To solve a Buchi game, you first find the set from which you can reach the goal once as you do for a reachability game. Then, you use this set to find the set from which you can reach the goal twice, three times, and so on until you get to another fixed point. 
+To solve a Buchi game, we first find the set from which we can reach the goal once as we do for a reachability game. Then, we use this set to find the set from which we can reach the goal twice, three times, and so on until we get to another fixed point. 
 
-Imagine you have solved the reachability game $R = REACH(T)$ where $T$ is the Buchi target set and $R$ is the winning region. Then $V = R \wedge T$ is a subset of the goal from which you can reach the goal one more time. Computing $W = REACH(V)$ gets you the set of states from which you can reach the goal twice. Iterating this procedure will eventually lead to a fixed point as $REACH$ is a monotonic function.
+Imagine we have solved the reachability game $R = \reachobj(T)$ where $T$ is the Buchi target set and $R$ is the winning region. Then $V = R \wedge T$ is a subset of the goal from which player~1 can reach the goal one more time. Computing $W = \reachobj(V)$ gets us the set of states from which we can reach the goal twice. Iterating this procedure will eventually lead to a fixed point as $\reachobj$ is a monotonic function.
 
-This fixed point is the set of states from which you can reach the goal any number of times. Thus, it is the winning set of the Buchi game. The algorithm is given in algorithm \ref{a:buch}.
+This fixed point is the set of states from which we can reach the goal any number of times. Thus, it is the winning set of the Buchi game. The algorithm is given in Algorithm \ref{a:buch}.
 
 \begin{algorithm}[t]
 \begin{algorithmic}
@@ -178,13 +181,13 @@ This fixed point is the set of states from which you can reach the goal any numb
 \end{algorithm}
 
 \begin{equation}
-BUCHI(T) = \nu X. \mu Y. CPre(Y \vee (X \wedge T))
+\mathit{BUCHI}(T) = \nu X. \mu Y. CPre(Y \vee (X \wedge T))
 \label{eqn:mu_buchi}
 \end{equation}
 
 \subsubsection{Generalized Buchi}
 
-Solving a generalized buchi game is similar to a buchi game except that you find the set from which you can reach any goal once, then any goal twice, etc. The algorithm is a small modification to the buchi algorithm and is given in algorithm \ref{alg:gen_buchi}.
+Solving a generalized buchi game is similar to a buchi game except that we find the set from which we can reach any goal once, then any goal twice, etc. The algorithm is a small modification to the buchi algorithm and is given in Algorithm \ref{alg:gen_buchi}.
 
 \begin{algorithm}[t]
 \begin{algorithmic}
@@ -194,7 +197,7 @@ Solving a generalized buchi game is similar to a buchi game except that you find
 \State $Y' \gets S$
 
 \For{\textbf{each} G in Goals}
-\State $Y' \gets Y' \wedge \Call{Reach}{Y \cap G}$
+\State $Y' \gets Y' \cap \Call{Reach}{Y \cap G}$
 \EndFor
 
 \If {$Y' = Y$} 
@@ -209,13 +212,13 @@ Solving a generalized buchi game is similar to a buchi game except that you find
 \end{algorithm}
 
 \begin{equation}
-    GEN\_BUCHI(T) = \nu X. \prod_{G \in GOALS} \mu Y. CPre(Y \vee (X \wedge G))
+    \mathit{GEN\_BUCHI}(T) = \nu X. \bigwedge_{G \in GOALS} \mu Y. CPre(Y \vee (X \wedge G))
 \label{eqn:mu_buchi}
 \end{equation}
 
 \subsubsection{GR(1)}
 
-Next, we need to add fairness. Consider a fair reachability game. An unfair region is a region that we can assume execution will leave, regardless of the loops it contains. We modify the controllable predecessor to create a fair controllable predecessor that takes this into account. Intuitively, the algorithm considers a block of unfair states to be winning if the only way out leads to an already winning state. To achieve this, we play a variation of a safety game where we can win if we stay entirely within the unfair set or upon exiting the unfair set we are immediately in the target set $T$. The procedure for the fair controllable predecessor is given in algorithm \ref{a:fair_cpre}. Using $Fair\_CPre$ as the $CPre$ operator in the reachability algorithm (algorithm \ref{a:reach}) yields the fair reachability algorithm. The reader is invited to check that this algorithm correctly determines that all states in figure \ref{fig:fair} are winning.
+Next, we need to add fairness. Consider a fair reachability game. An unfair region is a region that we can assume execution will leave, regardless of the loops it contains. We modify the controllable predecessor to create a fair controllable predecessor that takes this into account. Intuitively, the algorithm considers a set of unfair states to be winning if the only way out leads to an already winning state. To achieve this, we play a variation of a safety game where we can win if we stay entirely within the unfair set or upon exiting the unfair set we are immediately in the target set $T$. The procedure for the fair controllable predecessor is given in Algorithm \ref{a:fair_cpre}. Using $Fair\_CPre$ as the $CPre$ operator in the reachability algorithm (Algorithm \ref{a:reach}) yields the fair reachability algorithm. The reader is invited to check that this algorithm correctly determines that all states in Figure \ref{fig:fair} are winning.
 
 \begin{algorithm}[t]
 \begin{algorithmic}
@@ -234,11 +237,11 @@ Next, we need to add fairness. Consider a fair reachability game. An unfair regi
 \end{algorithm}
 
 \begin{equation}
-FAIR\_CPRE(U, T) = \nu X. CPre((U \wedge X) \vee T)
+FAIR\_CPRE(F, T) = \nu X. CPre((\neg F \wedge X) \vee T)
 \label{eqn:mu_fair}
 \end{equation}
 
-Finally, if we combine the Buchi game with the fair controllable predecessor we get a GR(1) game. The procedure is given in algorithm \ref{a:gr1}.
+Finally, if we combine the Buchi game with the fair controllable predecessor we get a GR(1) game. The procedure is given in Algorithm \ref{a:gr1}.
 
 \begin{algorithm}[t]
 \begin{algorithmic}
@@ -251,7 +254,7 @@ Finally, if we combine the Buchi game with the fair controllable predecessor we 
 \end{algorithm}
 
 \begin{equation}
-GR1(G, U) = \nu X. \mu Y. \nu Z. CPre((U \wedge Z) \vee (G \wedge X) \vee Y)
+GR1(G, F) = \nu X. \mu Y. \nu Z. CPre((\neg F \wedge Z) \vee (G \wedge X) \vee Y)
 \label{equ:mu_gr1}
 \end{equation}
 
@@ -259,9 +262,9 @@ GR1(G, U) = \nu X. \mu Y. \nu Z. CPre((U \wedge Z) \vee (G \wedge X) \vee Y)
 
 \subsubsection{Reachability}
 
-Once we have solved a game and determined that it is winning, we can extract a strategy. In driver synthesis, the strategy is used to generate the driver. A strategy is a relation between states and labels to play that are guaranteed to get you closer to the goal. Strategy extraction requires a straightforward modification to the game solving algorithm.
+Once we have solved a game and determined that it is winning, we can extract a strategy. In driver synthesis, the strategy is used to generate the driver. A strategy is a relation between states and labels to play that are guaranteed to get us closer to the goal. Strategy extraction requires a straightforward modification to the game solving algorithm.
 
-When extracting a strategy for a reachability game we need to record, for each iteration, how we got one step closer to the goal. The algorithm is given in algorithm \ref{alg:reach_strat}. 
+When extracting a strategy for a reachability game we need to record, for each iteration, how we got one step closer to the goal. The algorithm is given in Algorithm \ref{alg:reach_strat}. 
 
 The strategy relation is initialized to the empty set. Then, we perform an iteration of the controllable predecessor. This time we use \textsc{CPre\_Strat}, which, in addition to computing the next reachable set, also computes a relation between the newly discovered winning states and the labels that take execution from these newly discovered states one step closer to the goal.
 
@@ -269,11 +272,11 @@ On each iteration we combine this strategy for the newly discovered states with 
 
 \begin{algorithm}[t]
 \begin{algorithmic}
-\Function{Reach\_Strat}{$REACH$}
+\Function{Reach\_Strat}{$\reachobj$}
 \State $Y \gets \varnothing$
 \State $STRAT \gets \varnothing$
 \Loop
-\State $(Y', STRAT') \gets CPre\_Strat(Y \cup REACH)$
+\State $(Y', STRAT') \gets CPre\_Strat(Y \cup \reachobj)$
 \If {$Y' = Y$} 
 \State\Return $(Y, STRAT)$\EndIf
 \State $STRAT \gets STRAT \cup STRAT'$
@@ -289,13 +292,13 @@ On each iteration we combine this strategy for the newly discovered states with 
 
 Like a reachability strategy, a strategy for a buchi game must ensure that we eventually get to the goal. However, it must also ensure that once we get to the goal it is still possible to reach the goal again. 
 
-A buchi strategy must guarantee that we can reach the intersection of the goal and the winning region, which will be non-empty if the game is winnable. The algorithm for computing the strategy in a buchi game is given in algorithm \ref{alg:buchi_strat}.
+A buchi strategy must guarantee that we can reach the intersection of the goal and the winning region, which will be non-empty if the game is winnable. The algorithm for computing the strategy in a buchi game is given in Algorithm \ref{alg:buchi_strat}.
 
 \begin{algorithm}[t]
 \begin{algorithmic}
-\Function{Buchi\_Strat}{$REACH$}
-\State $win \gets \Call{Buchi}{REACH}$
-\State \Return \Call{Reach\_Strat}{$win \cap REACH$}
+\Function{Buchi\_Strat}{$\buchiobj$}
+\State $win \gets \Call{Buchi}{\buchiobj}$
+\State \Return \Call{Reach\_Strat}{$win \cap \buchiobj$}
 \EndFunction
 \end{algorithmic}
 \caption{Extracting a strategy for a buchi game}
@@ -304,14 +307,15 @@ A buchi strategy must guarantee that we can reach the intersection of the goal a
 
 \subsubsection{Generalized buchi}
 
-Like a generalized buchi strategy must ensure that we can always get to any of the goals. A generalized buchi strategy must guarantee that we can reach the intersection of any of the goals and the winning region, which will be non-empty if the game is winnable. The algorithm for computing the strategy in a generalized buchi game is given in algorithm \ref{alg:gen_buchi_strat}. It returns one strategy for each goal that ensures you can get to the goal while remaining in the winning region. 
+Like a generalized buchi strategy must ensure that we can always get to any of the goals. A generalized buchi strategy must guarantee that we can reach the intersection of any of the goals and the winning region, which will be non-empty if the game is winnable. The algorithm for computing the strategy in a generalized buchi game is given in Algorithm \ref{alg:gen_buchi_strat}. It returns one strategy for each goal that ensures we can get to the goal while remaining in the winning region. 
 
 \begin{algorithm}[t]
 \begin{algorithmic}
-\Function{Gen\_Buchi\_Strat}{$REACH$}
-\State $win \gets \Call{Generalized\_Buchi}{REACH}$
+\Function{Gen\_Buchi\_Strat}{$\genbuchiobj$}
+\State $win \gets \Call{Generalized\_Buchi}{\genbuchiobj}$
 
-\For{\textbf{each} G in Goals}
+\For{\textbf{each} $G \in \genbuchiobj$}
+%TODO
 \State \Return \Call{Reach\_Strat}{$win \cap G$}
 \EndFor
 
@@ -323,7 +327,7 @@ Like a generalized buchi strategy must ensure that we can always get to any of t
 
 \subsubsection{Fair reachability}
 
-A strategy for a fair reachability game must ensure that we can reach the goal assuming that an unfair condition is not forever true. Conceptually, it tries to keep execution within an unfair region for which the only way out takes us a step closer to the goal. The algorithm for computing the strategy in a fair reachability game is given in algorithm \ref{alg:fair_reach_strat}.
+A strategy for a fair reachability game must ensure that we can reach the goal assuming that an unfair condition is not forever true. Conceptually, it tries to keep execution within an unfair region for which the only way out takes us a step closer to the goal. The algorithm for computing the strategy in a fair reachability game is given in Algorithm \ref{alg:fair_reach_strat}.
 
 \subsubsection{GR(1)}
 
@@ -331,7 +335,7 @@ A strategy for a fair reachability game must ensure that we can reach the goal a
 
 \section{Symbolic games}
 
-The algorithm described so far appears very inefficient. Consider a reachability game. We are performing a backwards breadth-first search starting from $REACH$. If we were to implement it directly as described, we would need a set abstract datatype to represent the winning set. Some of the games we have solved with Termite have upwards of $2^{80}$ states, even after abstraction. Clearly, explicitly representing the winning set will never succeed. 
+The algorithm described so far appears very inefficient. Consider a reachability game. We are performing a backwards breadth-first search starting from $\reachobj$. If we were to implement it directly as described, we would need a set abstract datatype to represent the winning set. Some of the games we have solved with Termite have upwards of $2^{80}$ states, even after abstraction. Clearly, explicitly representing the winning set will never succeed. 
 
 Identical problems are encountered in model checking. The breakthrough that revolutionised model checking was to represent state sets implicitly as a characteristic equation over state variables.
 
@@ -339,7 +343,7 @@ Identical problems are encountered in model checking. The breakthrough that revo
 
 Symbolic games are defined over a finite set of state variables, $X$, and a finite set of label variables $Y$. We redefine $S$, the set of states, to be the set of possible valuations of each state variable in $X$. That is, each state $s \in S$ is given by a valuation of all of the state variables in $X$. Similarly, we redefine $L$, the set of labels, to be the set of possible valuations of each label variable in $Y$.
 
-For a set $Z$ of variables, we denote by $\forms(Z)$ the set of propositional formulas constructed from the variables in $Z$. The characteristic formula of a set of states $T$ is a function $f \in \forms(X)$ that evaluates to true for the valuation corresponding to a state $s \in T$ and false otherwise. We use characteristic formulas to represent sets of states as it is more compact than explicitly listing each member of the set. This is called a symbolic representation.
+For a set $Z$ of variables, we denote by $\forms(Z)$ the set of propositional formulas constructed from the variables in $Z$. The characteristic formula of a set of states $T$ is a function $f \in \forms(X)$ that evaluates to true for the valuation corresponding to a state $s \in T$ and false otherwise. We use characteristic formulas to represent sets of states without explicitly listing each member of the set. This is called a symbolic representation.
 
 Likewise, $\delta$ is specified by a formula in $\forms(X \bigcup Y \bigcup X')$, where $X' = \{x' \mid x \in X \}$ is the set of next state variables.
 
@@ -350,7 +354,7 @@ We can redefine Algorithms 1-4 using characteristic functions instead of explici
 \subsection{Strategy generation}
 \subsection{Binary decision diagrams}
 
-A binary decision diagram is an efficient data structure for manipulating large propositional formulas. 
+A binary decision diagram is an efficient data structure for manipulating large propositional formulas. They are the symbolic data structure that we use in Termite.
 
 \subsubsection{Binary decision trees}
 
@@ -363,11 +367,11 @@ A binary decision diagram is an efficient data structure for manipulating large 
 
 Figure \ref{fig:decis_tree} shows a decision tree for the disjunction of two variables. The root node represents the disjunction function. The child nodes, or internal nodes, represent variables and the leaf nodes, or terminal nodes represent the outcome of the function. Terminal nodes are labelled either True or False. Given a valuation of X and Y, we can evaluate the function by starting at the root and taking the solid edge if the variable represented by the node is assigned to True in the valuation and taking the dashed edge if the value is assigned to False. 
 
-For example, in figure \ref{fig:decis_tree}, for the valuation $x=True$ and $y=False$, we start at the root node which is labelled x as x is this node's decision variable. X is assigned to True so we follow the solid edge to the next decision node which is labelled y. Y is assigned to false so we take the dashed edge and arrive at a terminal node whos value is 1, meaning that the function evaluates to 1 for this variable valuation.
+For example, in Figure \ref{fig:decis_tree}, for the valuation $x=True$ and $y=False$, we start at the root node which is labelled x as x is this node's decision variable. Variable $X$ is assigned to True so we follow the solid edge to the next decision node which is labelled y. Y is assigned to false so we take the dashed edge and arrive at a terminal node whos value is 1, meaning that the function evaluates to 1 for this variable valuation.
 
 \subsubsection{Ordered binary decision trees}
 
-If the order in which the variables appear along all paths starting from the root node and ending at a terminal node are the same, then the decision tree is called an ordered decision tree. The decision tree in figure \ref{fig:decis_tree} is ordered.
+If the order in which the variables appear along all paths starting from the root node and ending at a terminal node are the same, then the decision tree is called an ordered decision tree. The decision tree in Figure \ref{fig:decis_tree} is ordered.
 
 \subsubsection{Reduced ordered binary decision diagrams}
 
@@ -398,7 +402,7 @@ In practice, one uses a BDD library such as CUDD \cite{cudd} to build and manipu
 
 \subsubsection{Conjunction and disjunction}
 
-BDDs are not usually built as decision trees and then reduced. Instead, they are build from the bottom up, starting with the terminal and variable nodes and combining these using conjunction, disjunction and negation.
+BDDs are not usually built as decision trees and then reduced. Instead, they are built from the bottom up, starting with the terminal and variable nodes and combining these using conjunction, disjunction and negation.
 
 Conjunction and disjunction are computed using a straightforward recursive algorithm that wont be given here, but if the reader is interested, more information can be found in \cite{somenzi_bdd}. An important result is that, in the worst case, the procedure runs in time proportional to the product of the sizes of the two input BDDs. Furthermore, the size of the resulting BDD may be equal to the product of the sizes of the two input BDDs in the worst case. A strength of BDDs, however, is that this worst case rarely happens in practice. 
 
@@ -406,7 +410,7 @@ Conjunction and disjunction are computed using a straightforward recursive algor
 
 Function composition is where a BDD representing some function is substituted for a variable in another BDD.
 
-Given a function $f(x_1,\cdots,x_n)$, we define existential quantification of $f$ with respect to $x_i$ as $\exists x_i. f = f_{x_i} \vee f_{x_i}$ and universal quantification of $f$ with respect to $x_i$ as $\forall x_i. f = f_{x_i} \wedge f_{x_i}$.
+Given a function $f(x_1,\cdots,x_n)$, we define existential quantification of $f$ with respect to $x_i$ as $\exists x_i. f = f_{x_i} \vee f_{\overline{x_i}}$ and universal quantification of $f$ with respect to $x_i$ as $\forall x_i. f = f_{x_i} \wedge f_{\overline{x_i}}$.
 
 Quantifications of the same type commute, so quantification with respect to a set of variables is well defined. 
 
