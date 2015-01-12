@@ -55,21 +55,45 @@ A game is won by player 1 if, by picking suitable labels, they can force the pat
 
 \subsection{Safety and reachability}
 
-The two simplest objectives are safety and reachability. A safety objective is defined by a set $\safeobj \subseteq S$ that player 1 must force the game to stay within, regardless of the labels that player 2 picks. Formally, a run is safe if $\forall i. s_i \in \safeobj$. 
+The two simplest objectives are safety and reachability. A safety objective is defined by a set $\safeobj \subseteq S$ that player 1 must force the game to stay within, regardless of the labels that player 2 picks. Formally, a run is safe if 
 
-The dual of a safety objective is a reachability objective. A reachability objective is defined by a set $\reachobj \subseteq S$ that player 1 must force the game to visit at least once, regardless of the labels that player 2 picks. Formally, a reachability run is winning if $\exists i. s_i \in \reachobj$
+\begin{equation}
+\forall i. s_i \in \safeobj
+\end{equation}
+
+The dual of a safety objective is a reachability objective. A reachability objective is defined by a set $\reachobj \subseteq S$ that player 1 must force the game to visit at least once, regardless of the labels that player 2 picks. Formally, a reachability run is winning if 
+
+\begin{equation}
+\exists i. s_i \in \reachobj
+\end{equation}
 
 \paragraph{Buchi}
-A Buchi objective is defined by a set $\buchiobj \subseteq S$ that player~1 must always be able to force execution of the game into. This differs from a reachability game in that the region must always be reachable, not just once. When it has been reached once, it must be reachable again, and so on. So, it must be reachable infinitely many times. Formally, a run is buchi winning if $\forall i. \exists j>i. s_j \in \buchiobj$
+A Buchi objective is defined by a set $\buchiobj \subseteq S$ that player~1 must always be able to force execution of the game into. This differs from a reachability game in that the region must always be reachable, not just once. When it has been reached once, it must be reachable again, and so on. So, it must be reachable infinitely many times. Formally, a run is buchi winning if 
+
+\begin{equation}
+\forall i. \exists j>i. s_j \in \buchiobj
+\end{equation}
 
 \paragraph{Generalized Buchi}
-A Generalized Buchi objective is defined by a set of sets $\genbuchiobj \subseteq 2^S$. Player~1 must always be able to force execution into each set $\buchiobj \in \genbuchiobj$. Formally, a run satisfies a generalized Buchi objective if $\forall i. \forall \buchiobj \in \genbuchiobj. \exists j>i. s_j \in \buchiobj$.
+A Generalized Buchi objective is defined by a set of sets $\genbuchiobj \subseteq 2^S$. Player~1 must always be able to force execution into each set $\buchiobj \in \genbuchiobj$. Formally, a run satisfies a generalized Buchi objective if 
+
+\begin{equation}
+\forall i. \forall \buchiobj \in \genbuchiobj. \exists j>i. s_j \in \buchiobj
+\end{equation}
 
 \paragraph{Fairness}
-Sometimes it is necessary to rule out invalid plays that are not easily ruled out by changing the state machine. For this we use fairness conditions. A fairness condition is a set of states which we may assume that all valid runs of the game eventually leave. If a spoiling strategy exists that results in an unfair run, it does not count. Formally, a run satisfies a fair reachability objective if $\forall i. \exists j>i. s_j \in FAIR \rightarrow \exists i. s_i \in \reachobj$. 
+Sometimes it is necessary to rule out invalid plays that are not easily ruled out by changing the state machine. For this we use fairness conditions. A fairness condition is a set of states which we may assume that all valid runs of the game eventually leave. If a spoiling strategy exists that results in an unfair run, it does not count. Formally, a run satisfies a fair reachability objective if 
+
+\begin{equation}
+\forall i. \exists j>i. s_j \in \fairobj \rightarrow \exists i. s_i \in \reachobj
+\end{equation}
 
 \paragraph{GR(1)}
-A Generalized Reactive 1, or GR(1) \cite{gr1} objective, is a generalized Buchi objective with multiple fairness conditions. In practice, this turns out to be a very useful type of objective. Formally, a run satisfies a GR(1) objective if $\forall i. \forall FAIR \in FAIRS \exists j>i. s_j \in FAIR \rightarrow \forall i. \forall \buchiobj \in \genbuchiobj. \exists j>i. s_j \in \buchiobj$.
+A Generalized Reactive 1, or GR(1) \cite{gr1} objective, is a generalized Buchi objective with multiple fairness conditions. In practice, this turns out to be a very useful type of objective. Formally, a run satisfies a GR(1) objective if 
+
+\begin{equation}
+\forall i. \forall \fairobj \in \genfairobj. \exists j>i. s_j \in \fairobj \rightarrow \forall i. \forall \buchiobj \in \genbuchiobj. \exists j>i. s_j \in \buchiobj
+\end{equation}
 
 \subsection{Strategies, counterexamples}
 
