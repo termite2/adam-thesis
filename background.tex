@@ -91,9 +91,9 @@ Sometimes it is necessary to rule out invalid plays that are not easily ruled ou
 \paragraph{GR(1)}
 A Generalized Reactive 1, or GR(1) \cite{gr1} objective, is a generalized Buchi objective with multiple fairness conditions. In practice, this turns out to be a very useful type of objective. Formally, a run satisfies a GR(1) objective if 
 
-\begin{equation}
-\forall i. \forall \fairobj \in \genfairobj. \exists j>i. s_j \in \fairobj \rightarrow \forall i. \forall \buchiobj \in \genbuchiobj. \exists j>i. s_j \in \buchiobj
-\end{equation}
+\begin{multline}
+\forall i. \forall \fairobj \in \genfairobj. \exists j>i. s_j \in \fairobj \rightarrow \\ \forall i. \forall \buchiobj \in \genbuchiobj. \exists j>i. s_j \in \buchiobj
+\end{multline}
 
 \subsection{Strategies, counterexamples}
 
