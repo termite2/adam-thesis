@@ -56,12 +56,14 @@ A \emph{strategy} for player~$i$ is a function $\pi_i : S^* \times \tau_i \right
 The two simplest objectives are safety and reachability. A safety objective is defined by a set $\safeobj \subseteq S$ that player 1 must force the game to stay within, regardless of the labels that player 2 picks. Formally, a run is safe if 
 
 \begin{equation}
+\label{eqn:safeobj}
 \forall i. s_i \in \safeobj
 \end{equation}
 
 The dual of a safety objective is a reachability objective. A reachability objective is defined by a set $\reachobj \subseteq S$ that player 1 must force the game to visit at least once, regardless of the labels that player 2 picks. Formally, a reachability run is winning if 
 
 \begin{equation}
+\label{eqn:reachobj}
 \exists i. s_i \in \reachobj
 \end{equation}
 
@@ -112,9 +114,18 @@ This is known as a \emph{counterexample strategy}. It is a strategy for player~2
 Again, in the case of generalised buchi and GR(1) games, the counterexample strategy may depend on an additional finite state: $\pi_1 : \tau_2 \times \sigma \rightarrow L \times \sigma$.
 
 \subsection{Solving games}
+
+Given a game and an objective there are two questions we can ask:
+\begin{itemize}
+    \item can player~1 win?
+    \item if so, what is the strategy for player~1 and, if not, what is the counterexample strategy for player~2
+\end{itemize}
+
+We present algorithms to answer these questions in this section.
+
 \subsubsection{Controllable predecessor}
 
-All of the synthesis algorithms for games I will be describing use a function called the controllable predecessor (abbreviated CPre). CPre is a function from a set of game states ($2^S$) to another set of game states. Given a set $T$, $CPre(T)$ returns the set of states from which player 1 can force execution into $T$ in one step. 
+All of the algorithms for games I will be describing use a function called the controllable predecessor (abbreviated CPre). CPre is a function from a set of game states ($2^S$) to another set of game states. Given a set $T$, $CPre(T)$ returns the set of states from which player 1 can force execution into $T$ in one step. 
 
 The exact details of $CPre$ do not matter and here we consider it to be a parameter to the game solving algorithms. The function it computes depends on the application and I will be describing the driver synthesis $CPre$ later. For now, the only property of $CPre$ that we require is that it is monotonic, ie. if $X \subseteq Y$ then $CPre(X) \subseteq CPre(Y)$. Clearly, any reasonable $CPre$ function will have this property.
 
@@ -128,11 +139,13 @@ The controllable predecessor for turn based games returns the subset of $\tau_1$
 
 \subsubsection{Safety and reachability}
 
-We will start with reachability as it is the easiest to understand. A state is winning in a reachability game if there is some finite $i$ such that we can guarantee that after $i$ rounds of the game, execution will have, at least once, entered a state in $\reachobj$.
+We will start with reachability as it is the most straightforward. We solve games by finding the set of states from which player~1 can win, called the \emph{winning region}. If the winning region contains the set of initial states, then we know that player~1 can win from any state in the initial set and thus can win the game.
+
+According to Equation \ref{eqn:reachobj}, a state is winning in a reachability game if there is some finite $i$ such that we can guarantee that after $i$ rounds of the game, execution will have, at least once, entered a state in $\reachobj$. 
 
 We can define the winning region inductively. It is obviously possible to reach the set $\reachobj$ from $\reachobj$ in 0 steps as we are already there. This is the base case. It is also possible to reach $\reachobj$ from $x \in S$ in $N + 1$ steps or fewer iff there exists $Y\subseteq 2^S$ such that it is possible to reach $\reachobj$ from all of $Y \subseteq 2^S$ in $N$ steps or fewer and $x \in CPRE(Y)$.
 
-This suggests an algorithm. We start with $\reachobj$, apply $CPRE$ to get the states winning in 1 step, combine with $\reachobj$ again to get the states reachable in 1 step or less, and then repeat. After $N$ iterations, we find the states winning in $N$ or less steps. The algorithm is given in Algorithm \ref{a:reach}. Two questions remain: 
+This suggests an algorithm to find the winning region. We start with $\reachobj$, apply $CPRE$ to get the states winning in 1 step, combine with $\reachobj$ again to get the states reachable in 1 step or less, and then repeat. After $N$ iterations, we find the states winning in $N$ or less steps. The algorithm is given in Algorithm \ref{a:reach}. Two questions remain: 
 
 \begin{itemize}
     \item An algorithm must terminate, so, when should we stop iterating?
@@ -146,7 +159,9 @@ A more formal proof of termination is based in the Knaster-Tarski theorem \cite{
 
 Thus, we will eventually reach a fixed point, and, this is when we should stop iterating as further iterations will not change the winning set. Furthermore, we know that after any finite number $N$ of iterations where $N$ is greater than the number of iterations required to reach the fixed point, the winning region will remain $WIN$. Thus $WIN_N = WIN$ and we have found all winning states.
 
-Safety games are the dual of reachability games and are also solved by iterating the controllable predecessor. They will not be described here.
+Finally, to answer the question of whether the game is winning for player~1, we check if the winning region contains the initial state set. If it does, we return True; otherwise, we return false.
+
+Safety games are the dual of reachability games and are also solved by iterating the controllable predecessor. The algorithm for solving safety games is also the dual of the algorithm for solving reachability games and is given in Algorithm \ref{alg:safe}.
 
 \begin{equation}
     \mathit{REACH}(T) = \mu X. CPre(X \vee T)
