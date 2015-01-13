@@ -116,7 +116,15 @@ Again, in the case of generalised buchi and GR(1) games, the counterexample stra
 
 All of the synthesis algorithms for games I will be describing use a function called the controllable predecessor (abbreviated CPre). CPre is a function from a set of game states ($2^S$) to another set of game states. Given a set $T$, $CPre(T)$ returns the set of states from which player 1 can force execution into $T$ in one step. 
 
-The exact details of $CPre$ do not matter and it can be considered to be a parameter to the game solving algorithms. The function it computes depends on the application and I will be describing the driver synthesis $CPre$ later. For now, the only property of $CPre$ that we require is that it is monotonic, ie. if $X \subseteq Y$ then $CPre(X) \subseteq CPre(Y)$. Clearly, any reasonable $CPre$ function will have this property.
+The exact details of $CPre$ do not matter and here we consider it to be a parameter to the game solving algorithms. The function it computes depends on the application and I will be describing the driver synthesis $CPre$ later. For now, the only property of $CPre$ that we require is that it is monotonic, ie. if $X \subseteq Y$ then $CPre(X) \subseteq CPre(Y)$. Clearly, any reasonable $CPre$ function will have this property.
+
+However, in the interest of aiding the reader's understanding, the controllable predecessor for turn based games is given below:
+
+\begin{multline}
+CPre(X) = \tau_1 \cap \{x | \exists l. \langle x, l, x' \rangle \in \delta \rightarrow x' \in X\} \\ \cup \tau_2 \cap \{x | \forall l. \langle x, l, x' \rangle \in \delta \rightarrow x' \in X \}
+\end{multline}
+
+The controllable predecessor for turn based games returns the subset of $\tau_1$ where there exists a label which player~1 can choose to take execution into $X$ together with the subset of $\tau_2$ where all labels which player~2 can choose take execution into $X$. 
 
 \subsubsection{Safety and reachability}
 
