@@ -93,19 +93,23 @@ A Generalized Reactive 1, or GR(1) \cite{gr1} objective, is a generalized Buchi 
 \forall i. \forall \fairobj \in \genfairobj. \exists j>i. s_j \in \fairobj \rightarrow \\ \forall i. \forall \buchiobj \in \genbuchiobj. \exists j>i. s_j \in \buchiobj
 \end{multline}
 
-\subsection{Strategies, counterexamples}
+\subsection{Perfect information games}
 
-\todo{prove determinacy}
-\todo{Define strategy, winnable}
+Perfect information games are two player games where both players know the current state of the transition system at all times.
 
-Given an objective, a game is either winning for player~1 or it is losing. If it is winning, then there exists a strategy for player~1. Informally, a strategy tells player~1, in any state, which label it must play and ensures that if player~1 adheres to the strategy then the objective will be satisfied.
+\subsection{Strategies and counterexamples}
 
-\todo{Below is bullshit}
-Formally, a strategy for player~1 is a function $\pi_1 : S^* \times \tau_1 \rightarrow L$ that, in any player~1 state, associates the history of the game with a label to play. It is known that for complete information games, as we are considering, if there exists a strategy, then there also exists one that only depends on the current state. Thus, we can simplify the definition of a strategy for player~1 to be a function $\pi_1 : \tau_1 \rightarrow L$ that only depends on the current state.
+If a game is winnable for player~1 then there exists (by definition) a strategy that tells player~1, in any state, which label it must play and ensures that if player~1 adheres to the strategy then the objective will be satisfied.
 
-Conversely, if the game is losing for player~1, then there exists a spoiling strategy for player~2, that is, a strategy for player~2 that ensures that, no matter which labels player~1 picks, there is no way that player~1 can satisfy its objective.
+It is known that for perfect information safety, reachability and buchi games, if there exists a strategy, then there also exists one that only depends on the current state \cite{something}. Thus, we can simplify the definition of a strategy in this case for player~1 to be a function $\pi_1 : \tau_1 \rightarrow L$ that only depends on the current state.
 
-Formally, a counterexample strategy for player~1 is a strategy for player~2 which is a function $\pi_2 : \tau_2 \rightarrow L$ that associates any player~2 state with a label for player~2 to play. Again, we have simplified the definition as there must exist a strategy that only depends on the current state. 
+Furthermore, it is known that for generalised buchi and GR(1) games, if there exists a strategy, then there also exists one that only depends on the current state and some finite additional state \cite{something}. We can simplify the definition of a strategy in this case for player~1 to be a function $\pi_1 : \tau_1 \times \sigma \rightarrow L \times \sigma$ that only depends on the current state and the finite additional state ($\sigma$), and, in addition to returning the label to play, returns the updated additional state.
+
+Perfect information $\omega$-regular games are determined \todo{this is not true in our case because they are non-deterministic, do we use the simpler deterministic case here and fix this later?}. That is, if the game is losing for player~1 then the game is winning for player~2, i.e. there exists a strategy for player 2 to violate the objective \cite{something}.
+
+This is known as a \emph{counterexample strategy}. It is a strategy for player~2 which ensure that player~1 cannot satisfy their objective. Again, in the case of perfect information safety, reachability and buchi games, if there exists a counterexample strategy (or, equivalently if the game is not winnable for player~1) then there exists a counterexample strategy that only depends on the current state. This is a function $\pi_2 : \tau_2 \rightarrow L$ that associates any player~2 state with a label for player~2 to play. 
+
+Again, in the case of generalised buchi and GR(1) games, the counterexample strategy may depend on an additional finite state: $\pi_1 : \tau_2 \times \sigma \rightarrow L \times \sigma$.
 
 \subsection{Solving games}
 \subsubsection{Controllable predecessor}
