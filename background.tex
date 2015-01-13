@@ -173,32 +173,51 @@ Safety games are the dual of reachability games and are also solved by iterating
 \label{equ:mu_safe}
 \end{equation}
 
-\begin{algorithm}[t]
+\begin{algorithm}
 \begin{algorithmic}
-\Function{Reach}{$\reachobj$}
-\State $Y \gets \varnothing$
-\Loop
-\State $Y' \gets CPre(Y \cup \reachobj)$
-\If {$Y' = Y$} 
-\State\Return $Y$\EndIf
-\State $Y \gets Y'$
-\EndLoop
+
+\Require A set of target states $\reachobj \subseteq S$, an initial set of states $I$ and a monotonic controllable predecessor $CPre$.
+\Ensure  {\it Yes} if $I \subseteq REACH(T, Cpre)$ and {\it No} otherwise.
+
+\Function{Reach}{$\reachobj, I, CPre$}
+    \State $Y \gets \varnothing$
+    \Loop
+        \State $Y' \gets CPre(Y \cup \reachobj)$
+        \If {$Y' = Y$} 
+            \If {$Y \subseteq I$}
+                \State\Return Yes
+            \Else
+                \State\Return No
+            \EndIf
+        \EndIf
+        \State $Y \gets Y'$
+    \EndLoop
 \EndFunction
+
 \end{algorithmic}
 \caption{Solving a reachability game}
 \label{a:reach}
 \end{algorithm}
 
-\begin{algorithm}[t]
+\begin{algorithm}
 \begin{algorithmic}
-\Function{Safe}{$\safeobj$, $CPre$}
-\State $Y \gets S$
-\Loop
-\State $Y' \gets CPre(Y \cap \safeobj)$
-\If {$Y' = Y$} 
-\State\Return $Y$\EndIf
-\State $Y \gets Y'$
-\EndLoop
+
+\Require A set of safe states $\safeobj \subseteq S$, an initial set of states $I$ and a monotonic controllable predecessor $CPre$.
+\Ensure  {\it Yes} if $I \subseteq SAFE(T, Cpre)$ and {\it No} otherwise.
+
+\Function{Safe}{$\safeobj, I, CPre$}
+    \State $Y \gets S$
+    \Loop
+        \State $Y' \gets CPre(Y \cap \safeobj)$
+        \If {$Y' = Y$} 
+            \If {$Y \subseteq I$}
+                \State\Return Yes
+            \Else
+                \State\Return No
+            \EndIf
+        \EndIf
+        \State $Y \gets Y'$
+    \EndLoop
 \EndFunction
 \end{algorithmic}
 \caption{Solving a safety game}
