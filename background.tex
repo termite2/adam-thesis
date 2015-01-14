@@ -159,9 +159,9 @@ A more formal proof of termination is based in the Knaster-Tarski theorem \cite{
 
 Thus, we will eventually reach a fixed point, and, this is when we should stop iterating as further iterations will not change the winning set. Furthermore, we know that after any finite number $N$ of iterations where $N$ is greater than the number of iterations required to reach the fixed point, the winning region will remain $WIN$. Thus $WIN_N = WIN$ and we have found all winning states.
 
-Finally, to answer the question of whether the game is winning for player~1, we check if the winning region contains the initial state set. If it does, we return True; otherwise, we return false.
+Finally, to answer the question of whether the game is winning for player~1, we check if the winning region contains the initial state set. If it does, we return Yes; otherwise, we return No.
 
-Safety games are the dual of reachability games and are also solved by iterating the controllable predecessor. The algorithm for solving safety games is also the dual of the algorithm for solving reachability games and is given in Algorithm \ref{alg:safe}.
+Safety games are the dual of reachability games and are also solved by iterating the controllable predecessor. The algorithm for solving safety games is also the dual of the algorithm for solving reachability games and will not be given here.
 
 \begin{equation}
     \mathit{REACH}(T) = \mu X. CPre(X \vee T)
@@ -197,31 +197,6 @@ Safety games are the dual of reachability games and are also solved by iterating
 \end{algorithmic}
 \caption{Solving a reachability game}
 \label{a:reach}
-\end{algorithm}
-
-\begin{algorithm}
-\begin{algorithmic}
-
-\Require A set of safe states $\safeobj \subseteq S$, an initial set of states $I$ and a monotonic controllable predecessor $CPre$.
-\Ensure  {\it Yes} if $I \subseteq SAFE(T, Cpre)$ and {\it No} otherwise.
-
-\Function{Safe}{$\safeobj, I, CPre$}
-    \State $Y \gets S$
-    \Loop
-        \State $Y' \gets CPre(Y \cap \safeobj)$
-        \If {$Y' = Y$} 
-            \If {$Y \subseteq I$}
-                \State\Return Yes
-            \Else
-                \State\Return No
-            \EndIf
-        \EndIf
-        \State $Y \gets Y'$
-    \EndLoop
-\EndFunction
-\end{algorithmic}
-\caption{Solving a safety game}
-\label{a:safe}
 \end{algorithm}
 
 \subsubsection{Buchi}
