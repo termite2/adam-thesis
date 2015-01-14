@@ -15,6 +15,13 @@ Let $P$ be a set of propositions, $A$ be a set of actions and $V$ be a set of va
     \item if $\phi$ is a formula and $Z$ a variable then $\nu X.\phi$ is a formula provided that every free occurrence of $Z$ occurs under an even number of negations
 \end{itemize}
 
+Given these definitions, we also have:
+\begin{itemize}
+    \item $\phi \vee \psi$ meaning $\neg (\phi \wedge \psi)$
+    \item $\langle a \rangle \phi$ meaning $\neg [a] \neg \phi$
+\item $\mu Z. \phi$ meaning $\neg \nu Z. \neg \phi [Z := \neg Z]$ where $\phi[Z := \neg Z]$ means substituting $\neg Z$ for all free occurrences of $Z$ in $\phi$
+\end{itemize}
+
 \subsection{Semantics}
 
 Given a labelled transition system $(S, R, V)$ where
