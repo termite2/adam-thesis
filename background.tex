@@ -207,27 +207,6 @@ Imagine we have solved the reachability game $R = \reachobj(T)$ where $T$ is the
 
 This fixed point is the set of states from which we can reach the goal any number of times. Thus, it is the winning set of the Buchi game. The algorithm is given in Algorithm \ref{a:buch}.
 
-\begin{algorithm}[t]
-\begin{algorithmic}
-\Function{Buchi}{$T$, $CPre$}
-\State $Y \gets S$
-\Loop
-\State $Y' \gets \Call{Reach}{Y \cap T}$
-\If {$Y' = Y$} 
-\State\Return $Y$\EndIf
-\State $Y \gets Y'$
-\EndLoop
-\EndFunction
-\end{algorithmic}
-\caption{Solving a \buchi game}
-\label{a:buchi}
-\end{algorithm}
-
-\begin{equation}
-\mathit{BUCHI}(T) = \nu X. \mu Y. CPre(Y \vee (X \wedge T))
-\label{eqn:mu_buchi}
-\end{equation}
-
 \subsubsection{Generalized Buchi}
 
 Solving a generalized buchi game is similar to a buchi game except that we find the set from which we can reach any goal once, then any goal twice, etc. The algorithm is a small modification to the buchi algorithm and is given in Algorithm \ref{alg:gen_buchi}.
