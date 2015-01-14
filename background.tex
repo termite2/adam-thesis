@@ -24,11 +24,11 @@ Given these definitions, we also have:
 
 \subsection{Semantics}
 
-Given a labelled transition system $(S, R, V)$ where
+Given a labelled transition system $(S, R, F)$ where
 \begin{itemize}
     \item S is the set of states
     \item $R \subseteq S \times A \times S$ is the transition relation
-    \item $V : Var \rightarrow 2^S$ maps each proposition to the set of states where the proposition is true
+    \item $F : P \rightarrow 2^S$ maps each proposition to the set of states where the proposition is true
 \end{itemize}
 
 A $\mu$-calculus formula is interpreted as follows:
