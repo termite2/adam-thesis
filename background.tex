@@ -379,9 +379,43 @@ Likewise, $\delta$ is specified by a formula in $\forms(X \bigcup Y \bigcup X')$
 
 \subsection{Symbolic algorithms}
 
-We can redefine Algorithms 1-4 using characteristic functions instead of explicit sets. The algorithms are superficially similar except they use conjunction and disjunction to modify sets instead of explicit set intersection and union. TODO: should I show the algorithms again with symbolicness?
+We can redefine Algorithms 1-4 using characteristic functions instead of explicit sets. The algorithms are superficially similar except they use conjunction and disjunction to modify sets instead of explicit set intersection and union. As an example, we convert the turn based controllable predecessor to symbolic form in Equation \ref{eqn:cpre_symb} and, we convert the simplest algorithm, determining the outcome of a reachability game to symbolic form, in Algorithm \ref{a:symb_reach}.
+
+\begin{equation}
+CPre(X) = \tau_1 \wedge \exists l. \forall n. \delta \rightarrow x' \vee \tau_2 \wedge \forall l. \forall n. \delta \rightarrow x' 
+\label{eqn:cpre_symb}
+\end{equation}
+
+\begin{algorithm}
+\begin{algorithmic}
+
+\Require The characteristic function of the set of target states $\reachobj \subseteq S$, the characteristic function of the initial set of states $I$ and a monotonic controllable predecessor $CPre$ that operates on characteristic functions.
+\Ensure  {\it Yes} if $I \subseteq REACH(T, Cpre)$ and {\it No} otherwise.
+
+\Function{Reach}{$\reachobj, I, CPre$}
+    \State $Y \gets False$
+    \Loop
+        \State $Y' \gets CPre(Y \vee \reachobj)$
+        \If {$Y' = Y$} 
+            \If {$Y \rightarrow I$}
+                \State\Return Yes
+            \Else
+                \State\Return No
+            \EndIf
+        \EndIf
+        \State $Y \gets Y'$
+    \EndLoop
+\EndFunction
+
+\end{algorithmic}
+\caption{Solving a reachability game symbolically}
+\label{a:symb_reach}
+\end{algorithm}
 
 \subsection{Strategy generation}
+
+\todo{Symbolic strategy generation: should I bother?}
+
 \subsection{Binary decision diagrams}
 
 A binary decision diagram is an efficient data structure for manipulating large propositional formulas. They are the symbolic data structure that we use in Termite.
