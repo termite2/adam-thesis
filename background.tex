@@ -141,7 +141,7 @@ A Generalized Reactive 1, or GR(1) \cite{gr1} objective, is a generalized Buchi 
 
 \subsection{Perfect information games}
 
-Perfect information games are two player games where both players know the current state of the transition system at all times.
+Perfect information games are two player games where both players know the current state of the transition system at all times. We will assume that all games are perfect information games.
 
 \subsection{Strategies and counterexamples}
 
@@ -189,7 +189,7 @@ According to Equation \ref{eqn:reachobj}, a state is winning in a reachability g
 
 We can define the winning region inductively. It is obviously possible to reach the set $\reachobj$ from $\reachobj$ in 0 steps as we are already there. This is the base case. It is also possible to reach $\reachobj$ from $x \in S$ in $N + 1$ steps or fewer iff there exists $Y\subseteq 2^S$ such that it is possible to reach $\reachobj$ from all of $Y \subseteq 2^S$ in $N$ steps or fewer and $x \in CPRE(Y)$.
 
-This suggests an algorithm to find the winning region. We start with $\reachobj$, apply $CPRE$ to get the states winning in 1 step, combine with $\reachobj$ again to get the states reachable in 1 step or less, and then repeat. After $N$ iterations, we find the states winning in $N$ or less steps. The algorithm is given in Algorithm \ref{a:reach}. Two questions remain: 
+This suggests an algorithm to find the winning region. We start with $\reachobj$, apply $CPRE$ to get the states winning in 1 step, combine with $\reachobj$ again to get the states reachable in 1 step or less, and then repeat. After $N$ iterations, we find the states winning in $N$ or less steps. The algorithm is given in Algorithm \ref{a:reach} and the equivalent $\mu$-calculus formula is given in Equation \ref{eqn:mu_reach}. Two questions remain: 
 
 \begin{itemize}
     \item An algorithm must terminate, so, when should we stop iterating?
@@ -205,16 +205,16 @@ Thus, we will eventually reach a fixed point, and, this is when we should stop i
 
 Finally, to answer the question of whether the game is winning for player~1, we check if the winning region contains the initial state set. If it does, we return Yes; otherwise, we return No.
 
-Safety games are the dual of reachability games and are also solved by iterating the controllable predecessor. The algorithm for solving safety games is also the dual of the algorithm for solving reachability games and will not be given here.
+Safety games are the dual of reachability games and are also solved by iterating the controllable predecessor. The algorithm for solving safety games is also the dual of the algorithm for solving reachability games and will not be given here. However, we do give the $\mu$-calculus formula in Equation \ref{eqn:mu_safe} and the algorithm can be deduced from this using Algorithm \ref{a:mu_semantics}.
 
 \begin{equation}
     \mathit{REACH}(T) = \mu X. CPre(X \vee T)
-\label{equ:mu_reach}
+\label{eqn:mu_reach}
 \end{equation}
 
 \begin{equation}
 \mathit{SAFE}(T) = \nu X. CPre(X \wedge T)
-\label{equ:mu_safe}
+\label{eqn:mu_safe}
 \end{equation}
 
 \begin{algorithm}
@@ -249,7 +249,7 @@ To solve a Buchi game, we first find the set from which we can reach the goal on
 
 Imagine we have solved the reachability game $R = \reachobj(T)$ where $T$ is the Buchi target set and $R$ is the winning region. Then $V = R \wedge T$ is a subset of the goal from which player~1 can reach the goal one more time. Computing $W = \reachobj(V)$ gets us the set of states from which we can reach the goal twice. Iterating this procedure will eventually lead to a fixed point as $\reachobj$ is a monotonic function.
 
-This fixed point is the set of states from which we can reach the goal any number of times. Thus, it is the winning set of the Buchi game. 
+This fixed point is the set of states from which we can reach the goal any number of times. Thus, it is the winning set of the Buchi game. The $\mu$-calculus formula is given in Equation \ref{eqn:mu_buchi} and the algorithm to solve Buchi games can be deduced from this using Algorithm \ref{a:mu_semantics}.
 
 \begin{equation}
     \mathit{BUCHI}(T) = \nu X. \mu Y. CPre(Y \vee (X \wedge T))
@@ -258,7 +258,7 @@ This fixed point is the set of states from which we can reach the goal any numbe
 
 \subsubsection{Generalized Buchi}
 
-Solving a generalized buchi game is similar to a buchi game except that we find the set from which we can reach any goal once, then any goal twice, etc. The algorithm is a small modification to the buchi algorithm and is given in Algorithm \ref{alg:gen_buchi}.
+Solving a generalized buchi game is similar to a buchi game except that we find the set from which we can reach any goal once, then any goal twice, etc. The algorithm is a small modification to the buchi algorithm and is given in Algorithm \ref{alg:gen_buchi}. The equivalent $\mu$-calculus formula is given in Equation \ref{eqn:mu_genbuchi}.
 
 \begin{algorithm}[t]
 \begin{algorithmic}
@@ -284,12 +284,12 @@ Solving a generalized buchi game is similar to a buchi game except that we find 
 
 \begin{equation}
     \mathit{GEN\_BUCHI}(T) = \nu X. \bigwedge_{G \in GOALS} \mu Y. CPre(Y \vee (X \wedge G))
-\label{eqn:mu_buchi}
+\label{eqn:mu_genbuchi}
 \end{equation}
 
 \subsubsection{GR(1)}
 
-Next, we need to add fairness. Consider a fair reachability game. An unfair region is a region that we can assume execution will leave, regardless of the loops it contains. We modify the controllable predecessor to create a fair controllable predecessor that takes this into account. Intuitively, the algorithm considers a set of unfair states to be winning if the only way out leads to an already winning state. To achieve this, we play a variation of a safety game where we can win if we stay entirely within the unfair set or upon exiting the unfair set we are immediately in the target set $T$. The procedure for the fair controllable predecessor is given in Algorithm \ref{a:fair_cpre}. Using $Fair\_CPre$ as the $CPre$ operator in the reachability algorithm (Algorithm \ref{a:reach}) yields the fair reachability algorithm. The reader is invited to check that this algorithm correctly determines that all states in Figure \ref{fig:fair} are winning.
+Next, we need to add fairness. Consider a fair reachability game. An unfair region is a region that we can assume execution will leave, regardless of the loops it contains. We modify the controllable predecessor to create a fair controllable predecessor that takes this into account. Intuitively, the algorithm considers a set of unfair states to be winning if the only way out leads to an already winning state. To achieve this, we play a variation of a safety game where we can win if we stay entirely within the unfair set or upon exiting the unfair set we are immediately in the target set $T$. The procedure for the fair controllable predecessor is given in Algorithm \ref{a:fair_cpre} and the equivalent $\mu$-calculus formula is given in Equation \ref{eqn:mu_fair}. Using $Fair\_CPre$ as the $CPre$ operator in the reachability algorithm (Algorithm \ref{a:reach}) yields the fair reachability algorithm. 
 
 \begin{algorithm}[t]
 \begin{algorithmic}
@@ -312,7 +312,7 @@ FAIR\_CPRE(F, T) = \nu X. CPre((\neg F \wedge X) \vee T)
 \label{eqn:mu_fair}
 \end{equation}
 
-Finally, if we combine the Buchi game with the fair controllable predecessor we get a GR(1) game. The procedure is given in Algorithm \ref{a:gr1}.
+Finally, if we combine the Buchi game with the fair controllable predecessor we get a GR(1) game. The procedure is given in Algorithm \ref{a:gr1} and the equivalent $\mu$-calculus formula is given in Equation \ref{eqn:mu_gr1}.
 
 \begin{algorithm}[t]
 \begin{algorithmic}
@@ -326,7 +326,7 @@ Finally, if we combine the Buchi game with the fair controllable predecessor we 
 
 \begin{equation}
 GR1(G, F) = \nu X. \mu Y. \nu Z. CPre((\neg F \wedge Z) \vee (G \wedge X) \vee Y)
-\label{equ:mu_gr1}
+\label{eqn:mu_gr1}
 \end{equation}
 
 \subsection{Extracting strategies}
