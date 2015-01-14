@@ -4,18 +4,20 @@
 
 \subsection{Syntax}
 
+\todo{Description of mu calculus includes the $[a]\phi$ bullshit that we dont need. It also doesnt have quantification. Perhaps we should not call it mu calculus and instead define a first order logic with fixpoints}
+
 The $\mu$-calculus is a logic capable of expressing greatest and least solutions of fixed point equations $X = f(X)$ where $f$ is a monotone function. The set of formulas of $\mu$-calculus is defined as follows:
 
 Let $P$ be a set of propositions, $A$ be a set of actions and $V$ be a set of variables. Then
 \begin{itemize}
-    \item each proposition and each variable is a formula
+    \item each proposition $p$ and each variable is a formula
     \item if $\phi$ and $\psi$ are formulas then $\phi \wedge \psi$ is a formula
     \item if $\phi$ is a formula then $\neg \phi$ is a formula
     \item if $\phi$ is a formula and $a$ is an action then $[a]\phi$ is a formula
     \item if $\phi$ is a formula and $Z$ a variable then $\nu X.\phi$ is a formula provided that every free occurrence of $Z$ occurs under an even number of negations
 \end{itemize}
 
-Given these definitions, we also have:
+\noindent Given these definitions, we also have:
 \begin{itemize}
     \item $\phi \vee \psi$ meaning $\neg (\phi \wedge \psi)$
     \item $\langle a \rangle \phi$ meaning $\neg [a] \neg \phi$
@@ -31,9 +33,9 @@ Given a labelled transition system $(S, R, F)$ where
     \item $F : P \rightarrow 2^S$ maps each proposition to the set of states where the proposition is true
 \end{itemize}
 
-A $\mu$-calculus formula is interpreted as follows:
+\noindent A $\mu$-calculus formula is interpreted as follows:
 \begin{itemize}
-    \item $p$ holds in the set of states $V(p)$
+    \item $p$ holds in the set of states $F(p)$
     \item $\phi \wedge \psi$ holds in the set of states where both $\phi$ and $\psi$ hold
     \item $\neg \phi$ holds in every state where $\phi$ does not hold 
     \item $[a]\phi$ holds in a state $s$ if every $a$-transition leading out of $s$ leads to a state where $\phi$ holds
@@ -41,7 +43,39 @@ A $\mu$-calculus formula is interpreted as follows:
 \end{itemize}
 
 \subsection{From $\mu$-calculus formulas to algorithms}
-\todo{describe a generic method to convert mu calculus formulas to algorithms}
+
+It is straightforward to convert a $\mu$-calculus formula into an algorithm that returns the set of states for which the formula holds.
+
+Greatest and least fixed points are computed by iteration. To compute the greatest fixed point of a function $f(x)$ i.e. $\nu X. f(X)$ we iterate $f$ starting with the universal set. As $f$ is monotonic, the result is guaranteed to grow on each iteration \todo{why}. Furthermore, if the set of states, $S$ is finite, this iteration must eventually converge to some set as $S$ being finite prevents the result from growing forever. 
+
+We give the algorithm for computing the greatest fixpoint in Algorithm \ref{alg:mu_greatest_fixpoint}. It assumes the existence of an abstract set datatype that supports set union, complementation and equality checking.
+
+\begin{algorithm}
+\begin{algorithmic}
+
+\Function{MuSemantics}{$\phi$}
+    \If {$\phi = p$} 
+        \State\Return $V(p)$
+    \ElsIf {$\phi = \psi \vee \rho$}
+        \State\Return $\Call{MuSemantics}{\psi} \cup \Call{MuSemantics}{\rho}$
+    \ElsIf {$\phi = \neg \psi$}
+        \State\Return $U - \Call{MuSemantics}{\psi}$
+    \ElsIf {$\phi = \nu X. \psi$}
+        \State $Z \gets U$
+        \Loop
+            \State $Z \gets \Call{MuSemantics}{\psi[X:=Z]}$
+            \If {$Z' = Z$}
+                \State\Return $Z$
+            \EndIf
+            \State $Z \gets Z'$
+        \EndLoop
+    \EndIf
+\EndFunction
+
+\end{algorithmic}
+\caption{MuSemantics, given a $\mu$-calculus formula, returns the set of states that satisfy the formula.}
+\label{a:mu_semantics}
+\end{algorithm}
 
 \section{Two player games}
 
