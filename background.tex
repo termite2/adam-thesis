@@ -169,9 +169,9 @@ We present algorithms to answer these questions in this section. We begin with t
 
 \subsubsection{Controllable predecessor}
 
-All of the algorithms for games I will be describing use a function called the controllable predecessor (abbreviated CPre). CPre is a function from a set of game states ($2^S$) to another set of game states. Given a set $T$, $CPre(T)$ returns the set of states from which player 1 can force execution into $T$ in one step. 
+All of the algorithms for games I will be describing use a function called the controllable predecessor (abbreviated \cpre). \cpre\ is a function from a set of game states ($2^S$) to another set of game states. Given a set $T$, $CPre(T)$ returns the set of states from which player 1 can force execution into $T$ in one step. 
 
-The exact details of $CPre$ do not matter and here we consider it to be a parameter to the game solving algorithms. The function it computes depends on the application and I will be describing the driver synthesis $CPre$ later. For now, the only property of $CPre$ that we require is that it is monotonic, ie. if $X \subseteq Y$ then $CPre(X) \subseteq CPre(Y)$. Clearly, any reasonable $CPre$ function will have this property.
+The exact details of \cpre\ do not matter and here we consider it to be a parameter to the game solving algorithms. The function it computes depends on the application and I will be describing the driver synthesis \cpre\ later. For now, the only property of \cpre\ that we require is that it is monotonic, ie. if $X \subseteq Y$ then $CPre(X) \subseteq CPre(Y)$. Clearly, any reasonable \cpre\ function will have this property.
 
 However, in the interest of aiding the reader's understanding, the controllable predecessor for turn based games is given below:
 
@@ -187,19 +187,19 @@ We will start with reachability as it is the most straightforward. We solve game
 
 According to Equation \ref{eqn:reachobj}, a state is winning in a reachability game if there is some finite $i$ such that we can guarantee that after $i$ rounds of the game, execution will have, at least once, entered a state in $\reachobj$. 
 
-We can define the winning region inductively. It is obviously possible to reach the set $\reachobj$ from $\reachobj$ in 0 steps as we are already there. This is the base case. It is also possible to reach $\reachobj$ from $x \in S$ in $N + 1$ steps or fewer iff there exists $Y\subseteq 2^S$ such that it is possible to reach $\reachobj$ from all of $Y \subseteq 2^S$ in $N$ steps or fewer and $x \in CPRE(Y)$.
+We can define the winning region inductively. It is obviously possible to reach the set $\reachobj$ from $\reachobj$ in 0 steps as we are already there. This is the base case. It is also possible to reach $\reachobj$ from $x \in S$ in $N + 1$ steps or fewer iff there exists $Y\subseteq 2^S$ such that it is possible to reach $\reachobj$ from all of $Y \subseteq 2^S$ in $N$ steps or fewer and $x \in CPre(Y)$.
 
-This suggests an algorithm to find the winning region. We start with $\reachobj$, apply $CPRE$ to get the states winning in 1 step, combine with $\reachobj$ again to get the states reachable in 1 step or less, and then repeat. After $N$ iterations, we find the states winning in $N$ or less steps. The algorithm is given in Algorithm \ref{a:reach} and the equivalent $\mu$-calculus formula is given in Equation \ref{eqn:mu_reach}. Two questions remain: 
+This suggests an algorithm to find the winning region. We start with $\reachobj$, apply \cpre\ to get the states winning in 1 step, combine with $\reachobj$ again to get the states reachable in 1 step or less, and then repeat. After $N$ iterations, we find the states winning in $N$ or less steps. The algorithm is given in Algorithm \ref{a:reach} and the equivalent $\mu$-calculus formula is given in Equation \ref{eqn:mu_reach}. Two questions remain: 
 
 \begin{itemize}
     \item An algorithm must terminate, so, when should we stop iterating?
     \item After termination, has the algorithm found all the winning states?
 \end{itemize}
 
-Observe that $W_{N+1} \supseteq W_N$. So, on each iteration, we either grow the winning set or it remains the same. Also observe that our set $S$ is finite, which means that $2^S$ is also finite. As set inclusion is a transitive relation, we cannot grow our winning set forever, so eventually we must reach a fixed point of the CPRE function. 
+Observe that $W_{N+1} \supseteq W_N$. So, on each iteration, we either grow the winning set or it remains the same. Also observe that our set $S$ is finite, which means that $2^S$ is also finite. As set inclusion is a transitive relation, we cannot grow our winning set forever, so eventually we must reach a fixed point of the \cpre\ function. 
 
-%TODO: $CPRE$ isnt the order preserving function
-A more formal proof of termination is based in the Knaster-Tarski theorem \cite{knaster_tarski}. The power set of $S$ can be ordered by set inclusion to obtain a complete lattice with supremum $S$ and infimum $\emptyset$. $CPRE$ is an order preserving function, so by the Knaster-Tarski theorem the set of fixed points of $CPRE$ is also a complete lattice. Thus there exists a greatest and least fixed point (as the lattice is complete). The least fixed point of $CPRE$ is clearly obtained by iteration starting from the least element of the lattice, ie. $\emptyset$. 
+%TODO: $CPre$ isnt the order preserving function
+A more formal proof of termination is based in the Knaster-Tarski theorem \cite{knaster_tarski}. The power set of $S$ can be ordered by set inclusion to obtain a complete lattice with supremum $S$ and infimum $\emptyset$. \cpre\ is an order preserving function, so by the Knaster-Tarski theorem the set of fixed points of \cpre\ is also a complete lattice. Thus there exists a greatest and least fixed point (as the lattice is complete). The least fixed point of \cpre\ is clearly obtained by iteration starting from the least element of the lattice, ie. $\emptyset$. 
 
 Thus, we will eventually reach a fixed point, and, this is when we should stop iterating as further iterations will not change the winning set. Furthermore, we know that after any finite number $N$ of iterations where $N$ is greater than the number of iterations required to reach the fixed point, the winning region will remain $WIN$. Thus $WIN_N = WIN$ and we have found all winning states.
 
@@ -308,7 +308,7 @@ Next, we need to add fairness. Consider a fair reachability game. An unfair regi
 \end{algorithm}
 
 \begin{equation}
-FAIR\_CPRE(F, T) = \nu X. CPre((\neg F \wedge X) \vee T)
+FairCPre(F, T) = \nu X. CPre((\neg F \wedge X) \vee T)
 \label{eqn:mu_fair}
 \end{equation}
 
@@ -317,7 +317,7 @@ Finally, if we combine the \buchi\ game with the fair controllable predecessor w
 \begin{algorithm}[t]
 \begin{algorithmic}
 \Function{GR(1)}{$CPre$, $T$}
-\State\Return \Call{Buchi}{$T$, Fair\_Cpre(CPre)}
+\State\Return \Call{Buchi}{$T$, FairCPre(CPre)}
 \EndFunction
 \end{algorithmic}
 \caption{GR(1) game}
@@ -430,8 +430,8 @@ CPre(X) = \tau_1 \wedge \exists l. \forall n. \delta \rightarrow x' \vee \tau_2 
 \begin{algorithm}
 \begin{algorithmic}
 
-\Require The characteristic function of the set of target states $\reachobj \subseteq S$, the characteristic function of the initial set of states $I$ and a monotonic controllable predecessor $CPre$ that operates on characteristic functions.
-\Ensure  {\it Yes} if $I \subseteq REACH(T, Cpre)$ and {\it No} otherwise.
+\Require The characteristic function of the set of target states $\reachobj \subseteq S$, the characteristic function of the initial set of states $I$ and a monotonic controllable predecessor \cpre\ that operates on characteristic functions.
+\Ensure  {\it Yes} if $I \subseteq REACH(T, CPre)$ and {\it No} otherwise.
 
 \Function{Reach}{$\reachobj, I, CPre$}
     \State $Y \gets False$
