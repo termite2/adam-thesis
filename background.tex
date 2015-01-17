@@ -144,6 +144,7 @@ A Generalized Reactive 1, or GR(1) \cite{gr1} objective, is a generalized \buchi
 Perfect information games are two player games where both players know the current state of the transition system at all times. We will assume that all games are perfect information games.
 
 \subsection{Strategies and counterexamples}
+\label{sec:strat_and_cex}
 
 If a game is winnable for player~1 then there exists (by definition) a strategy that tells player~1, in any state, which label it must play and ensures that if player~1 adheres to the strategy then the objective will be satisfied.
 
@@ -380,11 +381,13 @@ If we find a reachability strategy for the intersection of the goal set and the 
 The algorithm for computing the strategy in a \buchi\ game is given in Algorithm \ref{alg:buchi_strat}. It simply computes the \buchi\ winning region on line \ref{l:bs:rw} and then computes the strategy to reach the intersection of the winning region and the goal set on line \ref{l:bs:rs}.
 
 \begin{algorithm}[t]
-    \begin{algorithmic}[1]
+\begin{algorithmic}[1]
+
 \Function{Buchi\_Strat}{$\buchiobj$}
-\State $win \gets \Call{Buchi}{\buchiobj}$ \label{l:bs:rw}
-\State \Return \Call{Reach\_Strat}{$win \cap \buchiobj$} \label{l:bs:rs}
+    \State $win \gets \Call{Buchi}{\buchiobj}$ \label{l:bs:rw}
+    \State \Return \Call{Reach\_Strat}{$win \cap \buchiobj$} \label{l:bs:rs}
 \EndFunction
+
 \end{algorithmic}
 \caption{Extracting a strategy for a \buchi\ game}
 \label{alg:buchi_strat}
@@ -392,19 +395,22 @@ The algorithm for computing the strategy in a \buchi\ game is given in Algorithm
 
 \subsubsection{Generalized \buchi}
 
-Like a generalized \buchi\ strategy must ensure that we can always get to any of the goals. A generalized \buchi\ strategy must guarantee that we can reach the intersection of any of the goals and the winning region, which will be non-empty if the game is winnable. The algorithm for computing the strategy in a generalized \buchi\ game is given in Algorithm \ref{alg:gen_buchi_strat}. It returns one strategy for each goal that ensures we can get to the goal while remaining in the winning region. 
+A generalized \buchi\ strategy must ensure that we can always get to any of the goals. If we compute, for each goal, the reachability strategy for the intersection of that goal and the generalised \buchi\ winning region, we get a strategy that takes us to that goal and, by keeping execution in the winning region, ensures that we can reach any of the other goals using their strategies. 
+
+Thus, a strategy for a generalised \buchi\ game is a set of strategies, one for each goal, that we must play in a round robin manner to ensure that each goal is eventually reached. The finite state required to ensure that the strategies are played in a round robin order is the finite state that the generalised \buchi\ strategy requires as discussed in Section \ref{sec:strat_and_cex}.
+
+The algorithm for computing the strategy in a generalized \buchi\ game is given in Algorithm \ref{alg:gen_buchi_strat}. It first computes the winning region of the generalised \buchi\ on line \ref{l:gbs:wr} and then it computes a strategy to reach the intersection of this and each goal on line \ref{l:gbs:rs}.
 
 \begin{algorithm}[t]
 \begin{algorithmic}
+
 \Function{Gen\_Buchi\_Strat}{$\genbuchiobj$}
-\State $win \gets \Call{Generalized\_Buchi}{\genbuchiobj}$
-
-\For{\textbf{each} $G \in \genbuchiobj$}
-%TODO
-\State \Return \Call{Reach\_Strat}{$win \cap G$}
-\EndFor
-
+\State $win \gets \Call{Generalized\_Buchi}{\genbuchiobj}$ \label{l:gbs:wr}
+    \For{\textbf{each} $G \in \genbuchiobj$}
+        \State \Return \Call{Reach\_Strat}{$win \cap G$} \label{l:gbs:rs}
+    \EndFor
 \EndFunction
+
 \end{algorithmic}
 \caption{Extracting a strategy for a generalized \buchi\ game}
 \label{alg:gen_buchi_strat}
