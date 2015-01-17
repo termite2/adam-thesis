@@ -326,7 +326,7 @@ Finally, if we combine the \buchi\ game with the fair controllable predecessor w
 \end{algorithm}
 
 \begin{equation}
-GR1(G, F) = \nu X. \mu Y. \nu Z. CPre((\neg F \wedge Z) \vee (G \wedge X) \vee Y)
+    GR1(Goals, Fairs) = \nu X. \bigwedge_{G \in Goals} \mu Y. \bigvee_{F \in Fairs} \nu Z. CPre((\neg F \wedge Z) \vee (G \wedge X) \vee Y)
 \label{eqn:mu_gr1}
 \end{equation}
 
