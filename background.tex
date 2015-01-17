@@ -170,7 +170,7 @@ We present algorithms to answer these questions in this section. We begin with t
 
 \subsubsection{Controllable predecessor}
 
-All of the algorithms for games I will be describing use a function called the controllable predecessor (abbreviated \cpre). \cpre\ is a function from a set of game states ($2^S$) to another set of game states. Given a set $T$, $CPre(T)$ returns the set of states from which player 1 can force execution into $T$ in one step. 
+All of the algorithms for games I will be describing use a function called the controllable predecessor (abbreviated \cpre). \cpre\ is a function from a target set of game states ($2^S$) called the \emph{target set} to another set of game states. Given a set $T$, $CPre(T)$ returns the set of states from which player 1 can force execution into $T$ in one step. 
 
 The exact details of \cpre\ do not matter and here we consider it to be a parameter to the game solving algorithms. The function it computes depends on the application and I will be describing the driver synthesis \cpre\ later. For now, the only property of \cpre\ that we require is that it is monotonic, ie. if $X \subseteq Y$ then $CPre(X) \subseteq CPre(Y)$. Clearly, any reasonable \cpre\ function will have this property.
 
@@ -401,8 +401,8 @@ Thus, a strategy for a generalised \buchi\ game is a set of strategies, one for 
 
 The algorithm for computing the strategy in a generalized \buchi\ game is given in Algorithm \ref{alg:gen_buchi_strat}. It first computes the winning region of the generalised \buchi\ on line \ref{l:gbs:wr} and then it computes a strategy to reach the intersection of this and each goal on line \ref{l:gbs:rs}.
 
-\begin{algorithm}[t]
-\begin{algorithmic}
+\begin{algorithm}
+\begin{algorithmic}[1]
 
 \Function{Gen\_Buchi\_Strat}{$\genbuchiobj$}
 \State $win \gets \Call{Generalized\_Buchi}{\genbuchiobj}$ \label{l:gbs:wr}
@@ -416,9 +416,32 @@ The algorithm for computing the strategy in a generalized \buchi\ game is given 
 \label{alg:gen_buchi_strat}
 \end{algorithm}
 
-\subsubsection{Fair reachability}
+\subsubsection{Fairness}
 
-A strategy for a fair reachability game must ensure that we can reach the goal assuming that an unfair condition is not forever true. Conceptually, it tries to keep execution within an unfair region for which the only way out takes us a step closer to the goal. The algorithm for computing the strategy in a fair reachability game is given in Algorithm \ref{alg:fair_reach_strat}.
+To compute strategies for fair variants of reachability, \buchi\ and GR(1) games we use the same approach as solving them and introduce a modified controllable predecessor that takes fairness into account, called CPre\_Strat\_Fair. This modified controllable predecessor, in turn, is parameterised by the CPre and CPre\_Strat of the underlying game.
+
+The fair controllable predecessor must ensure that we can reach the target set assuming that an unfair condition is not forever true. Conceptually, it tries to keep execution within an unfair region (as a safety game would) for which the only way out takes us a step closer to the goal. 
+
+The algorithm for computing the strategy in a fair reachability game is given in Algorithm \ref{alg:fair_cpre_strat}. It essentially solves a safety game for $\neg\phi$ with the exception that it is possible to leave safe regions as long as you enter $T$. When a fixed point is reached on line \ref{l:fcp:st} it uses CPre\_Strat to compute a strategy to either stay within the computed unfair region or enter the target set. This strategy is guaranteed to reach the target set as long as fairness if not violated.
+
+\begin{algorithm}
+\begin{algorithmic}[1]
+
+\Function{Fair\_CPre\_Strat}{$CPre, CPre\_Strat, \phi, T$}
+    \State $X \gets U$
+    \Loop
+        \State $X' \gets \Call{CPre}{X \wedge \neg\phi \vee T}$
+        \If {$X' = X$} 
+        \State\Return $\Call{CPre\_Strat}{X \wedge \neg\phi \vee T}$ \label{l:fcp:st}
+        \EndIf
+        \State $X \gets X'$
+    \EndLoop
+\EndFunction
+
+\end{algorithmic}
+\caption{The fair controllable predecessor}
+\label{alg:fair_cpre_strat}
+\end{algorithm}
 
 \subsubsection{GR(1)}
 
