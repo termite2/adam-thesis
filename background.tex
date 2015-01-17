@@ -339,7 +339,7 @@ When solving a reachability game, we discover the sets of states for which we ca
 
 The strategy relation is initialized to the empty set on line~\ref{l:rs:init}. Then, we perform an iteration of the controllable predecessor. This time we also use \textsc{CPre\_Strat} on line~\ref{l:rs:cs}, which computes a relation between the winning states discovered so far and the labels that take execution from these newly discovered states one step closer to the goal.
 
-On each iteration we combine this strategy for the newly discovered states with the strategy for the previously discovered states. We are careful on line~\ref{l:cs:as} not to add new labels for states that have already been discovered to ensure that the labels take us towards the goal. We iterate until our winning region reaches a fixed point as before. In the end, the strategy relates each state in the final winning region to a label that takes the game one step closer to the goal.
+On each iteration we combine this strategy for the newly discovered states with the strategy for the previously discovered states. We are careful on line~\ref{l:rs:as} not to add new labels for states that have already been discovered to ensure that the labels take us towards the goal. We iterate until our winning region reaches a fixed point as before. In the end, the strategy relates each state in the final winning region to a label that takes the game one step closer to the goal.
 
 \textsc{CPre\_Strat} is a parameter to the strategy extraction algorithm in the same way as \textsc{\cpre} is to the game solving algorithm. Its definition depends on the exact details of the game. For completeness, we give the definition of \textsc{CPre\_Strat} for turn based games. 
 
@@ -361,7 +361,7 @@ It returns a set of state, label pairs where the state belongs to the \pone\ con
             \State\Return $(Y, STRAT)$
         \EndIf
         \State $STRAT' \gets CPre\_Strat(Y \cup \reachobj)$ \label{l:rs:cs}
-        \State $STRAT \gets STRAT \cup \{\langle s, l \rangle | \langle s, l \rangle \in STRAT' \wedge s \notin Y\}$  \label{l:cs:as}
+        \State $STRAT \gets STRAT \cup \{\langle s, l \rangle | \langle s, l \rangle \in STRAT' \wedge s \notin Y\}$  \label{l:rs:as}
         \State $Y \gets Y'$
     \EndLoop
 \EndFunction
@@ -375,13 +375,15 @@ It returns a set of state, label pairs where the state belongs to the \pone\ con
 
 Like a reachability strategy, a strategy for a \buchi\ game must ensure that we eventually get to the goal. However, it must also ensure that once we get to the goal it is still possible to reach the goal again. 
 
-A \buchi\ strategy must guarantee that we can reach the intersection of the goal and the winning region, which will be non-empty if the game is winnable. The algorithm for computing the strategy in a \buchi\ game is given in Algorithm \ref{alg:buchi_strat}.
+If we find a reachability strategy for the intersection of the goal set and the winning region, and then when we follow this strategy, we are guaranteed to reach the goal once and then be able to reach it again by following the same strategy because we remain in the winning region. \todo{Do I need to explain why the intersection is not empty and why there exists a reachability strategy for it?} Thus, the algorithm for finding the strategy for a \buchi\ game is to find the winning region of the game and then compute the reachability strategy for the intersection of the goal and the winning region.
+
+The algorithm for computing the strategy in a \buchi\ game is given in Algorithm \ref{alg:buchi_strat}. It simply computes the \buchi\ winning region on line \ref{l:bs:rw} and then computes the strategy to reach the intersection of the winning region and the goal set on line \ref{l:bs:rs}.
 
 \begin{algorithm}[t]
-\begin{algorithmic}
+    \begin{algorithmic}[1]
 \Function{Buchi\_Strat}{$\buchiobj$}
-\State $win \gets \Call{Buchi}{\buchiobj}$
-\State \Return \Call{Reach\_Strat}{$win \cap \buchiobj$}
+\State $win \gets \Call{Buchi}{\buchiobj}$ \label{l:bs:rw}
+\State \Return \Call{Reach\_Strat}{$win \cap \buchiobj$} \label{l:bs:rs}
 \EndFunction
 \end{algorithmic}
 \caption{Extracting a strategy for a \buchi\ game}
