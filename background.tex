@@ -337,9 +337,9 @@ Once we have solved a game and determined that it is winning, we can extract a s
 
 When solving a reachability game, we discover the sets of states for which we can force execution into the goal in 1 step, 2 steps, etc. When extracting a strategy for a reachability game we need to record, for each iteration, how we got one step closer to the goal. The algorithm is given in Algorithm \ref{alg:reach_strat}. 
 
-The strategy relation is initialized to the empty set. Then, we perform an iteration of the controllable predecessor. This time we also use \textsc{CPre\_Strat}, which computes a relation between the winning states discovered so far and the labels that take execution from these newly discovered states one step closer to the goal.
+The strategy relation is initialized to the empty set on line~\ref{l:rs:init}. Then, we perform an iteration of the controllable predecessor. This time we also use \textsc{CPre\_Strat} on line~\ref{l:rs:cs}, which computes a relation between the winning states discovered so far and the labels that take execution from these newly discovered states one step closer to the goal.
 
-On each iteration we combine this strategy for the newly discovered states with the strategy for the previously discovered states. We are careful not to add new labels for states that have already been discovered to ensure that the labels take us towards the goal. We iterate until our winning region reaches a fixed point as before. In the end, the strategy relates each state in the final winning region to a label that takes the game one step closer to the goal.
+On each iteration we combine this strategy for the newly discovered states with the strategy for the previously discovered states. We are careful on line~\ref{l:cs:as} not to add new labels for states that have already been discovered to ensure that the labels take us towards the goal. We iterate until our winning region reaches a fixed point as before. In the end, the strategy relates each state in the final winning region to a label that takes the game one step closer to the goal.
 
 \textsc{CPre\_Strat} is a parameter to the strategy extraction algorithm in the same way as \textsc{\cpre} is to the game solving algorithm. Its definition depends on the exact details of the game. For completeness, we give the definition of \textsc{CPre\_Strat} for turn based games. 
 
@@ -350,18 +350,18 @@ On each iteration we combine this strategy for the newly discovered states with 
 It returns a set of state, label pairs where the state belongs to the \pone\ controllable set (it would not make sense to have a strategy from a player~2 controllable set in a turn based game) such that if the label is played, execution ends up in the set $X$, the argument to the function.
 
 \begin{algorithm}[t]
-\begin{algorithmic}
+    \begin{algorithmic}[1]
 
 \Function{Reach\_Strat}{$\reachobj, CPre, CPre\_Strat$}
-\State $Y \gets \varnothing$
+\State $Y \gets \varnothing$ \label{l:rs:init}
 \State $STRAT \gets \varnothing$
     \Loop
         \State $Y' \gets CPre(Y \cup \reachobj)$
         \If {$Y' = Y$} 
             \State\Return $(Y, STRAT)$
         \EndIf
-        \State $STRAT' \gets CPre\_Strat(Y \cup \reachobj)$
-        \State $STRAT \gets STRAT \cup \{\langle s, l \rangle | \langle s, l \rangle \in STRAT' \wedge s \notin Y\}$ 
+        \State $STRAT' \gets CPre\_Strat(Y \cup \reachobj)$ \label{l:rs:cs}
+        \State $STRAT \gets STRAT \cup \{\langle s, l \rangle | \langle s, l \rangle \in STRAT' \wedge s \notin Y\}$  \label{l:cs:as}
         \State $Y \gets Y'$
     \EndLoop
 \EndFunction
