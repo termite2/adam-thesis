@@ -294,10 +294,10 @@ Next, we need to add fairness. Consider a fair reachability game. An unfair regi
 
 \begin{algorithm}[t]
 \begin{algorithmic}
-\Function{Fair\_CPre}{$CPre$, $T$}
+\Function{Fair\_CPre}{$CPre$, $\phi$, $T$}
 \State $Y \gets S$
 \Loop
-\State $Y' \gets \Call{CPre}{Y \cap T}$
+\State $Y' \gets \Call{CPre}{Y \cap \phi \cup T}$
 \If {$Y' = Y$} 
 \State\Return $Y$\EndIf
 \State $Y \gets Y'$
