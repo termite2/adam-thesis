@@ -456,16 +456,26 @@ Counterexamples are computed by solving the complement game and extracting the s
 The complement of a reachability game is a safety game with negated objective. This can be seen by complementing the $mu$-calculus formula for the winning region, repeated below for convenience.
 
 \begin{equation}
-    \mathit{REACH}(T) = \mu X. CPre(X \vee T)
+    \mathit{REACH}(T) = \mu X. CPre_1(X \vee T)
 \end{equation}
 
 \begin{equation}
-    \neg\mathit{REACH} = \neg\nu X. CPre(X \wedge \neg T) = \mathit{SAFE}(\neg T) 
+    \neg\mathit{REACH} = \neg\nu X. CPre_2(X \wedge \neg T) = \mathit{SAFE}(\neg T) 
 \end{equation}
 
-Thus, the counterexample strategy for a reachability game is the strategy for a safety game with complemented objective. \todo{We dont actually give an algorithm for safety game strategy, so this is a bit useless.}
+Thus, the counterexample strategy for a reachability game is the strategy for a safety game with complemented objective and the other player's controllable predecessor. \todo{We dont actually give an algorithm for safety game strategy, so this is a bit useless.}
 
 \subsubsection{GR(1)}
+
+The complement of a GR(1) game is a confusing beast and is given below.
+
+\begin{equation}
+    GR1(Goals, Fairs) = \nu X. \bigwedge_{G \in Goals} \mu Y. \bigvee_{F \in Fairs} \nu Z. CPre_1((\neg F \wedge Z) \vee (G \wedge X) \vee Y)
+\end{equation}
+
+\begin{equation}
+    \neg GR1(Goals, Fairs) = \mu X. \bigvee_{G \in Goals} \nu Y. \bigwedge_{F \in Fairs} \mu Z. CPre_2((F \vee Z) \wedge (G \vee X) \wedge Y)
+\end{equation}
 
 \section{Symbolic games}
 
