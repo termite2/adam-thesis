@@ -449,6 +449,24 @@ Strategies for GR(1) games, as used in Termite, can be computed using Algorithm~
 
 \subsection{Extracting counterexamples}
 
+Counterexamples are computed by solving the complement game and extracting the strategy.
+
+\subsubsection{Reachability}
+
+The complement of a reachability game is a safety game with negated objective. This can be seen by complementing the $mu$-calculus formula for the winning region, repeated below for convenience.
+
+\begin{equation}
+    \mathit{REACH}(T) = \mu X. CPre(X \vee T)
+\end{equation}
+
+\begin{equation}
+    \neg\mathit{REACH} = \neg\nu X. CPre(X \wedge \neg T) = \mathit{SAFE}(\neg T) 
+\end{equation}
+
+Thus, the counterexample strategy for a reachability game is the strategy for a safety game with complemented objective. \todo{We dont actually give an algorithm for safety game strategy, so this is a bit useless.}
+
+\subsubsection{GR(1)}
+
 \section{Symbolic games}
 
 The algorithm described so far appears very inefficient. Consider a reachability game. We are performing a backwards breadth-first search starting from $\reachobj$. If we were to implement it directly as described, we would need a set abstract datatype to represent the winning set. Some of the games we have solved with Termite have upwards of $2^{80}$ states, even after abstraction. Clearly, explicitly representing the winning set will never succeed. 
