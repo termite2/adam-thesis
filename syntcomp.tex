@@ -1,13 +1,13 @@
 \subsection{Overview}
-Our tool, Simple BDD Solver, is a substantial simplification of the solver that was developed for the Termite project (\path{http://termite2.org}) adapted to safety games given in the AIGER format. 
+Our tool, Simple BDD Solver, is a substantial simplification of the solver that was developed for the Termite project adapted to safety games given in the AIGER format. 
 It performs realizability checking and does not synthesize a strategy.
 
 It uses the standard backwards symbolic algorithm to compute the winning set of states as a greatest fixed point. Binary decision diagrams (BDDs) are used to symbolically represent sets and relations. In particular, it computes:
 
-\begin{multline}
+\begin{equation}
 \label{eqn:mu}
-\nu X. \forall U. \exists C. \forall S'. ((TRANS(S, U, C, S') \rightarrow X') \\ \wedge SAFE(S, U, C))
-\end{multline}
+\nu X. \forall U. \exists C. \forall S'. ((TRANS(S, U, C, S') \rightarrow X') \wedge SAFE(S, U, C))
+\end{equation}
 
 \noindent where $U$ is the set of valuations of uncontrollable inputs, $C$ is the set of valuations of controllable inputs, and $S$ and $S'$ are the sets of valuations of state and next state variables, respectively. $SAFE$ is the safety condition, $TRANS$ is the transition relation, and $X'$ is $X$ where the state variables are renamed to next state variables.
 
@@ -84,10 +84,10 @@ To compute the implication, $\forall S'. (TRANS(S, U, C, S') \rightarrow X')$, w
 We dereference BDDs that are no longer needed as soon as possible. Each live BDD node is processed during reordering and counted when the algorithm checks to see if the total BDD size in the manager is reduced. These unused BDDs should not count toward the total node count that is used to evaluate an ordering, and, the time that is spent reordering them and counting them is wasted. In the interest of clarity, BDD dereferencing is not shown in algorithms \ref{alg:syntcomp_cpre} and \ref{alg:syntcomp}.
 
 \subsubsection{Rearranging the formula}
-\begin{multline}
+\begin{equation}
 \label{eqn:mu2}
-\nu X. \forall U. \exists C. (\forall S'. (TRANS(S, U, C, S') \rightarrow X') \\ \wedge SAFE(S, U, C))
-\end{multline}
+\nu X. \forall U. \exists C. (\forall S'. (TRANS(S, U, C, S') \rightarrow X') \wedge SAFE(S, U, C))
+\end{equation}
 
 We can arrange equation \ref{eqn:mu} to move the conjunction with the safety condition outside of the innermost universal quantification, as shown in equation \ref{eqn:mu2}, as the safety condition does not depend on the next state variables. This avoids building the potentially large BDD of the conjunction.
 
