@@ -1,24 +1,31 @@
 \subsection{Overview}
-Our tool, Simple BDD Solver, is a substantial simplification of the solver that was developed for the Termite project (http://www.ertos.nicta.com.au/research/drivers/synthesis/) adapted to safety games given in the AIGER format. 
+Our tool, Simple BDD Solver, is a substantial simplification of the solver that was developed for the Termite project (\path{http://termite2.org}) adapted to safety games given in the AIGER format. 
+It performs realizability checking and does not synthesize a strategy.
 
-It uses the standard symbolic algorithm to compute the winning set of states as a greatest fixed point. Binary decision diagrams are used as the symbolic algorithm. In particular, it computes:
+It uses the standard backwards symbolic algorithm to compute the winning set of states as a greatest fixed point. Binary decision diagrams (BDDs) are used to symbolically represent sets and relations. In particular, it computes:
 
-\begin{equation}
+\begin{multline}
 \label{eqn:mu}
-\nu X. \forall U. \exists C. \forall S'. ((TRANS(S, U, C, S') \rightarrow X') \wedge SAFE(S, U, C))
-\end{equation}
+\nu X. \forall U. \exists C. \forall S'. ((TRANS(S, U, C, S') \rightarrow X') \\ \wedge SAFE(S, U, C))
+\end{multline}
 
-Where $U$ is the set of uncontrollable inputs, $C$ is the set of controllable inputs, $SAFE$ is the specified safety condition and $X'$ is the next state copy of $X$.
+\noindent where $U$ is the set of valuations of uncontrollable inputs, $C$ is the set of valuations of controllable inputs, and $S$ and $S'$ are the sets of valuations of state and next state variables, respectively. $SAFE$ is the safety condition, $TRANS$ is the transition relation, and $X'$ is $X$ where the state variables are renamed to next state variables.
 
-The optimisations, in order of importance, that we have used are:
+\subsection{Implementation}
+The solver is written in the Haskell functional programming language. It uses the CUDD \cite{cudd} package for binary decision diagram manipulation and the Attoparsec \cite{attoparsec} Haskell package for fast parsing. Altogether, the solver, AIGER parser, compiler and command line argument parser are just over 300 lines of code. The code is available online at: \path{https://github.com/adamwalker/syntcomp}.
+
+\subsection{Optimizations}
+
+The optimizations that we have used, in approximate order of importance, are:
 \begin{itemize}
-    \item Dynamic variable reordering using the sifting algorithm
-    \item Partitioned transition relations
-    \item Direct substitution with \textsc{Cudd\_VectorCompose}
-    \item Dereference unused BDDs as soon as possible
-    \item Rearrange the computed formula to avoid creating large BDDs
-    \item Simultaneous conjunction and quantification with \textsc{Cudd\_BddAndAbstract}
-    \item Terminate early where possible
+    \item dynamic variable reordering using the sifting algorithm \cite{sifting}
+    \item partitioned transition relations \cite{partitioned}
+    \item direct substitution with \textsc{Cudd\_VectorCompose}
+    \item dereference unused BDDs as soon as possible
+    \item rearrange the computed formula to avoid creating large BDDs
+    \item simultaneous conjunction and quantification with \textsc{Cudd\_BddAndAbstract}
+    \item terminate early where possible
+    \item an abstraction-refinement loop
 \end{itemize}
 
 \begin{algorithm}
@@ -27,10 +34,14 @@ The optimisations, in order of importance, that we have used are:
 
 \begin{algorithmic}
 
-\State $substituted \gets \Call{Cudd\_VectorCompose}{target, trel}$
-\State $safeSub     \gets \Call{Cudd\_bddAndAbstract}{C, SAFE, substituted}$
-\State $winning     \gets \Call{Cudd\_bddUnivAbstract}{U, safeSub}$
-\State \Return $winning$
+\Function{CPre}{$target$}
+
+    \State $substituted \gets \Call{Cudd\_VectorCompose}{target, trel}$
+    \State $safeSub     \gets \Call{Cudd\_bddAndAbstract}{C, SAFE, substituted}$
+    \State $winning     \gets \Call{Cudd\_bddUnivAbstract}{U, safeSub}$
+    \State \Return $winning$
+
+\EndFunction
 
 \end{algorithmic}
 \end{algorithm}
@@ -41,44 +52,61 @@ The optimisations, in order of importance, that we have used are:
 
 \begin{algorithmic}
 
-\State $win \gets \Call{Cudd\_ReadLogicOne}{}$
-\Loop
-    \State $res \gets \Call{CPre}{fair, res}$
-    \State $win \gets \Call{Cudd\_bddLeq}{init, res}$
-    \If{!win} 
-        \State \Return $False$
-    \EndIf
-\EndLoop
+\Function{Solve}{$safe, init, trel, C, U$}
+
+    \State $win \gets \Call{Cudd\_ReadLogicOne}{}$
+    \Loop
+        \State $res \gets \Call{CPre}{res}$
+        \State $win \gets \Call{Cudd\_bddLeq}{init, res}$
+        \If{$\neg win$} 
+            \State \Return $False$
+        \EndIf
+    \EndLoop
+
+\EndFunction
 
 \end{algorithmic}
 \end{algorithm}
 
-\subsection{Dynamic variable ordering}
-We do not try to find a good static variable ordering at the start and instead rely on the sifting algorithm for finding good variable orderings dynamically. In our experience, the sifting algorithm provides the best trade off between the quality of the resulting ordering and time taken to find it. 
+The optimized algorithm is given in algorithm \ref{alg:syntcomp}. It calls the optimized controllable predecessor defined in algorithm \ref{alg:syntcomp_cpre}.
 
-\subsection{Rearranging the formula}
-\begin{equation}
+\subsubsection{Dynamic variable ordering}
+We do not try to find a good static variable ordering at the start and instead rely on the sifting algorithm provided by the CUDD package for finding good variable orderings dynamically. In our experience, the sifting algorithm provides the best tradeoff between the quality of the resulting ordering and time taken to find it. We enable sifting at the start so that is is active during both compilation and solving. We did not modify any of the default parameters to the sifting algorithm.
+
+\subsubsection{Partitioned transition relations}
+We do not compute the transition relation as a monolithic BDD defined over current state, input variables and next state. This would likely be very large and slow down the algorithm considerably. Instead, we keep it in a conjunctively partitioned form with one partition for each next state variable. We can do this because the next state value of any state variable depends only on the current and input variables and not any other next state variables.
+
+Furthermore, the next state value of any state variable is deterministic. This means that we can represent it directly as a function of the current state and input variables. We use a BDD defined over current state and input variables to represent this function. Our transition relation becomes a list of BDDs, one for each state variable, each of which only depends on current state and input variables. 
+
+To compute the implication, $\forall S'. (TRANS(S, U, C, S') \rightarrow X')$, we use the CUDD function \textsc{Cudd\_VectorCompose} as shown in algorithm \ref{alg:syntcomp_cpre} on line 1 to substitute each update function into X. This avoids building the monolithic transition relation and, importantly, it avoids having to ever declare a next state copy of each state variable in the BDD manager. 
+
+\subsubsection{Dereferencing dead BDDs}
+We dereference BDDs that are no longer needed as soon as possible. Each live BDD node is processed during reordering and counted when the algorithm checks to see if the total BDD size in the manager is reduced. These unused BDDs should not count toward the total node count that is used to evaluate an ordering, and, the time that is spent reordering them and counting them is wasted. In the interest of clarity, BDD dereferencing is not shown in algorithms \ref{alg:syntcomp_cpre} and \ref{alg:syntcomp}.
+
+\subsubsection{Rearranging the formula}
+\begin{multline}
 \label{eqn:mu2}
-\nu X. \forall U. \exists C. (\forall S'. (TRANS(S, U, C, S') \rightarrow X') \wedge SAFE(S, U, C))
-\end{equation}
+\nu X. \forall U. \exists C. (\forall S'. (TRANS(S, U, C, S') \rightarrow X') \\ \wedge SAFE(S, U, C))
+\end{multline}
 
 We can arrange equation \ref{eqn:mu} to move the conjunction with the safety condition outside of the innermost universal quantification, as shown in equation \ref{eqn:mu2}, as the safety condition does not depend on the next state variables. This avoids building the potentially large BDD of the conjunction.
 
-\subsection{Partitioned transition relations}
-We do not compute the transition relation as a monolithic BDD defined over current state, input variables and next state. This would likely be very large and slow down the algorithm considerably. Instead, we keep it in a conjunctively partitioned form with one partition for each next state variable. We can do this because the next state of any state variable only depends on the current and input variables and not any other variables. 
+\subsubsection{Simultaneous conjunction and quantification}
+We perform simultaneous conjunction and quantification wherever possible. The existential quantification is performed at the same time as conjunction with the safety condition using \textsc{Cudd\_BddAndAbstract} on line 2 of algorithm \ref{alg:syntcomp_cpre}. This avoids building the potentially large BDD representing the conjunction.
 
-Furthermore, the next state of any state variable is deterministic. This means that we can represent it directly as a function of current state and input variables. We use a BDD defined over current state and input variables to represent this function. So, our transition relation is a list of BDDs, one for each state variables, each of which only depend on currents state and input variables. 
+\subsubsection{Early termination}
+We terminate early when possible. As we are computing a greatest fixed point, we start with the universal set and progressively shrink it to find the winning region. Each time we shrink the winning region, we check that is it still a superset of the initial set. If it is not, we know there is no way we can win as the winning set only shrinks as the algorithm progresses. We use the function \textsc{Cudd\_bddLeq} on line 4 of algorithm \ref{alg:syntcomp} for this purpose as it allows us to efficiently check that one BDD implies another without constructing the BDD of the implication.
 
-To compute $\forall S'. TRANS(S, U, C, S') \rightarrow X'$, we use the CUDD function \textsc{Cudd\_VectorCompose} to substitute each update function into X. This avoids building the monolithic transition relation and, importantly, it avoids having to ever declare a next state copy of each state variable in the BDD manager. 
+\subsubsection{Abstraction-Refinement}
 
-\subsection{Simultaneous conjunction and quantification}
-We perform simultaneous conjunction and quantification wherever possible. The existential quantification is performed at the same time as conjunction with the safety condition using \textsc{Cudd\_BddAndAbstract}. This avoids building the potentially large BDD representing the conjunction.
+We created a second version of our tool that, in addition to the optimisations above, implements an abstraction refinement loop inspired by \cite{dealfaro}. 
 
-\subsection{Early termination}
-We terminate early when possible. As we are computing a greatest fixed point, we start with the universal set and progressively shrink it to find the winning region. Each time we shrink the winning region, we check that is it still a superset of the initial set. This allows us to terminate early if it is not as we know there is no way we can win in this case. We use the function \textsc{Cudd\_bddLeq} for this purpose as it allows us to efficiently check that one BDD implies another without constructing any intermediate BDDs.
+An initial abstract transition relation is built that only contains next state functions for state variables that occur in the safety condition. Additional state variables that do not appear in the safety condition may be required to precisely specify the next state functions of those that do. These are treated as input variables controlled by the player and are referred to as `untracked' variables. If the game is lost, even with these untracked variables controlled by the player, then the player certainly cannot win and we terminate. If the player wins this abstracted game, it may not win the concrete game and we need to refine.
 
-\subsection{Dereferencing dead BDDs}
-Lastly, we dereference BDDs that are no longer needed as soon as possible. Each live BDD is reordered during reordering and counted when the algorithm checks to see if the total BDD size in the manager is reduced. These unused BDDs should not count toward the total node count and time is wasted reordering them.
+To check if the player really can win the concrete game, the controllable predecessor is iterated one more time. This time, the untracked variables are not picked by the player. We efficiently find a state and a valuation of a small subset of the untracked variables for which the game is losing in this state using CUDD's functions to find a large prime implicant. If no such valuation exists, the game is winning. Otherwise, the untracked variables that appear in this valuation are changed from input variables to state variables and their update functions are computed, possibly resulting in new untracked variables. We refer to this as untracked variable promotion. The game is then solved again. On each iteration the winning set can only shrink. We therefore reuse the winning set as the starting point of the next iteration.
 
-\subsection{Implementation}
-The solver is written in the Haskell functional programming language. Altogether, the AIGER parser, compiler, command line argument parser, interface to BDD library and solver are just over 300 lines of code. The code is available online at: https://github.com/adamwalker/syntcomp.
+This optimisation degraded performance of the tool overall, but it did improve performance in some of the unsatisfiable benchmarks as, for unknown reasons, these benchmarks could be solved by only considering a subset of the state variables.
+
+\subsection{Evaluation}
+Simple BDD solver failed when the BDDs representing the winning sets, or the intermediate BDDs in the controllable predecessor computation grew too large. Additionally, it failed when a large number of iterations was required to determine the outcome, such as the benchmarks with a large counter.
+
