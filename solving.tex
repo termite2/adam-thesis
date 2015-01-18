@@ -4,7 +4,11 @@ We have a formalism for the driver synthesis problem as a game. A practical driv
 
 The straightforward symbolic solver that uses BDDs as the symbolic data structure is remarkably efficient. In fact, it is the current state of the art in reactive synthesis. I will use this as the starting point for my description of Termite's game solver.
 
-I will begin by describing my entry to the reactive synthesis competition in 2014. The solver won the sequential realizability category, the only category in which it was entered.  
+I begin by describing my entry to the reactive synthesis competition in 2014, appropriately named "Simple BDD Solver". The solver won the sequential realizability category, the only category in which it was entered.  
+
+Next, I introduce abstraction, a technique to increase the scalability of the basic symbolic algorithm by reducing the effective size of the state space that the algorithm must operate on. The cost of reducing the size of the state space is that the abstracted game is represented with less precision and is often not precise enough to solve the original game. To counter this, the abstraction needs to be \emph{refined}, i.e. the precision of the abstraction needs to be increased. This is performed in an \emph{abstraction-refinement loop}. Ideally, this loop results in an abstraction just precise enough to solve the game, but coarse enough that solving it is tractable.
+
+I give an abstraction-refinement algorithm that uses \emph{variable abstraction}, a technique for reducing the state space of the game by eliminating a subset of the state variables from the game. I then build on this to arrive at an algorithm that performs \emph{predicate abstraction}, a technique that, instead of representing the state space using state variables, represents relationships between state variables that capture key properties that are likely to be of importance in solving the game. This representation is usually far more compact. This is the synthesis algorithm that Termite uses.
 
 \section{Synthesis competition}
 
