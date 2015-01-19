@@ -66,6 +66,8 @@ We require that
 In the case when $\concrete{v} = \emptyset$ the abstract state $v$ is said to be \emph{inconsistent}. We extend the $\concrete{}$ operator to sets of abstract states as follows: for $U\subseteq V$: $\concrete{U} = \bigcup_{u\in U}\concrete{u}$.
 
 \subsection{Algorithm}
+\label{sec:threeval_generic}
+
 In this section we present a modified version of the three-valued abstraction refinement technique of de~Alfaro and Roy~\cite{Alfaro_Roy_07}. To simplify the presentation, we focus on solving reachability games. 
 
 We start by defining two versions of the abstraction operator: the \emph{may-abstraction} $\abstractm{}$ and the \emph{must-abstraction} $\abstractM{}$. For a set of concrete states $T \subseteq S$:
@@ -221,18 +223,18 @@ To handle this, we introduce an additional set of variables, denoted $F$ (for fr
 We define the two controllable predecessors:
 
 \begin{equation}
+    \label{eqn:symb_cpre_M}
     Cpre_1^M(X) = \forall F. \exists L. \forall n. TRANS \rightarrow X
-    \label{eqn:cpre_M}
 \end{equation}
 
 \begin{equation}
+    \label{eqn:symb_cpre_m}
     Cpre_1^m(X) = \exists F. \exists L. \forall n. TRANS \rightarrow X
-    \label{eqn:cpre_m}
 \end{equation}
 
 Though the $F$ variables are really part of the state, we treat them as free input variables. Intuitively, their values are chosen by player~2 when computing $Cpre_1^M$ and by player~1 when computing $Cpre_1^m$. This makes it more difficult, and respectively, easier for player~1 to control execution into the target set.
 
-$Cpre_1^M$, by Equation \ref{eqn:cpre_M}, is the set of abstract states from which we can force execution into the target set from all sub-states induced by $F$. Since no variables in $C \setminus (V \cup F)$ can influence the next state of variables in $V$ we can ignore them and conclude that $Cpre_1^M$ computes the set of abstract states such that for all concrete states within the abstract state, player~1 can force execution into the concretisation of the target set. This agrees with the definition of the abstract must controllable predecessor in Equation \ref{eqn:def_cpre_M}.
+$Cpre_1^M$, by Equation \ref{eqn:symb_cpre_M}, is the set of abstract states from which we can force execution into the target set from all sub-states induced by $F$. Since no variables in $C \setminus (V \cup F)$ can influence the next state of variables in $V$ we can ignore them and conclude that $Cpre_1^M$ computes the set of abstract states such that for all concrete states within the abstract state, player~1 can force execution into the concretisation of the target set. This agrees with the definition of the abstract must controllable predecessor in Equation \ref{eqn:def_cpre_M}.
 
 Dually, $Cpre_1^m$ computes the set of abstract states such that for some concrete state within the abstract state, player~1 can force execution into the concretisation of the target set. This agrees with the definition of the abstract may controllable predecessor in Equation \ref{eqn:def_cpre_m}.
 
@@ -243,6 +245,8 @@ Now that we have an abstraction and a definition of the controllable predecessor
 Since $W^M$ is a subset of the true winning region, if $I \rightarrow W^M$ then we may terminate as the game is surely winnable. As $W^m$ is a superset of the true winning region, if $I \centernot\rightarrow W^m$ then we may terminate as the game is surely not winnable.
 
 If none of the above termination conditions held then it is because our abstraction is not precise enough and must be refined.
+
+\todo{running example}
 
 \subsubsection{Refinement}
 
@@ -260,15 +264,23 @@ If none of the above termination conditions held then it is because our abstract
 \end{algorithmic}
 \end{algorithm}
 
-From an email to the german guys:
+When solving a reachability game, we refine at the \emph{may-must boundary}. As explained in section \ref{sec:threeval_generic}, we choose an abstract state that is may winning but not must winning and has a may transition to the must winning set and partition this state so that one partition is now must winning. We now describe how to do this efficiently and symbolically.
 
-It's a simple abstraction-refinement loop. At the start, the safety condition is compiled to a BDD. In the master branch of my solver, I then compile update functions for each state variable. In the "untracked" branch, I only compile update functions for each state variable that occurs in the safety condition. However, these update functions may depend on additional state variables. Instead of compiling update functions for these additional state variables, I make them input variables. I refer to these as untracked variables. The state space of the game is now much smaller. The player (ie. not the environement) is free to choose the values of these inputs. This makes the game easier to win for the player.
+We define the function $Cpre_1^F$ that returns the set of states in the partition induced by the variables in $F$ that are winning:
 
-The simplified game is then solved. If the game is lost, then the player certainly loses. If the player wins, it may because the abstraction made it easer to win the game. To detect this, we do the controllable predecessor one more time, but dont quantify out the untracked variables. We pick a small losing <state, untracked> cube and change the untracked variables to state variables by computing their update functions, and solve the game again. If no such cube exists, the game is winning.
+\begin{equation}
+    Cpre_1^F(X) = \exists L. \forall N. TRANS \rightarrow X
+\end{equation}
 
-On each refinement iteration, the winning region can only shrink, so we reuse the winning region from solving the last game on the next iteration. Also, if we were solving a reachability game, we would let the environment pick the valuations of the untracked variables and the winning sets would only grow.
+Note that this differs from Equations \ref{eqn:symb_cpre_M} and \ref{eqn:symb_cpre_m} in that is never quantifies out $F$. Thus, it returns the set of $\langle S, F \rangle$ tuples that are winning.
 
-In practice, this works very well for the games I am solving to synthesize controllers for computer hardware. It does not work so well on the synthesis competition benchmarks because most of the state is needed to determine whether the game is winning, though, for some reason, it can create simpler abstractions for a lot of the unrealizable benchmarks. 
+We compute:
+
+\begin{equation}
+    CPre_1^F(W^M) \wedge \neg W^M
+\end{equation}
+
+\noindent to find the $\langle S, F \rangle$ tuples that are not must winning but have a transition to the must winning set.
 
 \subsection{Optimisation}
 
