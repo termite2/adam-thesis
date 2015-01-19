@@ -236,6 +236,14 @@ $Cpre_1^M$, by Equation \ref{eqn:cpre_M}, is the set of abstract states from whi
 
 Dually, $Cpre_1^m$ computes the set of abstract states such that for some concrete state within the abstract state, player~1 can force execution into the concretisation of the target set. This agrees with the definition of the abstract may controllable predecessor in Equation \ref{eqn:def_cpre_m}.
 
+\subsubsection{Solving the game}
+
+Now that we have an abstraction and a definition of the controllable predecessor we can solve the game. We first solve the game using $Cpre_1^M$ and denote the winning region $W^M$, or the \emph{must} winning region. We also solve the game using $Cpre_1^m$ and denote the winning region $W^m$ or the \emph{may} winning region.
+
+Since $W^M$ is a subset of the true winning region, if $I \rightarrow W^M$ then we may terminate as the game is surely winnable. As $W^m$ is a superset of the true winning region, if $I \centernot\rightarrow W^m$ then we may terminate as the game is surely not winnable.
+
+If none of the above termination conditions held then it is because our abstraction is not precise enough and must be refined.
+
 \subsubsection{Refinement}
 
 \begin{algorithm}
@@ -943,7 +951,7 @@ speed up the convergence of the algorithm.
 
 \begin{algorithm}
 \caption{Three-valued abstraction refinement for games.}
-\label{alg:generic}
+\label{alg:genericc}
 
 \begin{algorithmic}[1]
 
