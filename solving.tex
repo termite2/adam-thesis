@@ -37,7 +37,7 @@ One common use of an abstraction is in an abstraction-refinement loop. In an abs
 
 Finding an abstraction that is simultaneously small and useful for making progress in solving the game is a difficult task and is what will be dealt with in the following sections. We start with earlier work on three valued abstraction refinement. 
 
-\section{Three valued abstraction refinement}
+\subsection{Three valued abstraction refinement}
 
 The idea is that given an abstraction, we classify states into one of three categories: winning, losing, and unknown. If we discover that the entire initial set is winning, we know that the original game is winning and we can terminate. Dually, if we discover any initial state that is losing, we know that the entire initial set can never be winning, hence the game is losing and we can terminate. 
 
@@ -176,10 +176,18 @@ a3: V := True;
 The initial abstraction for a boolean reachability game is created from only the variables that are mentioned in the goal. If this set of variables is $G$ then our initial abstraction is $\langle V, \concrete{} \rangle$, where:
 \begin{itemize}
     \item $V$, the abstract state space, is the Cartesian product of the domains of the variables in $G$.
-    \item $\concrete{a}$ is the set of concrete states for which the abstract variables specified by $a$ take the same values as their corresponding concrete state variables.
+    \item $\concrete{a}$ is the set of concrete states for which the abstract variables specified by $a$ take the same values as their corresponding concrete state variables and all other variables are free to take any value.
 \end{itemize}
 
-This abstraction satisfies our two requirements for a valid abstraction. The abstraction is illustrated in figure \ref{fig:abs_state_sp}. The abstract states are illustrated by the solid squares. There is one state for each valuation of $X$ and $Y$, the variables that occur in the goal. Each abstract state is partitioned into four concrete states, one for each valuation of the concrete variables that were dropped from the abstraction, $U$ and $V$. It is clear from the figure that the abstraction forms a partition of the concrete state space and that it covers the entire concrete state space.
+This abstraction satisfies our two requirements for a valid abstraction. The abstraction of our running example is illustrated in figure \ref{fig:abs_state_sp}. The abstract states are illustrated by the solid squares. There is one state for each valuation of $X$ and $Y$, the variables that occur in the goal in our example. Each abstract state contains four concrete states, one for each valuation of the concrete variables that were dropped from the abstraction, $U$ and $V$. $\concrete{}$ is a function from valuations of $U$ and $V$ to the powerset of the set of valuations of all state variables. For example:
+
+\begin{equation}
+    \concrete{\langle T, T \rangle} = \{ \langle T, T, F, F \rangle, \langle T, T, F, T \rangle, \langle T, T, T, F \rangle, \langle T, T, T, T \rangle \}
+\end{equation}
+
+Where the variables in each concrete tuple are ordered $\langle X, Y, U, V \rangle$. Note that $X$ and $Y$ are both True in all concrete state tuples whereas $U$ and $V$ are free to take any value.
+
+It is clear from the figure that the abstraction forms a partition of the concrete state space and that it covers the entire concrete state space.
 
 \begin{figure}[t]
 \centering
