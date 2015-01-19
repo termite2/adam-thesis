@@ -88,10 +88,12 @@ Next, we define may and must versions of the abstract controllable predecessor o
 
 \begin{equation}
     Cpre_i^m(U) = \abstractm{Cpre_i(\concrete{U})}
+    \label{eqn:def_cpre_m}
 \end{equation}
 
 \begin{equation}
     Cpre_i^M(U) = \abstractM{Cpre_i(\concrete{U})}
+    \label{eqn:def_cpre_M}
 \end{equation}
 
 These operators have the property:
@@ -202,19 +204,27 @@ The controllable predecessor is constructed using the transition relation. For e
 
 Assuming that the transition relation for the concrete system is given as update functions, one for each concrete variable, then computation of the abstract transition relation is straightforward. We just compile the update functions for only those variables that appear in $G$.
 
-However, there is the complication that these update functions may depend on additional variables that are not in $G$. For now we will ignore this problem and compile them anyway. We denote this extra set of variables $F$ for free for reasons that will become clear soon.
+However, there is the complication that these update functions may depend on additional variables that are not in $G$. Consider the update function for $Y$ in the running example. The next state value of $Y$ depends on $U$ which is not part of the abstract state space.
+
+To handle this, we introduce an additional set of variables, denoted $F$ (for free, for reasons that will become apparent) for variables that are needed when computing the update functions but are not part of the abstract state space.
 
 We define the two controllable predecessors:
 
 \begin{equation}
     Cpre_1^M(X) = \forall F. \exists L. \forall n. TRANS \rightarrow X
+    \label{eqn:cpre_M}
 \end{equation}
 
 \begin{equation}
     Cpre_1^m(X) = \exists F. \exists L. \forall n. TRANS \rightarrow X
+    \label{eqn:cpre_m}
 \end{equation}
 
-We treat the free variables ($F$) as input variables. Their values are chosen by player~2 when computing $Cpre_1^M$ and by player~1 when computing $Cpre_1^m$. 
+Though the $F$ variables are really part of the state, we treat them as free input variables. Intuitively, their values are chosen by player~2 when computing $Cpre_1^M$ and by player~1 when computing $Cpre_1^m$. This makes it more difficult, and respectively, easier for player~1 to control execution into the target set.
+
+$Cpre_1^M$, by Equation \ref{eqn:cpre_M}, is the set of abstract states from which we can force execution into the target set from all sub-states induced by $F$. Since no variables in $C \setminus (V \cup F)$ can influence the next state of variables in $V$ we can ignore them and conclude that $Cpre_1^M$ computes the set of abstract states such that for all concrete states within the abstract state, player~1 can force execution into the concretisation of the target set. This agrees with the definition of the abstract must controllable predecessor in Equation \ref{eqn:def_cpre_M}.
+
+Dually, $Cpre_1^m$ computes the set of abstract states such that for some concrete state within the abstract state, player~1 can force execution into the concretisation of the target set. This agrees with the definition of the abstract may controllable predecessor in Equation \ref{eqn:def_cpre_m}.
 
 \subsubsection{Refinement}
 
