@@ -68,21 +68,27 @@ In the case when $\concrete{v} = \emptyset$ the abstract state $v$ is said to be
 \subsection{Algorithm}
 In this section we present a modified version of the three-valued abstraction refinement technique of de~Alfaro and Roy~\cite{Alfaro_Roy_07}. To simplify the presentation, we focus on solving reachability games. 
 
-We start with defining two versions of the abstraction operator: the \emph{may-abstraction} $\abstractm{}$ and the \emph{must-abstraction} $\abstractM{}$. For a set of concrete states $T \subseteq S$:
+We start by defining two versions of the abstraction operator: the \emph{may-abstraction} $\abstractm{}$ and the \emph{must-abstraction} $\abstractM{}$. For a set of concrete states $T \subseteq S$:
 
 \begin{equation}
 \abstractm{T} = \{v\in V\mid \concrete{v} \cap T \neq \emptyset\} 
 \end{equation}
 
+Intuitively, this returns the set of abstract states which, when concretised, overlap some element of the set to be abstracted.
+
 \begin{equation}
 \abstractM{T} = \{v\in V\mid \concrete{v} \subseteq T \}
 \end{equation}
+
+Intuitively, this returns the set of abstract states which, when concretised, are contained within the set to be abstracted.
 
 We say that an abstraction is \emph{precise} for a set $T\subseteq S$ if :
 
 \begin{equation}
 \concrete{(\abstractm{T})} = \concrete{(\abstractM{T})}
 \end{equation}
+
+Intuitively, this means that there are no abstract states that, when concretised, contain states that within $T$ and states that are outside $T$.
 
 Next, we define may and must versions of the abstract controllable predecessor operator:
 
@@ -91,10 +97,14 @@ Next, we define may and must versions of the abstract controllable predecessor o
     \label{eqn:def_cpre_m}
 \end{equation}
 
+Intuitively, this returns the set of abstract states such that, when concretised, we can force execution from at least one concrete state into the concretisation of $U$.
+
 \begin{equation}
     Cpre_i^M(U) = \abstractM{Cpre_i(\concrete{U})}
     \label{eqn:def_cpre_M}
 \end{equation}
+
+Intuitively, this returns the set of abstract states such that, when concretised, we can force execution from all of the concrete states into the concretisation of $U$.
 
 These operators have the property:
 
