@@ -120,7 +120,7 @@ And therefore:
 \concrete{\reach(\abstractM{T}, Cpre_i^M)} \subseteq \reach(T, Cpre_i) \subseteq \concrete{\reach(\abstractm{T}, Cpre_i^m)}
 \end{equation}
 
-Figure~\ref{f:reach} illustrates the main idea of our approach, which is presented in algorithm~\ref{alg:generic}.  At every iteration, the algorithm computes the must-winning set $W^M$ that underapproximates, and the may-winning set $W^m$ that overapproximates the true winning set (lines~2--3).  The algorithm terminates if the must-winning set contains the entire initial set or the may-winning set has shrunk beyond the initial set (lines~4--5).  Otherwise, the algorithm refines the abstraction in a way that expands the must-winning set.
+Figure~\ref{f:reach} illustrates the main idea of three valued abstraction refinement, which is presented in algorithm~\ref{alg:generic}.  At every iteration, the algorithm computes the must-winning set $W^M$ that underapproximates, and the may-winning set $W^m$ that overapproximates the true winning set (lines~2--3).  The algorithm terminates if the must-winning set contains the entire initial set or the may-winning set has shrunk beyond the initial set (lines~4--5).  Otherwise, the algorithm attempts to refine the abstraction in a way that the must-winning set will be expanded in the next iteration when the game is re-solved.
 
 \begin{algorithm}
 \caption{Three-valued abstraction refinement for games.}
@@ -138,9 +138,9 @@ Figure~\ref{f:reach} illustrates the main idea of our approach, which is present
     \Loop
         \State $W^M \gets \reach(\abstractM{T}, Cpre_1^M)$
         \State $W^m \gets \reach(\abstractm{T}, Cpre_1^m)$
-        \If{$\abstractM{I} \subseteq W^M$} 
+        \If{$\abstractM{I} \subseteq W^M$} \label{alg:tvg:tc1}
             \State\Return Yes
-        \ElsIf{$\abstractM{I} \nsubseteq W^m$} 
+        \ElsIf{$\abstractM{I} \nsubseteq W^m$} \label{alg:tvg:tc2}
             \State\Return No
         \Else       
             \State$\Call{refineAbstraction}{W^M}$
@@ -149,7 +149,17 @@ Figure~\ref{f:reach} illustrates the main idea of our approach, which is present
 \end{algorithmic}
 \end{algorithm}
 
-The key observation behind the refinement procedure is that candidate winning states can be found at the \emph{may-must boundary} of the game, i.e., the set $Cpre_1^{m+}(W^M)\setminus W^M$, of all may-predecessors of the must-winning set. 
+To expand the must-winning set we attempt to perform a refinement of the abstraction. This means that we split one or more of the abstract states in $V$ in two. 
+
+We observe that if there exists a winning concrete state $c$ then there also exists a chain of winning concrete states from $c$ to the goal. If $c$ is not part of $\concrete{W^M} \cup goal$, then, some point, this chain must enter $\concrete{W^M} \cup goal$. Therefore, if there exists some concrete winning state that is not part of $\concrete{W^M} \cup goal$ then there also exists one with a transition into $\concrete{W^M} \cup goal$. We also have the contrapositive - if there does not exist a concrete winning state with a transition into $\concrete{W^M} \cup goal$ then there exist no further concrete winning states that are not part of $W^M$. 
+
+Thus, we can narrow down our search for abstract states to split to those that have at least one concrete state with a transition into $W^M$, excluding $W^M$ as these states are already must-winning so splitting them will not achieve anything. Thus, we look in $Cpre_1^m(W^M \cup goal)\setminus W^M$, i.e. the set of all may-predecessors of the must-winning set. 
+
+If we find an abstract state within this set for which from a subset of concrete states it is possible to force execution into $\concrete{W^M}$ then we can partition this abstract state in two such that those winning concrete states form one partition while the remaining states for the other partition.
+
+The former partition, $p$, consists entirely of winning concrete states. Furthermore, it is on the boundary of the must-winning set so it will become part of $W^M$ when the game is solved again with the refined abstraction.
+
+Each time a refinement is made, $\concrete{W^M}$ grows. If the concrete state space is finite $\concrete{W^M}$ can only grow so much so it must reach a fixed point (that may contain the entire concrete state space). When $W^M$ can no longer grow it is because there are no winning states at the boundary. Thus there are no winning states that are not part of $W^M$ and $W^M$ must be the exact winning set. Furthermore, $W^m$ must be equal to $W^M$ \todo{why}. Therefore one of the two termination conditions (lines \ref{alg:tvg:tc1} and \ref{alg:tvg:tc2}) must have already happened. Therefore the algorithm terminates.
 
 \subsection{A symbolic implementation}
 
@@ -237,6 +247,8 @@ Though the $F$ variables are really part of the state, we treat them as free inp
 $Cpre_1^M$, by Equation \ref{eqn:symb_cpre_M}, is the set of abstract states from which we can force execution into the target set from all sub-states induced by $F$. Since no variables in $C \setminus (V \cup F)$ can influence the next state of variables in $V$ we can ignore them and conclude that $Cpre_1^M$ computes the set of abstract states such that for all concrete states within the abstract state, player~1 can force execution into the concretisation of the target set. This agrees with the definition of the abstract must controllable predecessor in Equation \ref{eqn:def_cpre_M}.
 
 Dually, $Cpre_1^m$ computes the set of abstract states such that for some concrete state within the abstract state, player~1 can force execution into the concretisation of the target set. This agrees with the definition of the abstract may controllable predecessor in Equation \ref{eqn:def_cpre_m}.
+
+\todo{running example}
 
 \subsubsection{Solving the game}
 
