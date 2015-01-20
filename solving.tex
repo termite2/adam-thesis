@@ -120,14 +120,18 @@ And therefore:
 \concrete{\reach(\abstractM{T}, Cpre_i^M)} \subseteq \reach(T, Cpre_i) \subseteq \concrete{\reach(\abstractm{T}, Cpre_i^m)}
 \end{equation}
 
+We denote $\reach(\abstractM{T}, Cpre_i^M)$ as $W^M$ and refer to it as the \emph{must-winning} region and we denote $\reach(\abstractm{T}, Cpre_i^m)$ as $W^m$ and refer to it as the \emph{may-winning} region.
+
 \begin{figure}[t]
 \centering
 \includegraphics[width=0.85\linewidth]{diagrams/threeValOverview.pdf}
-\caption{Overview of three valued abstraction}
+\caption{Overview of three valued abstraction-refinement}
 \label{fig:three_val_overview}
 \end{figure}
 
-Figure~\ref{f:three_val_overview} illustrates the main idea of three valued abstraction refinement, which is presented in algorithm~\ref{alg:generic}.  At every iteration, the algorithm computes the must-winning set $W^M$ that underapproximates, and the may-winning set $W^m$ that overapproximates the true winning set (lines~2--3).  The algorithm terminates if the must-winning set contains the entire initial set or the may-winning set has shrunk beyond the initial set (lines~4--5).  Otherwise, the algorithm attempts to refine the abstraction in a way that the must-winning set will be expanded in the next iteration when the game is re-solved.
+Figure~\ref{f:three_val_overview} illustrates the main idea of three valued abstraction refinement, which is presented in algorithm~\ref{alg:generic}. The winning region, in grey, is overapproximated by the may-winning set in white and underapproximated by the must-winning set in dark grey. The abstraction-refinement loop progressively brings $W^m$ and $W^M$ closer together until the game outcome can be determined.
+
+At every iteration, the algorithm computes the must-winning set $W^M$ that underapproximates, and the may-winning set $W^m$ that overapproximates the true winning set (lines~2--3).  The algorithm terminates if the must-winning set contains the entire initial set or the may-winning set has shrunk beyond the initial set (lines~4--5).  Otherwise, the algorithm attempts to refine the abstraction in a way that the must-winning set will be expanded in the next iteration when the game is re-solved.
 
 \begin{algorithm}
 \caption{Three-valued abstraction refinement for games.}
