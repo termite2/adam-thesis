@@ -1073,3 +1073,75 @@ speed up the convergence of the algorithm.
 \end{algorithmic}
 \end{algorithm}
 
+Algorithm~\ref{alg:refineCpre} has an important performance issue: 
+in lines~10--16 it analyses and adds to $C^{M-}$ a single abstract 
+label $l$.  The set of all abstract labels is exponential in size 
+in the number of label predicates and can be very large in 
+practice, making explicit enumeration infeasible.  We therefore 
+modify the algorithm to handle a set of abstract labels at every 
+iteration.  To this end, in line~7, instead of choosing a complete 
+assignment to state, untracked, and label predicates, we compute a 
+\emph{prime implicant} of set $T$, i.e., an assignment to a subset 
+of variables in $\vect{\sigma}\cup\vect{\omega}\cup\vect{\lambda}$ 
+such that any extension of this assignment to the remaining 
+variables satisfies $T$:
+$$\langle v,u,l\rangle \gets \textsc{primeImplicant}(T),$$
+where $v$, $u$, and $l$ are partial valuations of abstract 
+variables, which compactly represent a potentially large set of 
+abstract transitions.  In practice, we typically discover prime 
+implicants that only constrain few of the abstract variables, 
+meaning that other predicates are irrelevant for the outcome of 
+the transition.  
+
+%Next, we modify lines~9 and 14 to 
+
+
+Given this modification, the $C^{m+}$ refinement case of the 
+algorithm (lines~18--19) is still correct and does not require any 
+changes.  However, changes are needed in the $C^{M-}$ refinement 
+logic.  The set $A$ computed in lines~10--1 contains all
+concrete states where \emph{at least one} abstract label from the 
+set characterised by the partial assignment $l$ of label 
+predicates is available.  It does not guarantee the availability 
+of any particular label from this set.  To model this constraint, we would have 
+to change $C^{M-}$ to be a relation over sets of labels.  Every 
+element of the relation would describe a set of labels, one of 
+which is guaranteed to be available for the given state and 
+untracked predicate assignment.  
+
+This introduces a new form of imprecision to the consistency 
+relation: rather than categorising each abstract label as 
+available or unavailable in the given state, we record a set of 
+labels, one of which is available.  However, such a relation would 
+be hard to represent and manipulate efficiently in the symbolic 
+form.  Therefore, we propose a different approach that allows 
+symbolic implementation.  
+
+We transform the game (without changing its winning set) in order 
+to solve it more efficiently.  The idea of our solution is to 
+model the new form of imprecision as non-determinism in the 
+abstract transition relation $\Delta$.  For each abstract label 
+variable $\lambda_i$, we introduce an auxiliary \emph{enabling 
+variable} $\varepsilon_i$ and transform the transition relation 
+$\Delta$ as follows:
+$$\Delta \gets (\varepsilon_i \land \Delta) \lor (\overline{\varepsilon_i} \land \exists \lambda_i. \Delta).$$
+When $\varepsilon_i=true$, $\Delta$ behaves exactly as before.  In 
+case $\varepsilon_i=false$, the value of $\lambda_i$ chosen by the 
+player is ignored and the environment non-deterministically 
+selects next-state variables assignment that is consistent with 
+\emph{some} assignment of $\lambda_i$. 
+
+We can now modify line~16 of Algorithm~\ref{alg:refineCpre} as 
+follows:
+$$
+C^{M-} \gets C^{M-} \lor (\hat{A}\land \bigwedge_{i\in{j_1\ldots j_p}}\lambda_i=l_i \land \bigwedge_{i\not\in{j_1\ldots j_p}}\varepsilon_i=false),
+$$
+where $j_1\ldots j_p$ are indices of variables assigned by $l$.  
+The above statement refines $C^{M-}$ by allowing the player to 
+assign a subset of label variables in accordance with $l$ and
+disabling other label variables not constrained by $l$.  The 
+environment will non-deterministically pick arbitrary values for 
+these variables.  In this way we precisely capture what we 
+currently know about consistent predicate assignments in a
+a symbolic form, at the cost of introducing extra variables 
+$\varepsilon_i$.
