@@ -490,6 +490,8 @@ or
 \mu X. \nu Y. \ldots \phi(X, Y, \ldots)
 \end{equation}
 
+\noindent where the fixed point quantifiers strictly alternate.
+
 \begin{algorithm}
 \caption{Three-valued abstraction refinement for $\mu$-calculus games}
 \label{alg:generic_mu_calc}
@@ -502,12 +504,12 @@ or
 
  \Function{Solve}{$transitionRelation$, $goal$}
     \Loop
-    \State $W^M \gets \textsc{Solve}(\phi, Cpre_1^M)$
-    \State $W^m \gets \textsc{Solve}(\phi, Cpre_1^m)$
+    \State $W^M \gets \textsc{Solve}(\phi, Cpre_1^M)$ \label{a:tvmc:sM}
+    \State $W^m \gets \textsc{Solve}(\phi, Cpre_1^m)$ \label{a:tvmc:sm}
         \If{$\abstractM{I} \subseteq W^M$} 
-            \State\Return Yes
+            \State\Return Yes \label{a:tvmc:Y}
         \ElsIf{$\abstractM{I} \nsubseteq W^m$} 
-            \State\Return No
+            \State\Return No \label{a:tvmc:N}
         \Else       
             \State$\Call{refineAbstraction}{W^M}$
         \EndIf
@@ -554,7 +556,13 @@ or
 \end{algorithmic}
 \end{algorithm}
 
-The algorithm begins in the same way as the reachability algorithm. We solve the game with the current abstraction to find $W^m$ and $W^M$ and terminate if these allow us to determine the outcome. We then refine and solve again. Again, as in the reachability case, we aim to grow $W^M$ and shrink $W^m$ so that, if we do not terminate early, they will eventually become the same set. This guarantees termination through one of the if conditions. Predicate promotion and consistency refinement are the same as before but operate on different boundary states. We describe the algorithm to find these boundaries. 
+The algorithm begins in the same way as for safety and reachability. We solve the game with the current abstraction to find $W^m$ and $W^M$ on lines \ref{a:tvmc:sM} and \ref{a:tvmc:sm} and terminate if these allow us to determine the outcome on lines \ref{a:tvmc:Y} and \ref{a:tvmc:N}. We then refine and solve again. Again, as in the reachability and safety cases, we aim to grow $W^M$ and shrink $W^m$ so that, if we do not terminate early, they will eventually become the same set. This guarantees termination through one of the if conditions. Predicate promotion is the same as before but operates on different boundary states. We describe the algorithm to find these boundaries. 
+
+\subsubsection{Correctness}
+
+Assuming correctness of the $Solve$ function, $W^m$ and $W^M$ will always contain an underapproximation, and overapproximation of the true winning region respectively. The algorithm only terminates through one of the if conditions on lines \ref{a:tvmc:Y} and \ref{a:tvmc:N}. If it terminates through the first one, then the initial state is a subset of $W^M$ and thus certainly a subset of the true winning region, so the algorithm correctly returns $Yes$. If it terminates through the second if condition, then the initial set is not a subset of $W^m$ and thus is certainly not a subset of the true winning region, so the algorithm correctly returns $No$. Thus the algorithm returns the correct answer at all termination conditions.
+
+\subsubsection{Termination}
 
 Suppose the specification formula is of the form $\nu X. \psi$, ie. it has a greatest fixed point at its outermost level. We have already calculated the may winning region and we denote this $X^m$ as it is the final value that the $X$ variable takes when solving the may game. We attempt to directly shrink $X^m$ by reconsidering the last application of $Cpre^m$ that yielded $X^m$ and looking for refinements that cause some of the may winning states found by this last iteration to become losing. This amounts to checking the $X^m$-lose boundary for additional losing states, in the same way safety games are refined, which also happens to be specified with a greatest fixed point.
 
