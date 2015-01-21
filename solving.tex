@@ -140,13 +140,13 @@ At every iteration, the algorithm computes the must-winning set $W^M$ that under
 
 \begin{algorithmic}[1]
 
-% \Function{Solve}{$transitionRelation$, $goal$}
-    \Statex {\bf Input:} A game structure $G = \langle S, L, I, \tau_1, \tau_2, \delta \rangle$, a set 
-    of target states $T\subseteq S$, and an initial abstraction $\alpha=\langle V, \concrete{} \rangle$
-    that is precise for $T$, $I$, and $\tau_i$.
+\Require A game structure $G = \langle S, L, I, \tau_1, \tau_2, \delta \rangle$, a set 
+of target states $T\subseteq S$, and an initial abstraction $\alpha=\langle V, \concrete{} \rangle$
+that is precise for $T$, $I$, and $\tau_i$.
 
-    \Statex {\bf Output:} {\it Yes} if $I \subseteq \reach(T, Cpre_1)$, and {\it No} otherwise.
+\Ensure {\it Yes} if $I \subseteq \reach(T, Cpre_1)$, and {\it No} otherwise.
 
+\Function{Solve}{$transitionRelation$, $goal$}
     \Loop
         \State $W^M \gets \reach(\abstractM{T}, Cpre_1^M)$
         \State $W^m \gets \reach(\abstractm{T}, Cpre_1^m)$
@@ -158,6 +158,8 @@ At every iteration, the algorithm computes the must-winning set $W^M$ that under
             \State$\Call{refineAbstraction}{W^M}$
         \EndIf
     \EndLoop
+\EndFunction
+
 \end{algorithmic}
 \end{algorithm}
 
@@ -358,12 +360,13 @@ $W^M$ is, by definition, the set of states from which we know we can win with th
 
 \begin{algorithmic}[1]
 
-% \Function{Solve}{$transitionRelation$, $goal$}
-    \Statex {\bf Input:} A game structure $G = \langle S, L, I, \tau_1, \tau_2, \delta \rangle$, a set 
-    of target states $T\subseteq S$, and an initial abstraction $\alpha=\langle V, \concrete{} \rangle$
-    that is precise for $T$, $I$, and $\tau_i$.
+\Require A game structure $G = \langle S, L, I, \tau_1, \tau_2, \delta \rangle$, a set 
+of target states $T\subseteq S$, and an initial abstraction $\alpha=\langle V, \concrete{} \rangle$
+that is precise for $T$, $I$, and $\tau_i$.
 
-    \Statex {\bf Output:} {\it Yes} if $I \subseteq \reach(T, Cpre_1)$, and {\it No} otherwise.
+\Ensure {\it Yes} if $I \subseteq \reach(T, Cpre_1)$, and {\it No} otherwise.
+
+\Function{Solve}{$transitionRelation$, $goal$}
 
     \State $W^M \gets \emptyset$
 
@@ -378,6 +381,8 @@ $W^M$ is, by definition, the set of states from which we know we can win with th
             \State$\Call{refineAbstraction}{W^M}$
         \EndIf
     \EndLoop
+\EndFunction
+
 \end{algorithmic}
 \end{algorithm}
 
@@ -391,12 +396,13 @@ If we expect the game to be winning, and we are only interested in solving the g
 
 \begin{algorithmic}[1]
 
-% \Function{Solve}{$transitionRelation$, $goal$}
-    \Statex {\bf Input:} A game structure $G = \langle S, L, I, \tau_1, \tau_2, \delta \rangle$, a set 
-    of target states $T\subseteq S$, and an initial abstraction $\alpha=\langle V, \concrete{} \rangle$
-    that is precise for $T$, $I$, and $\tau_i$.
+\Require A game structure $G = \langle S, L, I, \tau_1, \tau_2, \delta \rangle$, a set 
+of target states $T\subseteq S$, and an initial abstraction $\alpha=\langle V, \concrete{} \rangle$
+that is precise for $T$, $I$, and $\tau_i$.
 
-    \Statex {\bf Output:} {\it Yes} if $I \subseteq \reach(T, Cpre_1)$, and {\it No} otherwise.
+\Ensure {\it Yes} if $I \subseteq \reach(T, Cpre_1)$, and {\it No} otherwise.
+
+\Function{Solve}{$transitionRelation$, $goal$}
 
     \Loop
         \State $W^M \gets \reach(\abstractM{T}, Cpre_1^M)$
@@ -409,6 +415,8 @@ If we expect the game to be winning, and we are only interested in solving the g
             \EndIf
         \EndIf
     \EndLoop
+\EndFunction
+
 \end{algorithmic}
 \end{algorithm}
 
@@ -429,13 +437,13 @@ Safety games are solved dually to reachability games. The algorithm with the opt
 
 \begin{algorithmic}[1]
 
-% \Function{Solve}{$transitionRelation$, $goal$}
-    \Statex {\bf Input:} A game structure $G = \langle S, L, I, \tau_1, \tau_2, \delta \rangle$, a set 
-    of target states $T\subseteq S$, and an initial abstraction $\alpha=\langle V, \concrete{} \rangle$
-    that is precise for $T$, $I$, and $\tau_i$.
+\Require A game structure $G = \langle S, L, I, \tau_1, \tau_2, \delta \rangle$, a set 
+of target states $T\subseteq S$, and an initial abstraction $\alpha=\langle V, \concrete{} \rangle$
+that is precise for $T$, $I$, and $\tau_i$.
 
-    \Statex {\bf Output:} {\it Yes} if $I \subseteq \safe(T, Cpre_1)$, and {\it No} otherwise.
+\Ensure {\it Yes} if $I \subseteq \safe(T, Cpre_1)$, and {\it No} otherwise.
 
+\Function{Solve}{$transitionRelation$, $goal$}
     \State $W^M \gets \emptyset$
 
     \Loop
@@ -449,6 +457,8 @@ Safety games are solved dually to reachability games. The algorithm with the opt
             \State$\Call{refineAbstraction}{W^m}$
         \EndIf
     \EndLoop
+\EndFunction
+
 \end{algorithmic}
 \end{algorithm}
 
@@ -486,11 +496,11 @@ or
 
 \begin{algorithmic}[1]
 
-% \Function{Solve}{$transitionRelation$, $goal$}
-    \Statex {\bf Input:} A game structure $G = \langle S, L, I, \tau_1, \tau_2, \delta \rangle$, a specification formula in prefix normal form $\phi$, and an initial abstraction $\alpha=\langle V, \concrete{} \rangle$ that is precise for each set that occurs in $\phi$, $I$, and $\tau_i$.
+\Require {\bf Input:} A game structure $G = \langle S, L, I, \tau_1, \tau_2, \delta \rangle$, a specification formula in prefix normal form $\phi$, and an initial abstraction $\alpha=\langle V, \concrete{} \rangle$ that is precise for each set that occurs in $\phi$, $I$, and $\tau_i$.
 
-    \Statex {\bf Output:} {\it Yes} if $I \subseteq \textsc{Win}(\phi, Cpre_1)$, and {\it No} otherwise.
+\Ensure {\bf Output:} {\it Yes} if $I \subseteq \textsc{Win}(\phi, Cpre_1)$, and {\it No} otherwise.
 
+ \Function{Solve}{$transitionRelation$, $goal$}
     \Loop
     \State $W^M \gets \textsc{Solve}(\phi, Cpre_1^M)$
     \State $W^m \gets \textsc{Solve}(\phi, Cpre_1^m)$
@@ -502,6 +512,8 @@ or
             \State$\Call{refineAbstraction}{W^M}$
         \EndIf
     \EndLoop
+\EndFunction
+
 \end{algorithmic}
 \end{algorithm}
 
