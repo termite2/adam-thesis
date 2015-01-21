@@ -30,7 +30,7 @@ In the following sections I will describe my tool "Simple BDD Solver" which won 
 
 \input{syntcomp}
 
-\section{Abstraction}
+\section{Three Valued Abstraction-Refinement}
 An abstraction is a simplification of the original transition system. An abstraction is used when the game is too large to be solved. Ideally, an abstraction is both small enough to be solved and detailed enough to gain some additional information about the properties of the system. 
 
 One common use of an abstraction is in an abstraction-refinement loop. In an abstraction refinement loop, an initial simple abstraction is found and is solved. Then, the results of the abstraction are used to refine the abstraction, ie. to build another system model that contains slightly more detail than the original abstraction. This is repeated in a loop until the original game is solved. It is often possible to solve the original game with a far less detailed abstraction that the original system. 
@@ -129,7 +129,7 @@ We denote $\reach(\abstractM{T}, Cpre_i^M)$ as $W^M$ and refer to it as the \emp
 \label{fig:three_val_overview}
 \end{figure}
 
-Figure~\ref{f:three_val_overview} illustrates the main idea of three valued abstraction refinement, which is presented in algorithm~\ref{alg:generic}. The winning region, in grey, is overapproximated by the may-winning set in white and underapproximated by the must-winning set in dark grey. The abstraction-refinement loop progressively brings $W^m$ and $W^M$ closer together until the game outcome can be determined.
+Figure~\ref{fig:three_val_overview} illustrates the main idea of three valued abstraction refinement, which is presented in algorithm~\ref{alg:generic}. The winning region, in grey, is overapproximated by the may-winning set in white and underapproximated by the must-winning set in dark grey. The abstraction-refinement loop progressively brings $W^m$ and $W^M$ closer together until the game outcome can be determined.
 
 At every iteration, the algorithm computes the must-winning set $W^M$ that underapproximates, and the may-winning set $W^m$ that overapproximates the true winning set (lines~2--3).  The algorithm terminates if the must-winning set contains the entire initial set or the may-winning set has shrunk beyond the initial set (lines~4--5).  Otherwise, the algorithm attempts to refine the abstraction in a way that the must-winning set will be expanded in the next iteration when the game is re-solved.
 
@@ -182,7 +182,7 @@ The former partition, $p$, consists entirely of winning concrete states. Further
 
 Each time a refinement is made, $\concrete{W^M}$ grows. If the concrete state space is finite $\concrete{W^M}$ can only grow so much so it must reach a fixed point (that may contain the entire concrete state space). When $W^M$ can no longer grow it is because there are no winning states at the boundary. Thus there are no winning states that are not part of $W^M$ and $W^M$ must be the exact winning set. Furthermore, $W^m$ must be equal to $W^M$ \todo{why}. Therefore one of the two termination conditions (lines \ref{alg:tvg:tc1} and \ref{alg:tvg:tc2}) must have already happened. Therefore the algorithm terminates.
 
-\subsection{A symbolic implementation}
+\section{Variable Abstraction}
 
 The description of three valued abstraction refinement leaves a lot unspecified. In particular
 
@@ -216,7 +216,7 @@ a3: V := True;
 \label{fig:running_example}
 \end{figure}
 
-\subsubsection{Initial abstraction}
+\subsection{Initial abstraction}
 
 The initial abstraction for a boolean reachability game is created from only the variables that are mentioned in the goal. If this set of variables is $G$ then our initial abstraction is $\langle V, \concrete{} \rangle$, where:
 \begin{itemize}
@@ -241,7 +241,7 @@ It is clear from the figure that the abstraction forms a partition of the concre
 \label{fig:abs_state_sp}
 \end{figure}
 
-\subsubsection{Controllable predecessor}
+\subsection{Controllable predecessor}
 
 The controllable predecessor is constructed using the transition relation. For efficiency, the transition relation will be constructed incrementally. As the state variables in our initial abstraction are only the variables in $G$, these are the only ones we need to compute the transition relation for.
 
@@ -265,13 +265,28 @@ We define the two controllable predecessors:
 
 Though the $F$ variables are really part of the state, we treat them as free input variables. Intuitively, their values are chosen by player~2 when computing $Cpre_1^M$ and by player~1 when computing $Cpre_1^m$. This makes it more difficult, and respectively, easier for player~1 to control execution into the target set.
 
-$Cpre_1^M$, by Equation \ref{eqn:symb_cpre_M}, is the set of abstract states from which we can force execution into the target set from all sub-states induced by $F$. Since no variables in $C \setminus (V \cup F)$ can influence the next state of variables in $V$ we can ignore them and conclude that $Cpre_1^M$ computes the set of abstract states such that for all concrete states within the abstract state, player~1 can force execution into the concretisation of the target set. This agrees with the definition of the abstract must controllable predecessor in Equation \ref{eqn:def_cpre_M}.
+\begin{figure}
+\centering
+\includegraphics[width=0.5\linewidth]{diagrams/statespace.pdf}
+\caption{Partitioning induced by $F$}
+\label{fig:f_partitioning}
+\end{figure}
+
+Given a valuation of a subset of the concrete state variables $V \subseteq C$ we say that the valuation \emph{agrees} with a concrete state $c$ if the value assigned to each of the variables in $V$ equals the value assigned to the same variable by $c$. A set of variables defines a partitioning of the concrete state space: 
+
+\begin{equation}
+    \{ s \in 2^C | \exists v \in Valuations(V). \forall c \in s. \text{ $c$ agrees with $v$} \}
+\end{equation}
+
+We refer to each set of states in the partitioning as a \emph{sub-state}. Figure \ref{fig:f_partitioning} shows the partitioning induced by $F \cup V$.
+
+$Cpre_1^M$, by Equation \ref{eqn:symb_cpre_M}, is the set of abstract states from which we can force execution into the target set from all sub-states induced by $F$. Since no variables in $C \setminus (V \cup F)$ can influence the next state of variables in $V$ \emph{we can ignore them} and conclude that $Cpre_1^M$ computes the set of abstract states such that for all concrete states within the abstract state, player~1 can force execution into the concretisation of the target set. This agrees with the definition of the abstract must controllable predecessor in Equation \ref{eqn:def_cpre_M}.
 
 Dually, $Cpre_1^m$ computes the set of abstract states such that for some concrete state within the abstract state, player~1 can force execution into the concretisation of the target set. This agrees with the definition of the abstract may controllable predecessor in Equation \ref{eqn:def_cpre_m}.
 
 \todo{running example}
 
-\subsubsection{Solving the game}
+\subsection{Solving the game}
 
 Now that we have an abstraction and a definition of the controllable predecessor we can solve the game. We first solve the game using $Cpre_1^M$ and denote the winning region $W^M$, or the \emph{must} winning region. We also solve the game using $Cpre_1^m$ and denote the winning region $W^m$ or the \emph{may} winning region.
 
@@ -281,7 +296,7 @@ If none of the above termination conditions held then it is because our abstract
 
 \todo{running example}
 
-\subsubsection{Refinement}
+\subsection{Refinement}
 
 \begin{algorithm}
 
