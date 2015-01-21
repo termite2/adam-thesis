@@ -478,6 +478,7 @@ The complement of a GR(1) game is a confusing beast and is given below.
 \end{equation}
 
 \section{Symbolic games}
+\label{sec:symbolic_games}
 
 The algorithm described so far appears very inefficient. Consider a reachability game. We are performing a backwards breadth-first search starting from $\reachobj$. If we were to implement it directly as described, we would need a set abstract datatype to represent the winning set. Some of the games we have solved with Termite have upwards of $2^{80}$ states, even after abstraction. Clearly, explicitly representing the winning set will never succeed. 
 
@@ -485,7 +486,7 @@ Identical problems are encountered in model checking. The breakthrough that revo
 
 \subsection{State variable encoding}
 
-Symbolic games are defined over a finite set of state variables, $X$, and a finite set of label variables $Y$. We redefine $S$, the set of states, to be the set of possible valuations of each state variable in $X$. That is, each state $s \in S$ is given by a valuation of all of the state variables in $X$. Similarly, we redefine $L$, the set of labels, to be the set of possible valuations of each label variable in $Y$.
+Symbolic games are defined over a finite set of state variables, $X$, and a finite set of label variables $Y$. A \emph{valuation} for a set of variables $V$ is a function from each of those variables to an element of its domain. We redefine $S$, the set of states, to be the set of possible valuations of each state variable in $X$. That is, each state $s \in S$ is given by a valuation of all of the state variables in $X$. Similarly, we redefine $L$, the set of labels, to be the set of possible valuations of each label variable in $Y$.
 
 For a set $Z$ of variables, we denote by $\forms(Z)$ the set of propositional formulas constructed from the variables in $Z$. The characteristic formula of a set of states $T$ is a function $f \in \forms(X)$ that evaluates to true for the valuation corresponding to a state $s \in T$ and false otherwise. We use characteristic formulas to represent sets of states without explicitly listing each member of the set. This is called a symbolic representation.
 

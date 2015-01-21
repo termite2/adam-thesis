@@ -50,6 +50,7 @@ At termination, either
 This additional imprecision often allows us to use a less precise abstraction compared to the original algorithm where all states are exactly classified. The use of a coarser abstraction is usually computationally more efficient. If none of the termination conditions are met then we need to refine the abstraction. A correct abstraction refinement scheme will guarantee that one of the termination conditions is eventually met after enough refinements are performed. A good abstraction refinement scheme will ensure that when the algorithm terminates the abstraction is not unnecessarily fine.
 
 \subsection{Abstraction}
+\label{sec:abstraction_def}
 
 An abstraction of a game structure $G$ is a tuple $\langle V, \concrete{}\rangle$, where 
 \begin{itemize}
@@ -184,14 +185,15 @@ Each time a refinement is made, $\concrete{W^M}$ grows. If the concrete state sp
 
 \section{Variable Abstraction}
 
+We now apply the three valued abstraction-refinement scheme to symbolic games (Section \ref{sec:symbolic_games}). We describe an efficient instantiation of the three valued abstraction-refinement scheme for variable abstraction, a technique for reducing the state space of symbolic games by eliminating a subset of the state variables.
+
 The description of three valued abstraction refinement leaves a lot unspecified. In particular
 
 \begin{itemize}
     \item How is the initial abstraction specified?
+    \item How are the controllable predecessors computed?
     \item How is the abstraction refined?
 \end{itemize}
-
-Additionally, it is not clear how to compute the controllable predecessor efficiently. As usual, the answer is to use a symbolic algorithm. I will describe an abstraction-refinement loop for boolean games. This means that all the variables are boolean and the concrete state space of the game is the Cartesian product of each of these variables.
 
 For clarity, I have created a running example which I will refer to throughout the description of the symbolic algorithm. The example is given in figure \ref{fig:running_example}.
 
@@ -216,15 +218,23 @@ a3: V := True;
 \label{fig:running_example}
 \end{figure}
 
-\subsection{Initial abstraction}
+\subsection{Variable Abstraction}
 
-The initial abstraction for a boolean reachability game is created from only the variables that are mentioned in the goal. If this set of variables is $G$ then our initial abstraction is $\langle V, \concrete{} \rangle$, where:
+In variable abstraction, the abstract state space is created by dropping a subset of the state variables. The abstraction, $\alpha$, is defined by the state variables that remain. We denote this set $V_{\alpha}$.
+
+Given the set $V_{\alpha}$, the corresponding abstraction (see Section \ref{sec:abstraction_def}) is $\langle V, \concrete{} \rangle$, where:
 \begin{itemize}
-    \item $V$, the abstract state space, is the Cartesian product of the domains of the variables in $G$.
-    \item $\concrete{a}$ is the set of concrete states for which the abstract variables specified by $a$ take the same values as their corresponding concrete state variables and all other variables are free to take any value.
+    \item $V$, the abstract state space, is the Cartesian product of the domains of the variables in $V_{\alpha}$.
+    \item $\concrete{a}$ is the set of concrete states for which the variables in $V_{\alpha}$ take the same values in both the concrete state and $a$ and all other variables are free to take any value.
 \end{itemize}
 
-This abstraction satisfies our two requirements for a valid abstraction. The abstraction of our running example is illustrated in figure \ref{fig:abs_state_sp}. The abstract states are illustrated by the solid squares. There is one state for each valuation of $X$ and $Y$, the variables that occur in the goal in our example. Each abstract state contains four concrete states, one for each valuation of the concrete variables that were dropped from the abstraction, $U$ and $V$. $\concrete{}$ is a function from valuations of $U$ and $V$ to the powerset of the set of valuations of all state variables. For example:
+This abstraction satisfies our two requirements for a valid abstraction. \todo{do i need to prove this?}
+
+\subsection{Initial abstraction}
+
+The initial abstraction, $V_{\alpha}$, for a boolean reachability game is created from only the variables that are mentioned in the goal. This ensures that the initial abstraction is \emph{precise} for the goal set.
+
+The initial abstraction of our running example is illustrated in figure \ref{fig:abs_state_sp}. The abstract states are illustrated by the solid squares. There is one state for each valuation of $X$ and $Y$, the variables that occur in the goal in our example. Each abstract state contains four concrete states, one for each valuation of the concrete variables that were dropped from the abstraction, $U$ and $V$. $\concrete{}$ is a function from valuations of $U$ and $V$ to the powerset of the set of valuations of all state variables. For example:
 
 \begin{equation}
     \concrete{\langle T, T \rangle} = \{ \langle T, T, F, F \rangle, \langle T, T, F, T \rangle, \langle T, T, T, F \rangle, \langle T, T, T, T \rangle \}
@@ -272,7 +282,7 @@ Though the $F$ variables are really part of the state, we treat them as free inp
 \label{fig:f_partitioning}
 \end{figure}
 
-Given a valuation of a subset of the concrete state variables $V \subseteq C$ we say that the valuation \emph{agrees} with a concrete state $c$ if the value assigned to each of the variables in $V$ equals the value assigned to the same variable by $c$. A set of variables defines a partitioning of the concrete state space: 
+Given a valuation of a subset of the concrete state variables $V \subseteq C$ we say that the valuation \emph{agrees} with a concrete state $c$ if the value assigned to each of the variables in $V$ equals the value assigned to the same variable by $c$. A subset of concrete state variables defines a partitioning of the concrete state space: 
 
 \begin{equation}
     \{ s \in 2^C | \exists v \in Valuations(V). \forall c \in s. \text{ $c$ agrees with $v$} \}
