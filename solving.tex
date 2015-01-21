@@ -316,15 +316,17 @@ If none of the above termination conditions held then it is because our abstract
 \begin{algorithmic}[1]
 \Function{refineAbstraction}{$W^M$}
     \State $U^M \gets CpreU_1^M(W^M) \land \overline{W^M}$
-    \State $toPromote \gets \vec{\omega}~\cap~$\Call{support}{\textsc{shortPrime}($U^M$)}
+    \State $toPromote \gets \vec{\omega}~\cap~$\Call{support}{\textsc{shortPrime}($U^M$)} \label{a:ra:extract_prime}
     \State $\Call{promote}{toPromote}$
 \EndFunction
 \end{algorithmic}
 \end{algorithm}
 
-When solving a reachability game, we refine at the \emph{may-must boundary}. As explained in section \ref{sec:threeval_generic}, we split an abstract state that is may-winning and for which it is possible to force execution into $W^M$ from a subset of the concrete states within the abstract state. We now describe how to do this efficiently and symbolically.
+As explained in Section \ref{sec:threeval_generic}, when refining the abstraction of a reachability game, we can limit our search for states to split to the \emph{may-must boundary}. We split an abstract state in two such that from one of the new states $a$ it is possible to force execution into $W^M$ from every state in $\concrete{a}$. Instead of searching each state at the boundary in turn for a candidate state to split as was implied in section \ref{sec:threeval_generic}, we find a candidate state using an efficient symbolic calculation.
 
-We define the function $Cpre_1^F$ that returns the set of states in the partition induced by the variables in $F$ that are winning:
+Moreover, this symbolic calculation finds a state to split that is heuristically good.
+
+We define the function $Cpre_1^F$ that returns the set of sub-states in the partition induced by the variables in $V_{\alpha} \cup F$ that are winning:
 
 \begin{equation}
     Cpre_1^F(X) = \exists L. \forall N. TRANS \rightarrow X
@@ -338,7 +340,9 @@ We compute:
     CPre_1^F(W^M) \wedge \neg W^M
 \end{equation}
 
-\noindent to find the $\langle S, F \rangle$ tuples that are not must winning but have a transition to the must winning set.
+\noindent to find the $\langle S, F \rangle$ tuples that are not must winning but have a transition to the must winning set. This is the characteristic formula of the states on the may-must boundary and are thus candidates for splitting.
+
+We extract a large prime implicant from this characteristic function in line \ref{a:ra:extract_prime}, an efficient operation with BDDs. We also extract the variables that occur in this prime and call them $V_{pi}$. $V_{pi} \cap V_{\alpha}$ defines a set of abstract states, all of which contain both winning and non-winning concrete states and are this refinement candidates. Furthermore, $V_{pi} \cap V_F$ ???.
 
 \subsection{Optimisation}
 
