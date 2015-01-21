@@ -162,7 +162,17 @@ At every iteration, the algorithm computes the must-winning set $W^M$ that under
 
 To expand the must-winning set we attempt to perform a refinement of the abstraction. This means that we split one or more of the abstract states in $V$ in two. 
 
-We observe that if there exists a winning concrete state $c$ then there also exists a chain of winning concrete states from $c$ to the goal. If $c$ is not part of $\concrete{W^M} \cup goal$, then, some point, this chain must enter $\concrete{W^M} \cup goal$. Therefore, if there exists some concrete winning state that is not part of $\concrete{W^M} \cup goal$ then there also exists one with a transition into $\concrete{W^M} \cup goal$. We also have the contrapositive - if there does not exist a concrete winning state with a transition into $\concrete{W^M} \cup goal$ then there exist no further concrete winning states that are not part of $W^M$. 
+We observe that if there exists a winning concrete state $c$ then there also exists a chain of winning concrete states from $c$ to the goal. If $c$ is not part of $\concrete{W^M} \cup goal$, then, some point, this chain must enter $\concrete{W^M} \cup goal$. Therefore: 
+
+\begin{thm}
+If there exists some concrete winning state that is not part of $\concrete{W^M} \cup goal$ then there also exists one with a transition into $\concrete{W^M} \cup goal$. 
+\end{thm}
+
+We also have the contrapositive:
+
+\begin{thm}
+If there does not exist a concrete winning state with a transition into $\concrete{W^M} \cup goal$ then there exist no further concrete winning states that are not part of $W^M$. 
+\end{thm}
 
 Thus, we can narrow down our search for abstract states to split to those that have at least one concrete state with a transition into $W^M$, excluding $W^M$ as these states are already must-winning so splitting them will not achieve anything. Thus, we look in $Cpre_1^m(W^M \cup goal)\setminus W^M$, i.e. the set of all may-predecessors of the must-winning set. 
 
