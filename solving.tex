@@ -287,7 +287,7 @@ If none of the above termination conditions held then it is because our abstract
 \end{algorithmic}
 \end{algorithm}
 
-When solving a reachability game, we refine at the \emph{may-must boundary}. As explained in section \ref{sec:threeval_generic}, we choose an abstract state that is may winning but not must winning and has a may transition to the must winning set and partition this state so that one partition is now must winning. We now describe how to do this efficiently and symbolically.
+When solving a reachability game, we refine at the \emph{may-must boundary}. As explained in section \ref{sec:threeval_generic}, we split an abstract state that is may-winning and for which it is possible to force execution into $W^M$ from a subset of the concrete states within the abstract state. We now describe how to do this efficiently and symbolically.
 
 We define the function $Cpre_1^F$ that returns the set of states in the partition induced by the variables in $F$ that are winning:
 
