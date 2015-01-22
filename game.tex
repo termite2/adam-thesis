@@ -4,6 +4,8 @@ In this chapter we formalise the device driver synthesis problem using games. We
 
 \section{Formalism}
 
+\todo{define the players}
+
 \subsection{Concurrent games}
 
 Our game formalism for termite makes use of concurrent games. Concurrent games differ from simpler turn based games in that in each state both players get to pick a label and the next state that the game transitions to is some function of both of those labels. Turn based games are a special case of concurrent games where in player~i states the next state is entirely determined by the label played by player~i and the other player's label is ignored. 
@@ -18,7 +20,15 @@ We call the part of the label that the driver gets to pick $C$ (for controllable
 
 We define a special variable that is part of the environment's label called \textsc{Turn}.
 
-\subsection{Device and OS state machines and synchronization}
+\section{Device and OS specifications and synchronization}
+
+A core concept of Termite is the separation of device and operating system specifications. Games so far have been defined to have a single state machine that contains all of the states of the system as well as all of the actions. In Termite, we decouple the description of the operating system from the device to be controlled and then combine these to form a state machine before synthesis.
+
+Both the device and OS specifications are given as state machines. They are defined symbolically. Each specification has its own set of state variables that it must supply update functions for, however, one specification may refer to another's state variables in its state update functions. There is a global set of label variables which each specification may also refer to in its state update functions. An overview of a system consisting of a device and OS specification as well as their interconnections is given in figure \ref{fig:specs}.
+
+As the figure shows, device and OS specifications are identical to modules in a hardware description language such as Verilog or VHDL. They consist of some private state, represented by D type flip-flops (though the variables are not restricted to single bits) that is updated solely by logic within that module. Other modules can read, but not write to, this private state. The label, that is chosen by one of the players, appears as input to both of the modules and they can use it in the update functions for their private state.
+
+To ensure reusability of specifications, specifications do not directly refer to each other's state variables. Instead, they access them through well defined interfaces and there is a device class mechanism to standardise the interfaces of both the device and operating system specification interfaces. We delay description of this mechanism until Chapter \ref{c:userguided}. For now we assume that specifications can access each other's state variables without restriction.
 
 \subsection{GR(1) based formalism}
 
