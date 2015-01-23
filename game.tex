@@ -20,6 +20,60 @@ We call the part of the label that the driver gets to pick $C$ (for controllable
 
 We define a special variable that is part of the environment's label called \textsc{Turn}.
 
+\section{A specification Language for Symbolic Games}
+
+We describe a simple specification language for symbolic games. This language is used to illustrate, in the simplest possible way, how Termite's specifications work. Furthermore, I have created a compiler for this language as an alternate frontend for Termite and it is available as part of Termite. As a result, all of the examples given in this chapter will compile and synthesize with Termite.
+
+Fundamentally, symbolic transition systems are specified by defining how each state variable is updated on each transition, as a function of the other state variables and the label variables. We call these functions update functions and there is one update function for each state variable. 
+
+Our simple language consists of three sections for defining a transition system:
+\begin{itemize}
+    \item The state variable declaration
+    \item The label variable declaration
+    \item Variable update functions, one for each state variable
+\end{itemize}
+
+Variables in both the state and label sections may be declared as one of three types:
+\begin{itemize}
+    \item Fixed width integer
+    \item Boolean
+    \item Enumeration
+\end{itemize}
+
+The transition relation is specified using nested case statements.
+
+The BNF grammar is given in listing \ref{l:asl_grammar}.
+
+\begin{figure}
+\begin{bnflisting}
+    <ident>    := (<letter>) (<letter> | <digit> | "_")*
+
+    <boolTyp>  := "bool"
+    <intTyp>   := "uint" "<" <digit>* ">"
+    <enumTyp>  := "{" identifier* "}"
+    <type>     := <boolTyp> | <intTyp> | <enumTyp>
+    <varDecl>  := <identifier> ":" <type>
+
+    <binExpr>  := <boolLit> 
+                | <identifier> "==" <valExpr> 
+                | <binExpr> "||" <binExpr> 
+                | <binExpr> "&&" <binExpr> 
+                | "!" <binExpr>
+    <boolLit>  := "true" | "false"
+    <vLiteral> := <identifier> | <boolLit> | <digit>*
+    <case>     := <binExpr> ":" <valExpr> ";"
+    <caseStmt> := "case" "{" <case>* "}"
+    <valExpr>  := <caseStmt> | <vLiteral>
+    <update>   := <identifier> ":=" <valExpr>
+
+    <spec>     := "State" <varDecl>* 
+                  "Label" <varDecl>* 
+                  "Transitions" <update>*
+\end{bnflisting}
+\caption{Specification language grammar}
+\label{l:asl_grammar}
+\end{figure}
+
 \section{Device and OS specifications and synchronization}
 
 A core concept of Termite is the separation of device and operating system specifications. Games so far have been defined to have a single state machine that contains all of the states of the system as well as all of the actions. In Termite, we decouple the description of the operating system from the device to be controlled and then combine these to form a state machine before synthesis.
@@ -30,7 +84,11 @@ As the figure shows, device and OS specifications are identical to modules in a 
 
 To ensure reusability of specifications, specifications do not directly refer to each other's state variables. Instead, they access them through well defined interfaces and there is a device class mechanism to standardise the interfaces of both the device and operating system specification interfaces. We delay description of this mechanism until Chapter \ref{c:userguided}. For now we assume that specifications can access each other's state variables without restriction.
 
-\subsection{GR(1) based formalism}
+\section{GR(1) based formalism}
+
+In the following sections, we attempt to formalise the driver synthesis problem using the simplest game - the reachability game - and analyse its shortcomings. We show that extending our formalism to GR(1) objectives, as used in Termite, overcomes these shortcomings.
+
+\subsection{Reachability}
 
 As a concrete example, we could create a crude formalism for driver synthesis using only a reachability game. Consider, for example, figure \ref{fig:reach}, which shows the state machine for a game to control a hypothetical network controller. Solid lines indicate controllable transitions and dashed lines indicate uncontrollable transitions. Execution begins in the leftmost state where the OS may initiate a network transfer by choosing the `send' label. The goal of the game is the rightmost state (labelled `G') as this is the point where player 1 has completed the request. So, to win, player 1 (who controls the transitions with solid lines) must ensure that execution of the state machine reaches the goal. 
 
@@ -49,11 +107,9 @@ If the command register is written first and then the data register there is pot
 
 So, if player 1 takes the top half of the diamond (ie. writes data before command) then it will be guaranteed to reach the goal and the reachability game is winning for player 1. The strategy to reach the goal tells us the sequence of labels the driver must play to get to the goal. In principle, this could be turned into a driver for our simple network device.
 
-\section{\buchi, fairness and GR(1) games}
-
 This simplistic formalism for driver synthesis has several shortcomings that we will deal with in the following sections.
 
-\subsection{We must be able to repeatedly satisfy the OS requests}
+\subsection{\buchi}
 
 Consider a simplified network controller that does not have a command register. Instead, writing to the data register triggers transmission of the byte. However, there are two ways of writing to the data register. One is a standard register write. The other also performs the register write and then schedules a self destruct sequence to happen immediately after the byte is transmitted. The state machine for this device is shown in figure \ref{fig:buchi}. The goal, in this case, is the set ${S3, S5}$ corresponding to the state after completion of the send request. The problem is that, unless you only ever want to send one byte, this goal does not capture the required behavior. One could easily work around this problem by specifying only ${S3}$ as the goal, 
 
@@ -66,7 +122,7 @@ The solution is to modify the objective of the game. Instead of being able to re
 \label{fig:buchi}
 \end{figure}
 
-\subsection{We must be able to rule out invalid behaviors not easily expressed with state machines}
+\subsection{Fairness}
 
 Consider a modification of our simplified network device without a self destruct sequence, but with the ability to check that noone is using the communication medium prior to transmitting. The state machine of this device is given in figure \ref{fig:fair}. After the user requests data transmission by writing to the data register, it executes a loop that checks if the medium is free, and if so, it performs the transmission. 
 
@@ -81,7 +137,11 @@ In model checking these behaviors are eliminated with fairness conditions. Fairn
 \label{fig:fair}
 \end{figure}
 
-\section{Game based formalism for drivers}
+\subsection{Multiple Goals}
+
+\subsection{Multiple Fairness}
+
+\subsection{GR(1)}
 
 The combination of fairness and buchi objectives is called a GR(1) objective. Intuitively a GR(1) objective says that we can always reach some goal state provided that we do not get stuck forever in some unfair set of states. We use GR(1) objectives in Termite as we have found that in practice it is sufficient to express our goals.
 

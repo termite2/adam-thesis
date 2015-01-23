@@ -96,6 +96,32 @@
     #1
 }}{}
 
+\usepackage{color}
+\definecolor{lgray}{gray}{0.9}
+
+\lstnewenvironment{bnflisting}[1][]
+{   \vspace{3mm}
+    \lstset{
+    backgroundcolor=\color{lgray},
+    basicstyle=\small\ttfamily,
+    keywordstyle=\underbar,
+    identifierstyle=,
+    commentstyle=\slshape,
+    stringstyle=,
+    showstringspaces=false,
+    keywords=,
+    sensitive=false,
+    morecomment=[l]{//},
+    morecomment=[s]{/*}{*/},
+    numberstyle=\tiny,
+    stepnumber=1,
+    numbersep=1pt,
+    emphstyle=\bfseries,
+    belowskip=0pt,
+    aboveskip=0pt,
+    #1
+}}{\vspace{3mm}}
+
 %%% Formatting setup
 % 11pt Palatino (URW Palladio) for text
 \renewcommand{\rmdefault}{ppl}
