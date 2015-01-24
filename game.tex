@@ -42,37 +42,85 @@ Variables in both the state and label sections may be declared as one of three t
 
 The transition relation is specified using nested case statements.
 
-The BNF grammar is given in listing \ref{l:asl_grammar}.
+The BNF grammar is given below.
 
-\begin{figure}
+\subsection{Identifiers}
+
+An identifier is a name of a variable or a constant declared as part of an enumeration.
+
 \begin{bnflisting}
-    <ident>    := (<letter>) (<letter> | <digit> | "_")*
+    <ident>    := <letter> (<letter> | <digit> | "_")*
+\end{bnflisting}
 
+\subsection{Numbers}
+
+Numbers may be specified in hexadecimal, octal or decimal.
+
+\begin{bnflisting}
+    <number>    := "0x" <hexNumber>
+                 | "0o" <octNumber>
+                 | <decNumber>
+\end{bnflisting}
+
+\subsection{Types}
+
+Our specification language supports three different types: Booleans, fixed width bit vectors, and enumerations.
+
+\begin{bnflisting}
     <boolTyp>  := "bool"
     <intTyp>   := "uint" "<" <digit>* ">"
     <enumTyp>  := "{" identifier* "}"
+\end{bnflisting}
+
+\subsection{Variables}
+
+Variables are declared by giving a name of the variable and its type.
+
+\begin{bnflisting}
     <type>     := <boolTyp> | <intTyp> | <enumTyp>
     <varDecl>  := <identifier> ":" <type>
+\end{bnflisting}
 
+\subsection{Boolean Expressions}
+
+Boolean expressions consist of boolean literals, value expressions (to follow) combined with the equality operator, and other boolean expressions combined with logical connectives.
+
+\begin{bnflisting}
+    <boolLit>  := "true" | "false"
     <binExpr>  := <boolLit> 
-                | <identifier> "==" <valExpr> 
+                | <valExpr> "==" <valExpr> 
                 | <binExpr> "||" <binExpr> 
                 | <binExpr> "&&" <binExpr> 
                 | "!" <binExpr>
-    <boolLit>  := "true" | "false"
-    <vLiteral> := <identifier> | <boolLit> | <digit>*
-    <case>     := <binExpr> ":" <valExpr> ";"
-    <caseStmt> := "case" "{" <case>* "}"
-    <valExpr>  := <caseStmt> | <vLiteral>
-    <update>   := <identifier> ":=" <valExpr>
+\end{bnflisting}
 
+\subsection{Value Expressions}
+Each value expression is a number, an identifier or a case statement. A case statement consists of a list of cases. Each case consists of a boolean condition followed by a value expression. Thus, case statements may contain further case statements. The outcome of a case statement is the value of the first case whose boolean expression evaluates to true.
+
+\begin{bnflisting}
+    <caseStmt> := "case" "{" 
+                      (<binExpr> ":" <valExpr> ";")*
+                  "}"
+    <valExpr>  := <caseStmt> | <number> | <identifier>
+\end{bnflisting}
+
+\subsection{Variable updates}
+
+Update functions are specified by assigning the next state value of a state variable to a value expression.
+
+\begin{bnflisting}
+    <update>   := <identifier> ":=" <valExpr>
+\end{bnflisting}
+
+\subsection{Transition System}
+
+Transition systems are defined by giving the set of state variables, the set of label variables and the variable update functions.
+
+\begin{bnflisting}
     <spec>     := "State" <varDecl>* 
                   "Label" <varDecl>* 
                   "Transitions" <update>*
 \end{bnflisting}
-\caption{Specification language grammar}
-\label{l:asl_grammar}
-\end{figure}
 
 \section{Device and OS specifications and synchronization}
 
