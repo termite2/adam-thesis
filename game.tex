@@ -132,6 +132,51 @@ As the figure shows, device and OS specifications are identical to modules in a 
 
 To ensure reusability of specifications, specifications do not directly refer to each other's state variables. Instead, they access them through well defined interfaces and there is a device class mechanism to standardise the interfaces of both the device and operating system specification interfaces. We delay description of this mechanism until Chapter \ref{c:userguided}. For now we assume that specifications can access each other's state variables without restriction.
 
+\section{An Example System Specification}
+
+\begin{asllisting}
+State
+
+osState  : {osIdle, osRequested, osDone, osError};
+devState : {devIdle, devSending};
+
+Label
+
+osReqSend    : bool;
+devClassSent : bool;
+devSendReq   : bool;
+
+Init
+
+osState == osIdle && devState == devIdle && devData == 0
+
+Transitions
+
+devState := case {
+    devState == devIdle    && devSendReq   : devSending;
+    devState == devSending && devClassSent : devIdle;
+    true                                   : devState;
+};
+
+define(sentEvent, (devState == devSending && devClassSent))
+ 
+osState := case {
+    osState == osIdle :
+        case {
+            devClassSent : osError;
+            osReqSend    : osRequested;
+            true         : osState;
+        };
+    osState == osRequested :
+        case {
+            devClassSent : osDone;
+            true         : osState;
+        };
+    osState == osDone  : osDone;
+    osState == osError : osError;
+};
+\end{asllisting}
+
 \section{GR(1) based formalism}
 
 In the following sections, we attempt to formalise the driver synthesis problem using the simplest game - the reachability game - and analyse its shortcomings. We show that extending our formalism to GR(1) objectives, as used in Termite, overcomes these shortcomings.

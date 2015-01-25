@@ -122,6 +122,27 @@
     #1
 }}{\vspace{3mm}}
 
+\lstnewenvironment{asllisting}[1][]
+{\lstset{
+    escapeinside={(*@}{@*)},
+    basicstyle=\footnotesize\ttfamily,
+    keywordstyle=\bfseries,
+    sensitive=false,
+    morekeywords={State, Label, Init, Transitions, case, define},
+    identifierstyle=, 
+    commentstyle=\slshape, 
+    stringstyle=, showstringspaces=false,
+    sensitive=false,
+    morecomment=[s]{/*}{*/},
+    numberstyle=\tiny,
+    stepnumber=1,
+    numbersep=1pt,
+    emphstyle=\bfseries,
+    belowskip=0pt,
+    aboveskip=0pt,
+    #1
+}}{}
+
 %%% Formatting setup
 % 11pt Palatino (URW Palladio) for text
 \renewcommand{\rmdefault}{ppl}
