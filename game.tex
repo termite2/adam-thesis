@@ -26,10 +26,11 @@ We describe a simple specification language for symbolic games. This language is
 
 Fundamentally, symbolic transition systems are specified by defining how each state variable is updated on each transition, as a function of the other state variables and the label variables. We call these functions update functions and there is one update function for each state variable. 
 
-Our simple language consists of three sections for defining a transition system:
+Our simple language consists of four sections for defining a transition system:
 \begin{itemize}
     \item The state variable declaration
     \item The label variable declaration
+    \item The set of initial states
     \item Variable update functions, one for each state variable
 \end{itemize}
 
@@ -114,11 +115,12 @@ Update functions are specified by assigning the next state value of a state vari
 
 \subsection{Transition System}
 
-Transition systems are defined by giving the set of state variables, the set of label variables and the variable update functions.
+Transition systems are defined by giving the set of state variables, the set of label variables, the initial states and the variable update functions. The set of initial states is specified by the characteristic formula of the set.
 
 \begin{bnflisting}
-    <spec>     := "State" <varDecl>* 
-                  "Label" <varDecl>* 
+    <spec>     := "State"       <varDecl>* 
+                  "Label"       <varDecl>* 
+                  "Init"        <binExpr>
                   "Transitions" <update>*
 \end{bnflisting}
 
