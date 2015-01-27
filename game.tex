@@ -147,6 +147,8 @@ We give an example system specification to illustrate its decomposition into sep
 
 \subsection{State Machines}
 
+Figure \ref{fig:dev_spec} is an example specification. The labelled circles are states. Arrows represent transitions between states. Each transition is labelled by at least one event. Conceptually, these events trigger the transitions. All events for which there are no outgoing transitions do not change the state, i.e. they are self loops and are not shown in the interest of keeping the diagrams concise. The short arrow with no source state indicates the initial state.
+
 \subsubsection{Device Specification}
 
 We start with the device specification given in Figure \ref{fig:dev_spec}. Our device is a hypothetical trivial UART-like device. Instead of sending bytes, it sends notifications, which carry no value. Its programming interface consists of an action, \code{devSendReq}, that requests that the device send a notification. This action only has an effect in the \code{devIdle} state and it causes the device to transition to the \code{devSending} state. From there, when the \code{classSent} event happens, which corresponds to the device actually sending the notification, the device transitions back to the \code{devIdle} state.
