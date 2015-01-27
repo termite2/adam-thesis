@@ -2,17 +2,24 @@
 
 In this chapter we formalise the device driver synthesis problem using games. We show that GR(1) games are sufficient to capture the properties of the drivers that we require. We also develop the driver synthesis controllable predecessor.
 
-\section{Formalism}
+\section{The Players}
 
-\todo{define the players}
+To formalise the driver synthesis problem using games, the first thing we must define is the players:
 
-\subsection{Concurrent games}
+\begin{itemize}
+    \item Player~1 is the driver. 
+    \item Player~2 is the environment, which consists of the device to be controlled as well as the operating system.
+\end{itemize}
 
-Our game formalism for termite makes use of concurrent games. Concurrent games differ from simpler turn based games in that in each state both players get to pick a label and the next state that the game transitions to is some function of both of those labels. Turn based games are a special case of concurrent games where in player~i states the next state is entirely determined by the label played by player~i and the other player's label is ignored. 
+\todo{A pretty picture}
+
+\section{Concurrent Games}
+
+Our game formalism for termite makes use of concurrent games. Concurrent games differ from simpler turn based games in that in each state both players get to pick a label and the next state that the game transitions to is some (possibly non-deterministic) function of both of those labels. Turn based games are a special case of concurrent games where in player~i states the next state is entirely determined by the label played by player~i and the other player's label is ignored. 
 
 It is important to specify which player gets to pick their label first and if the second player gets to have knowledge of the label that the first player picks when choosing their label. In Termite, player~1 (the driver) has to pick first and the environment (device and operating system) gets to pick second with knowledge of the label that the driver picked. This makes the game more difficult to win for the driver.
 
-We call the part of the label that the driver gets to pick $C$ (for controllable) and the part that the environment gets to pick $U$ (for uncontrollable). Our transition relation is defined over the current state $S$, as well as the label $C$ and $U$. Our controllable predecessor becomes:
+We call the part of the label that the driver gets to pick $C$ (for controllable) and the part that the environment gets to pick $U$ (for uncontrollable). Our transition relation is defined over the current state $S$, as well as the label $C$ and $U$. Our controllable predecessor becomes: \todo{bullshit}
 
 \begin{equation}
     CPre(X) = \exists C. \forall U. \forall N. TRANS(S, C, U) \rightarrow X'
@@ -136,6 +143,8 @@ To ensure reusability of specifications, specifications do not directly refer to
 
 \section{An Example System Specification}
 
+Below, we give the specification of a simple UART-like device that capable of sending a notification (which does not contain a value as a real UART would) through a communications channel. Both the OS and device specifications are combined. \todo{Should I show them separated first?}
+
 \begin{asllisting}
 State
 
@@ -144,40 +153,50 @@ devState : {devIdle, devSending};
 
 Label
 
-osReqSend    : bool;
-devClassSent : bool;
-devSendReq   : bool;
+osReqSend  : bool;
+classSent  : bool;
+devSendReq : bool;
 
 Init
 
-osState == osIdle && devState == devIdle && devData == 0
+osState == osIdle && devState == devIdle
 
 Transitions
 
 devState := case {
-    devState == devIdle    && devSendReq   : devSending;
-    devState == devSending && devClassSent : devIdle;
-    true                                   : devState;
-};
+    devState == devIdle    && devSendReq : devSending;
+    devState == devSending && classSent  : devIdle;
+    true                                 : devState;
+}
 
-define(sentEvent, (devState == devSending && devClassSent))
+define(sentEvent, (devState == devSending && classSent))
  
 osState := case {
     osState == osIdle :
         case {
-            devClassSent : osError;
-            osReqSend    : osRequested;
-            true         : osState;
+            classSent : osError;
+            osReqSend : osRequested;
+            true      : osState;
         };
     osState == osRequested :
         case {
-            devClassSent : osDone;
+            sentEvent    : osDone;
             true         : osState;
         };
     osState == osDone  : osDone;
     osState == osError : osError;
 };
 \end{asllisting}
+
+This specification deserves some explanation. Initially, we declare two state variables \code{osState} and \code{devState} for the OS controlled and device controlled state respectively. Each is declared as an \code{enum} with several possible values. In the \code{Init} section they are initialised to their designated initial values.
+
+Additionally, we declare three label variables: \code{osReqSend}, \code{classSent} and \code{devSentReq} that are treated as input and are selected by the players.
+
+There are two update functions in the \code{Transitions} section; one for each state variable. The first, for \code{devState}, toggles the enumeration between one of two states: \code{devIdle} and \code{devSending}. Initially \code{devIdle}, the variable is updated to \code{devSending} when a player sets the label \code{devSendReq} to True. It is reset when a player sets \code{classSent} to true. In all other cases, its value remains the same as in the previous state.
+
+We additionally define the \code{sentEvent} event which evaluates to true whenever the device is in the \code{devSending} state and a player sets the \code{classSent} label to true.
+
+The state machine for the device is given in Figure x. \todo{Would it be better to give the device state machine with class event, then modify that so that the class event is an input, and then the specification?}
 
 \section{GR(1) based formalism}
 
