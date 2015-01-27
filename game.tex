@@ -143,6 +143,31 @@ To ensure reusability of specifications, specifications do not directly refer to
 
 \section{An Example System Specification}
 
+\subsection{State Machines}
+
+\begin{figure}
+\centering
+\includegraphics[width=0.45\linewidth]{diagrams/exampleSpecDevice.pdf}
+\caption{Device specification}
+\label{fig:dev_spec}
+\end{figure}
+
+\begin{figure}
+\centering
+\includegraphics[width=0.85\linewidth]{diagrams/exampleSpecOS.pdf}
+\caption{OS specification}
+\label{fig:os_spec}
+\end{figure}
+
+\begin{figure}
+\centering
+\includegraphics[width=0.85\linewidth]{diagrams/exampleSpecCombined.pdf}
+\caption{Combined specification}
+\label{fig:combined_spec}
+\end{figure}
+
+\subsection{ASL}
+
 Below, we give the specification of a simple UART-like device that capable of sending a notification (which does not contain a value as a real UART would) through a communications channel. Both the OS and device specifications are combined. \todo{Should I show them separated first?}
 
 \begin{asllisting}
@@ -180,8 +205,8 @@ osState := case {
         };
     osState == osRequested :
         case {
-            sentEvent    : osDone;
-            true         : osState;
+            classSent : osDone;
+            true      : osState;
         };
     osState == osDone  : osDone;
     osState == osError : osError;
