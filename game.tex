@@ -143,7 +143,13 @@ To ensure reusability of specifications, specifications do not directly refer to
 
 \section{An Example System Specification}
 
+We give an example system specification to illustrate its decomposition into separate OS and device specifications. We give the system both as graphical state machines and in ASL.
+
 \subsection{State Machines}
+
+\subsubsection{Device Specification}
+
+We start with the device specification given in Figure \ref{fig:dev_spec}. Our device is a hypothetical trivial UART-like device. Instead of sending bytes, it sends notifications, which carry no value. Its programming interface consists of an action, \code{devSendReq}, that requests that the device send a notification. This action only has an effect in the \code{devIdle} state and it causes the device to transition to the \code{devSending} state. From there, when the \code{classSent} event happens, which corresponds to the device actually sending the notification, the device transitions back to the \code{devIdle} state.
 
 \begin{figure}
 \centering
@@ -152,12 +158,26 @@ To ensure reusability of specifications, specifications do not directly refer to
 \label{fig:dev_spec}
 \end{figure}
 
+\subsection{OS specification}
+
+The operating system specification, given in Figure \ref{fig:os_spec} is like a test harness for our driver. It specifies which requests the driver may receive (e.g. to send a notification) and how it must respond (e.g. by eventually sending the requested notification). It is simply another state machine, like the device specification, but it may also have goals.
+
+Our OS state machine starts off in the \code{osIdle} state. From there, if a \code{classSent} event happens then the device must have sent a notification without the OS ever having requested one. This is an error, so the OS state machine transitions to the \code{osError} state. There is no way that the OS could have known that this event happened, so the OS specification does not represent the way that the OS actually behaves. Responding to events in this way is how the OS spec guarantees correctness of the system. There is nothing special about the error state, however, we have constructed the state machine in such a way that the error state is a dead end and it is not possible to reach the goal from that state.
+
+If a \code{devSndReq} event happens, the OS transitions into the \code{devRequested} state. From there, when a \code{classSent} event happens, the OS specification transitions into the goal state as this time the \code{classSent} event was expected. 
+
+We can see from the OS specification that it is the job of the driver to ensure that any \code{devSendReq} events are eventually followed by \code{classSent} events, but a \code{classSent} event cannot happen without being requested first with a \code{devSendReq} event. The driver synthesis algorithm must, using the state machines, figure out how to cause the \code{classSent} event to happen when requested.
+
 \begin{figure}
 \centering
 \includegraphics[width=0.85\linewidth]{diagrams/exampleSpecOS.pdf}
 \caption{OS specification}
 \label{fig:os_spec}
 \end{figure}
+
+\subsection{Combined Specification}
+
+To combine the device and OS specifications we need to be precise about what it means to synchronize on events. We modify the specifications to remove all events and replace them with inputs and outputs.
 
 \begin{figure}
 \centering
