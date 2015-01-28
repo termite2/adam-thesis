@@ -582,6 +582,8 @@ GR(1) games are a specific case of the above where the formula is:
     \nu X. \mu Y. \nu Z. Cpre((U \wedge Z) \vee (G \wedge X) \vee Y)
 \end{equation}
 
+Thus, the variable abstraction algorithm is correct and terminates for GR(1) games.
+
 \section{Predicate abstraction}
 
 Predicate abstraction has proved to be a particularly successful technique in model checking~\cite{Graf_Saidi_97}. Predicate abstraction partitions the state space of the game based on a set of predicates, which capture essential properties of the system. States inside a partition are indistinguishable to the abstraction, which limits the maximal precision of solving the game achievable within the given abstraction. The abstraction is iteratively refined by introducing new predicates.
