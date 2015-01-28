@@ -253,9 +253,9 @@ In the following sections, we attempt to formalise the driver synthesis problem 
 
 As a concrete example, we could create a crude formalism for driver synthesis using only a reachability game. Consider, for example, figure \ref{fig:reach}, which shows the state machine for a game to control a hypothetical network controller. Solid lines indicate controllable transitions and dashed lines indicate uncontrollable transitions. Execution begins in the leftmost state where the OS may initiate a network transfer by choosing the `send' label. The goal of the game is the rightmost state (labelled `G') as this is the point where player 1 has completed the request. So, to win, player 1 (who controls the transitions with solid lines) must ensure that execution of the state machine reaches the goal. 
 
-\begin{figure}[t]
+\begin{figure}
 \centering
-\includegraphics{diagrams/reachGame.pdf}
+\includegraphics[width=0.85\linewidth]{diagrams/reachGame.pdf}
 \caption{Reachability game for simple network device}
 \label{fig:reach}
 \end{figure}
@@ -272,13 +272,13 @@ This simplistic formalism for driver synthesis has several shortcomings that we 
 
 \subsection{\buchi}
 
-Consider a simplified network controller that does not have a command register. Instead, writing to the data register triggers transmission of the byte. However, there are two ways of writing to the data register. One is a standard register write. The other also performs the register write and then schedules a self destruct sequence to happen immediately after the byte is transmitted. The state machine for this device is shown in figure \ref{fig:buchi}. The goal, in this case, is the set ${S3, S5}$ corresponding to the state after completion of the send request. The problem is that, unless you only ever want to send one byte, this goal does not capture the required behavior. One could easily work around this problem by specifying only ${S3}$ as the goal, 
+Consider a simplified network controller that does not have a command register. Instead, writing to the data register triggers transmission of the byte. However, there are two ways of writing to the data register. One is a standard register write. The other also performs the register write and then schedules a self destruct sequence to happen immediately after the byte is transmitted. The state machine for this device is shown in figure \ref{fig:buchi}. The goal, in this case, is the set ${S3, S5}$ corresponding to the state after completion of the send request. The problem is that, unless you only ever want to send one byte, this goal does not capture the required behavior. One could easily work around this problem by specifying only ${S3}$ as the goal, but this breaks the compositionality of the specifications.
 
 The solution is to modify the objective of the game. Instead of being able to reach the goal once, we want to be able to reach the goal an infinite number of times. Or, equivalently, we want to always be able to reach the goal again. This kind of objective is called a Buchi objective and a game with a Buchi objective is called a Buchi game. 
 
-\begin{figure}[t]
+\begin{figure}
 \centering
-\includegraphics{diagrams/buchiGame.pdf}
+\includegraphics[width=0.85\linewidth]{diagrams/buchiGame.pdf}
 \caption{Buchi game for simple network device}
 \label{fig:buchi}
 \end{figure}
@@ -293,7 +293,7 @@ In model checking these behaviors are eliminated with fairness conditions. Fairn
 
 \begin{figure}[t]
 \centering
-\includegraphics{diagrams/fairReach.pdf}
+\includegraphics[width=0.85\linewidth]{diagrams/fairReach.pdf}
 \caption{Fair reachability game for simple network device}
 \label{fig:fair}
 \end{figure}
