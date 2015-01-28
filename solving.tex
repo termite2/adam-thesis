@@ -586,9 +586,9 @@ Thus, the variable abstraction algorithm is correct and terminates for GR(1) gam
 
 \section{Predicate abstraction}
 
-Predicate abstraction has proved to be a particularly successful technique in model checking~\cite{Graf_Saidi_97}. Predicate abstraction partitions the state space of the game based on a set of predicates, which capture essential properties of the system. States inside a partition are indistinguishable to the abstraction, which limits the maximal precision of solving the game achievable within the given abstraction. The abstraction is iteratively refined by introducing new predicates.
+Predicate abstraction has proved to be a particularly successful technique in model checking~\cite{Graf_Saidi_97}. Predicate abstraction partitions the state space of the game based on a set of predicates, which capture essential properties of the system. States inside a partition are indistinguishable to the abstraction, which limits the maximal precision of solving the game achievable within the given abstraction but greatly improves the scalability of the synthesis algorithm. As with variable abstraction, if the abstraction is too coarse, it is iteratively refined by introducing new predicates.
 
-The key difficulty in applying predicate abstraction to games is to efficiently solve the abstract game arising at every iteration of the abstraction refinement loop. This requires computing the abstract \emph{controllable predecessor} operator, which maps a set of abstract states, winning for one of the players, into the set of states from which the player can force the game into the winning set in one round of the game. This involves enumerating concrete moves available to both players in each abstract state, which can be prohibitively expensive.  
+The key difficulty in applying predicate abstraction to games is to efficiently solve the abstract game arising at every iteration of the abstraction refinement loop. This requires computing the abstract \emph{controllable predecessor} operator efficiently. This involves enumerating concrete moves available to both players in each abstract state, which can be prohibitively expensive.  
 
 We address the problem by further approximating the expensive controllable predecessor computation and refining the approximation when necessary. To this end, we introduce additional predicates that partition the set of actions available to the players into \emph{abstract actions}. The controllable predecessor computation then consists of two steps: 
 
@@ -601,7 +601,14 @@ The first step involves potentially expensive analysis of concrete transitions o
 
 \subsection{Motivation}
 
+We introduce our running example, where we aim to synthesise a driver for an artificially trivial I/O device.  The device contains $32$ bits of non-volatile memory, which can be accessed from software via the data register. The task of the driver is to transfer a data value from the main memory to the device memory.
+
+We set up a game between the driver (player~1) and the device (player~2).  Device and driver internal state is modelled using state variables (Figure~\ref{fig:ex_game_variables}).  The player who makes the next move is determined by the value of the $bsy$ flag inside the device.  When the flag is set to $0$, the device remains idle and the driver may perform an action, such as a write to the data register.  The argument of the write is modelled by the $val$ label variable.  The write operation flips the $bsy$ flag to $1$.  This triggers a device transition at the next round of the game, which copies the value in the data register to memory.  The objective of the game on behalf of player~1 is to reach the target set $T=(req=mem)$, i.e., the device memory must store the requested value $req$ (Figure~\ref{fig:ex_game_specification}).  We require that the game is winnable from any state, hence $I=\top$.  The winning strategy for player~1 in this example is to write the value of $req$ in the first transition (by setting $val=req$), thus forcing the device to copy this value to memory at the second transition.
+
+Figure~\ref{f:ex_game_specification} specifies the transition relation $\delta$ of the game in the form of variable update functions $x' = t_x(X,Y)$, one for each variable $x\in X$.  Consider the update function for $bsy$ as an example.  The variable switches between values $true$ and $false$ on each transition, thus enabling player~1 and player~2 in a round robin fashion.
+
 \begin{figure}
+    \label{fig:ex_game_variables}
     \caption{Game variables}
     \begin{tabular}{|p{0.13\linewidth}p{0.22\linewidth}p{0.45\linewidth}|}
         \hline
@@ -622,9 +629,8 @@ The first step involves potentially expensive analysis of concrete transitions o
 \end{figure}
 
 \begin{figure}
-
+    \label{fig:ex_game_specification}
     \caption{Game specification}
-
     \begin{subfigure}{\linewidth}
     \caption{Turn functions, initial and target sets}
     $\tau_1=(bsy=false)~~\tau_2=(bsy=true)~~I=\top~~T=(req=mem)$
@@ -658,6 +664,7 @@ The first step involves potentially expensive analysis of concrete transitions o
 \end{figure}
 
 \begin{figure}
+    \label{fig:ex_game_abstraction}
     \caption{Abstract variables and corresponding predicates}
     \begin{tabular}{|p{0.14\linewidth}|p{0.5\linewidth}|}
         \hline
@@ -681,13 +688,19 @@ The first step involves potentially expensive analysis of concrete transitions o
     \end{tabular}
 \end{figure}
 
-\subsection{Algorithm}
+\subsection{Definitions}
 
 We instantiate the three-valued abstraction refinement scheme for predicate abstraction instead of simple boolean variables. Consider a symbolic game $G = \langle S, L, I, \tau_1, \tau_2, \delta \rangle$ defined over state variables $X$ and label variables $Y$. Let $\Sigma\subseteq\forms(X)$ be a finite set of boolean predicates over state variables. We refer to $\Sigma$ as \emph{state predicates}. We introduce boolean variables $\vect{\sigma}=(\sigma_1\ldots\sigma_n)$ to represent values of predicates $\Sigma$. Given a boolean variable $\sigma$, $\|\sigma\|$ denotes its corresponding state or label predicate. $\|\vect{\sigma}\|$ denotes the vector of all state predicates in $\Sigma$.
 
 % Given a vector $\vect{\alpha}$ of boolean variables, $\|\vect{\alpha}\|$ denotes the vector of corresponding predicates. For a concrete state $s$ and label $l$, $\|\vect{\sigma}\|(s)$ is the vector of values of state predicates in $s$, $\|\vect{\lambda}\|(s,l)$ is the vector of values of label predicates.
 
-The state space $V$ of the abstract game is defined as $V = \mathbb{B}^n$, where each abstract boolean state vector $v\in V$ represents a truth assignment of variables $\vect{\sigma}$. The concretisation function $\concrete{}$ from Section~\ref{s:abs} can be expressed as: $\concrete{v}=(\bigwedge_{i=1..n}\|\sigma_i\|=v_i$), which maps an abstract state $v$ into the set of concrete states such that each predicate in $\Sigma$ evaluates to true or false depending on the value of the corresponding element of $v$.
+The state space $V$ of the abstract game is defined as $V = \mathbb{B}^n$, where each abstract boolean state vector $v\in V$ represents a truth assignment of variables $\vect{\sigma}$. The concretisation function $\concrete{}$ from Section~\ref{s:abs} can be expressed as: 
+
+\begin{equation}
+\concrete{v}=(\bigwedge_{i=1..n}\|\sigma_i\|=v_i)
+\end{equation}
+
+\noindent which maps an abstract state $v$ into the set of concrete states such that each predicate in $\Sigma$ evaluates to true or false depending on the value of the corresponding element of $v$.
 
 \begin{ex}
     \everymath{\mathtt{\xdef\tmp{\fam\the\fam\relax}\aftergroup\tmp}}
