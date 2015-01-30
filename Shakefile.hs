@@ -11,7 +11,7 @@ buildDir = "build"
 latexSources = ["thesis.tex", "background.tex", "game.tex", "intro.tex", "solving.tex", "syntcomp.tex", "userguided.tex", "extra.bib"]
 
 main :: IO ()
-main = shakeArgs shakeOptions{shakeFiles=".shake/"} $ do
+main = shakeArgs shakeOptions{shakeFiles=".shake/", shakeThreads=4} $ do
     want ["thesis.pdf"]
 
     "thesis.pdf" %> \out -> do
