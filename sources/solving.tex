@@ -763,85 +763,35 @@ For each state predicate in $\Sigma$, we compute the update function by replacin
     \end{multline}
     
     \noindent This equation contains three atomic predicates: in addition to the existing predicate $\sigma_1 \leftrightarrow (req=dat)$, it introduces new predicates $(bsy=false)$ and $(val=req)$.  
-%    The first two predicates correspond to existing state 
-%    variables $\sigma_1$ and $\sigma_2$.  The last predicate is 
-%    new; hence it is added to set $\Omega$ and a new untracked 
-%    variable $\omega_1$ is created for it.  By substituting 
-%    predicates in the equation with corresponding abstract 
-%    variables, we obtain the following abstract transition 
-%    relation for $\sigma_1$ in line~11 of the
-%    algorithm:
-%    $\sigma_1' = (\overline{\sigma_2} \land \omega_1) \lor (\sigma_2 \land \sigma1)$
+
+    The first two predicates correspond to existing state variables $\sigma_1$ and $\sigma_2$.  The last predicate is new; hence it is added to set $\Omega$ and a new untracked variable $\omega_1$ is created for it.  By substituting predicates in the equation with corresponding abstract variables, we obtain the following abstract transition relation for $\sigma_1$ in line~11 of the algorithm:
+    $\sigma_1' = (\overline{\sigma_2} \land \omega_1) \lor (\sigma_2 \land \sigma1)$
     \qed
 \end{ex}
 
-In the general case, the syntactically computed update function 
-for a predicate may depend on existing state predicates in 
-$\Sigma$ as well as new predicates that are not yet part of the 
-abstraction.  The new predicates are partitioned into 
-\emph{untracked predicates} defined over concrete state variables 
-(e.g., $\mathtt{bsy=false}$ in the above example) and \emph{label 
-predicates} that involve at least one concrete label variable 
-(e.g., $\mathtt{val=req}$).  The term ``untracked predicate'' 
-indicates that these predicates are not part of the 
-abstract state space of the game.  Untracked predicates can be 
-seen as partitioning abstract states in $V$ into smaller 
-\emph{untracked sub-states}, as illustrated in 
-Figure~\ref{f:predicates}.
+In the general case, the syntactically computed update function for a predicate may depend on existing state predicates in $\Sigma$ as well as new predicates that are not yet part of the abstraction.  The new predicates are partitioned into \emph{untracked predicates} defined over concrete state variables (e.g., $\mathtt{bsy=false}$ in the above example) and \emph{label predicates} that involve at least one concrete label variable (e.g., $\mathtt{val=req}$).  The term ``untracked predicate'' indicates that these predicates are not part of the abstract state space of the game.  Untracked predicates can be seen as partitioning abstract states in $V$ into smaller \emph{untracked sub-states}, as illustrated in Figure~\ref{f:predicates}.
 
-By substituting untracked and label predicates with fresh boolean 
-variables, $\vect{\omega}$ and $\vect{\lambda}$ respectively, we 
-obtain the abstract transition relation $\Delta$ in the form:
+By substituting untracked and label predicates with fresh boolean variables, $\vect{\omega}$ and $\vect{\lambda}$ respectively, we obtain the abstract transition relation $\Delta$ in the form:
+
 $$
 \vect{\sigma}'=\Delta(\vect{\sigma},\vect{\omega},\vect{\lambda})
 $$
-%They define a sub-partitioning of abstract states into smaller 
-%subsets; however they are not part of the abstract state space 
-%and are treated as external inputs.  
-This syntactically computed transition relation contains two 
-sources of imprecision.  First, untracked variables 
-$\vect{\omega}$ are not part of the abstract state space $\Sigma$ 
-and are therefore treated as external inputs.  
-%label predicates in $\vect{\lambda}$ abstract labels available to 
-%players: given an untracked sub-state $u$ of an abstract state 
-%$v$, an assignment $l$ to predicates $\vect{\lambda}$ determines 
-%the successor abstract state $v'$, as illustrated in 
-%Figure~\ref{f:predicates}.
-Second, not all abstract labels  
-are available in all abstract states and hence 
-not all transitions in $\Delta$ correspond to a feasible concrete 
-transition.  For example, given the set of predicates shown in 
-Figure~\ref{f:ex}d, the abstract label $\lambda_1 = true, 
-\lambda_2 = true$ is only available in concrete states that 
-satisfy the condition $req=5$.  In general, given a 
-state-untracked-label tuple $\langle v,u,l\rangle$, the abstract 
-label $l$ may be available in all, some, or none of the concrete 
-states consistent with $v$ and $u$.  
 
-We formalise this by introducing \emph{consistency relations} 
-$C^m$ and $C^M$ that over- and under-approximate available 
-abstract labels.  A state-untracked-label tuple $\langle 
-v,u,l\rangle$ is \emph{may-consistent} if the abstract label $l$ 
-is available in \emph{at least one} concrete state consistent with 
-$v$ and $u$:
+This syntactically computed transition relation contains two sources of imprecision.  First, untracked variables $\vect{\omega}$ are not part of the abstract state space $\Sigma$ and are therefore treated as external inputs.  Second, not all abstract labels  are available in all abstract states and hence not all transitions in $\Delta$ correspond to a feasible concrete transition.  For example, given the set of predicates shown in Figure~\ref{f:ex}d, the abstract label $\lambda_1 = true, \lambda_2 = true$ is only available in concrete states that satisfy the condition $req=5$.  In general, given a state-untracked-label tuple $\langle v,u,l\rangle$, the abstract label $l$ may be available in all, some, or none of the concrete states consistent with $v$ and $u$.  
+
+We formalise this by introducing \emph{consistency relations} $C^m$ and $C^M$ that over- and under-approximate available abstract labels.  A state-untracked-label tuple $\langle v,u,l\rangle$ is \emph{may-consistent} if the abstract label $l$ is available in \emph{at least one} concrete state consistent with $v$ and $u$:
+
 \begin{equation} \label{e:Cm}
-    \small
     C^m(v,u,l) = \exists X,Y. \|\vect{\sigma}\|=v \land \|\vect{\omega}\|=u \land \|\vect{\lambda}\|=l.
 \end{equation}
-The tuple $\langle v,u,l\rangle$ is \emph{must-consistent} if $l$ 
-is available in \emph{any} concrete state consistent with $v$ and 
-$u$:
+
+The tuple $\langle v,u,l\rangle$ is \emph{must-consistent} if $l$ is available in \emph{any} concrete state consistent with $v$ and $u$:
+
 \begin{equation}
-    \small
     C^M(v,u,l) = \forall X . ((\|\vect{\sigma}\|=v \land \|\vect{\omega}\|=u) \rightarrow \exists Y.  \|\vect{\lambda}\|=l)
 \end{equation}
 
-Computing $C^m$ and $C^M$ can be prohibitively expensive.  
-Therefore we use approximations $C^{m+}$ and $C^{M-}$ such that 
-$C^m\subseteq C^{m+}$ and $C^{M-}\subseteq C^M$.  Initially we 
-assign $C^{m+}=\top$ and $C^{M-}=\bot$.  Approximations are 
-refined lazily as part of the abstraction refinement process, as 
-explained below.
+Computing $C^m$ and $C^M$ can be prohibitively expensive.  Therefore we use approximations $C^{m+}$ and $C^{M-}$ such that $C^m\subseteq C^{m+}$ and $C^{M-}\subseteq C^M$.  Initially we assign $C^{m+}=\top$ and $C^{M-}=\bot$.  Approximations are refined lazily as part of the abstraction refinement process, as explained below.
 
 %\begin{ex}
 %    \everymath{\mathtt{\xdef\tmp{\fam\the\fam\relax}\aftergroup\tmp}}
@@ -872,19 +822,8 @@ explained below.
 %    \qed
 %\end{ex}
 
-We compute over- and under-approximations of the controllable 
-predecessor operator by resolving the two sources of imprecision 
-in favour of one of the players.  In particular, we compute 
-$Cpre_i^{m+}$ by (1) allowing player $i$ to pick assignments to 
-untracked predicates, (2) over-approximating consistent labels 
-available to $i$, and (3) under-approximating consistent labels 
-available to the opponent player $\overline{i}$:
-%\begin{equation}
-%    \small
-%    \label{e:cpreM}
-%    Cpre_i^{m+}(\phi) = \exists \vect{\omega}. CpreU_i^{m+}(\phi), 
-%    \text{ where}
-%\end{equation}
+We compute over- and under-approximations of the controllable predecessor operator by resolving the two sources of imprecision in favour of one of the players.  In particular, we compute $Cpre_i^{m+}$ by (1) allowing player $i$ to pick assignments to untracked predicates, (2) over-approximating consistent labels available to $i$, and (3) under-approximating consistent labels available to the opponent player $\overline{i}$:
+
 \begin{equation}
     \label{e:cprem}
     \small
@@ -894,25 +833,11 @@ available to the opponent player $\overline{i}$:
                                                 &\abstractM{\tau_{\overline{i}}} \land \forall \vect{\lambda},\vect{\sigma'}. ((C^{M-} \land\Delta) \rightarrow \phi')
 \end{aligned}
 \end{equation}
-This formula has a similar structure to the definition of the 
-concrete controllable predecessor operator (\ref{e:cpre}).  It 
-replaces the concrete transition relation $\delta$ with the 
-abstract transition relation $\Delta$ restricted with consistency 
-relations ($C^{m+}$ and $C^{M-}$).  In addition, it existentially 
-quantifies untracked variables $\vect{\omega}$, i.e., an abstract 
-state $v$ is a may-predecessor of $\phi$ if at least one of its 
-untracked sub-states is a may-predecessor of $\phi$.
 
-Dually, we compute $Cpre_i^{M-}$ by (1) allowing the opponent 
-player $\overline{i}$ to pick values of untracked predicates, (2) 
-under-approximating labels available to $i$ and (3) 
-over-approximating labels available to $\overline{i}$:
-%\begin{equation}
-%    \small
-%    \label{e:cpreM}
-%    Cpre_i^{M-}(\phi) = \forall \vect{\omega}. CpreU_i^{M-}(\phi),
-%    \text{ where}
-%\end{equation}
+This formula has a similar structure to the definition of the concrete controllable predecessor operator (\ref{e:cpre}).  It replaces the concrete transition relation $\delta$ with the abstract transition relation $\Delta$ restricted with consistency relations ($C^{m+}$ and $C^{M-}$).  In addition, it existentially quantifies untracked variables $\vect{\omega}$, i.e., an abstract state $v$ is a may-predecessor of $\phi$ if at least one of its untracked sub-states is a may-predecessor of $\phi$.
+
+Dually, we compute $Cpre_i^{M-}$ by (1) allowing the opponent player $\overline{i}$ to pick values of untracked predicates, (2) under-approximating labels available to $i$ and (3) over-approximating labels available to $\overline{i}$:
+
 \begin{equation}
     \small
     \label{e:cpreM}
@@ -922,6 +847,7 @@ over-approximating labels available to $\overline{i}$:
                                                &\abstractM{\tau_{\overline{i}}} \land \forall \vect{\lambda},\vect{\sigma'}. ((C^{m+} \land \Delta) \rightarrow \phi')
 \end{aligned}
 \end{equation}
+
 %The quantifier prefix $\exists\vect{\omega}$ in (\ref{e:cprem})
 %indicates that an abstract state belongs to the may controllable 
 %predecessor of a set $\phi$ if it has at least one may-winning 
@@ -941,24 +867,10 @@ over-approximating labels available to $\overline{i}$:
 %moves available to $i$ and under-constrains moves available to 
 %$\overline{i}$.
 
-Equations (\ref{e:cprem}) and (\ref{e:cpreM}) suggest two possible 
-abstraction refinement tactics, which correspond to the two types 
-of refinement used in Algorithm~\ref{alg:generic}.  First, we can 
-refine $C^{m+}$ and $C^{M-}$ by removing spurious transitions from 
-$C^{m+}$ or adding new consistent transitions to $C^{M-}$.  Such a 
-refinement increases the precision of controllable predecessor 
-computation without introducing new state predicates, which 
-corresponds to the \textsc{refineCpre} operation in the algorithm.  
-Second, we can add some of the untracked predicates to the set of 
-state predicates $\Sigma$, thus reducing the imprecision 
-introduced by treating them as external inputs.  This refinement 
-increases the precision of the abstraction, which corresponds to 
-the \textsc{refineAbstraction} function in the algorithm.
+Equations (\ref{e:cprem}) and (\ref{e:cpreM}) suggest two possible abstraction refinement tactics, which correspond to the two types of refinement used in Algorithm~\ref{alg:generic}.  First, we can refine $C^{m+}$ and $C^{M-}$ by removing spurious transitions from $C^{m+}$ or adding new consistent transitions to $C^{M-}$.  Such a refinement increases the precision of controllable predecessor computation without introducing new state predicates, which corresponds to the \textsc{refineCpre} operation in the algorithm.  Second, we can add some of the untracked predicates to the set of state predicates $\Sigma$, thus reducing the imprecision introduced by treating them as external inputs.  This refinement increases the precision of the abstraction, which corresponds to the \textsc{refineAbstraction} function in the algorithm.
 
-In summary, we solve the abstract game by decomposing potentially 
-expensive computations into three types of light-weight operations 
-performed on demand, as required to improve the precision of the 
-abstraction:
+In summary, we solve the abstract game by decomposing potentially expensive computations into three types of light-weight operations performed on demand, as required to improve the precision of the abstraction:
+
 \begin{itemize}
     \item Computing the abstract transition relation $\Delta$ via 
         light-weight syntactic analysis of the concrete game
@@ -968,13 +880,8 @@ abstraction:
     \item Solving the abstract game using abstract controllable 
         predecessor operators (\ref{e:cprem}) and (\ref{e:cpreM})
 \end{itemize}
-The computational bottleneck in this method can arise either from 
-having to perform an excessive number of refinements or if 
-abstractions generated by the algorithm are too complex.  Our 
-refinement procedures, described below, are designed to avoid 
-such situations by heuristically picking refinements that are likely to
-speed up the convergence of the algorithm.
 
+The computational bottleneck in this method can arise either from having to perform an excessive number of refinements or if abstractions generated by the algorithm are too complex.  Our refinement procedures, described below, are designed to avoid such situations by heuristically picking refinements that are likely tospeed up the convergence of the algorithm.
 
 %are likely to 
 %improve the precision of solving the concrete game.
@@ -1089,7 +996,7 @@ speed up the convergence of the algorithm.
 
 \begin{algorithmic}[1]
 
-% \Function{Solve}{$transitionRelation$, $goal$}
+\Function{Solve}{$transitionRelation$, $goal$}
     \Statex {\bf Input:} A game structure $G = \langle S, L, I, \tau_1, \tau_2, \delta \rangle$, a set 
     of target states $T\subseteq S$, and an initial abstraction $\alpha=\langle V, \concrete{}, Cpre_1^{m+}, Cpre_1^{M-} \rangle$
     that is precise for $T$, $I$, and $\tau_i$.
@@ -1110,6 +1017,8 @@ speed up the convergence of the algorithm.
             \EndIf
         \EndIf
     \EndLoop
+\EndFunction
+
 \end{algorithmic}
 \end{algorithm}
 
