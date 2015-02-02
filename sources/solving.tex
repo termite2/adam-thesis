@@ -1113,111 +1113,42 @@ speed up the convergence of the algorithm.
 \end{algorithmic}
 \end{algorithm}
 
-\subsection{\textsc{refineCpre}}
+\subsection{Consistency Refinement}
 
+Figure~\ref{f:crefinement} illustrates the main idea of the consistency refinement algorithm.  It shows an abstract state $v$ (Figure~\ref{f:crefinement}a) at the may-must boundary whose untracked substates $u_1$, $u_2$, and $u_3$ have $C^{m+}$-consistent transitions to the must-winning set $W^M$, but none of these transitions is consistent with $C^{M-}$.  The \textsc{refineCpre} algorithm attempts to precisely categorise these substates as must-winning or must-losing.
 
-%Note, however, that it never generates new state predicates, thus 
-%keeping the abstract state space unmodified.
+Since all untracked substates of $v$ are either must-losing or may-winning but not must-winning, it is impossible to split out a must-winning subset of $v$ purely by predicate promotion; hence a consistency refinement is needed.
 
-Figure~\ref{f:crefinement} illustrates the main idea of the 
-consistency refinement algorithm.  It shows an abstract state $v$ 
-(Figure~\ref{f:crefinement}a) at the may-must boundary whose 
-untracked substates $u_1$, $u_2$, and $u_3$ have 
-$C^{m+}$-consistent transitions to the must-winning set $W^M$, but 
-none of these transitions is consistent with $C^{M-}$.  The 
-\textsc{refineCpre} algorithm attempts to precisely categorise 
-these substates as must-winning or must-losing.
-%Since all untracked substates of $v$ are either must-losing or 
-%may-winning but not must-winning, it is impossible to split out a 
-%must-winning subset of $v$ purely by predicate promotion; hence a 
-%consistency refinement is needed.
-In Figure~\ref{f:crefinement}b, the algorithm identifies the 
-abstract transition $\langle v,u_1, l_1\rangle$ as spurious and 
-eliminates it from $C^{m+}$, thus making the $u_1$ sub-state 
-must-losing.  Alternatively, it may detect that abstract 
-transition $\langle v, u_2, l_2\rangle$ is available in all 
-concrete states in $u_2$ and thus add this transition to $C^{M-}$, 
-making the $u_2$ sub-state must-winning 
-(Figure~\ref{f:crefinement}c).  Finally, it may determine that 
-abstract transition $\langle v, u_3, l_3\rangle$ is available in 
-some, but not all, concrete states in $u_3$, i.e., $\langle v, 
-u_3, l_3\rangle\in C^m\setminus C^M$.  It then partitions $u_3$ 
-into two or more subsets, exactly one of which has a 
-$C^{M-}$-consistent transition to $W^M$, by introducing new 
-untracked predicates (Figure~\ref{f:crefinement}d).  
+The consistency refinement algorithm proceeds in one of three ways:
+\begin{itemize}
+    \item In Figure~\ref{f:crefinement}b, the algorithm identifies the abstract transition $\langle v,u_1, l_1\rangle$ as spurious and eliminates it from $C^{m+}$, thus making the $u_1$ sub-state must-losing.  
+    \item Alternatively, it may detect that abstract transition $\langle v, u_2, l_2\rangle$ is available in all concrete states in $u_2$ and thus add this transition to $C^{M-}$, making the $u_2$ sub-state must-winning (Figure~\ref{f:crefinement}c).  
+    \item Finally, it may determine that abstract transition $\langle v, u_3, l_3\rangle$ is available in some, but not all, concrete states in $u_3$, i.e., $\langle v, u_3, l_3\rangle\in C^m\setminus C^M$.  It then partitions $u_3$ into two or more subsets, exactly one of which has a $C^{M-}$-consistent transition to $W^M$, by introducing new untracked predicates (Figure~\ref{f:crefinement}d).  
+\end{itemize}
 
-%In all three cases, further refinement via untracked predicate 
-%promotion becomes possible.  Such refinement is performed by the 
-%\textsc{refineAbstraction} function described in 
-%Section~\ref{s:refineAbstraction}.
+In all three cases, further refinement via untracked predicate promotion becomes possible.  Such refinement is performed by the \textsc{refineAbstraction} function described in Section~\ref{s:refineAbstraction}.
 
 \begin{figure}[t]
+    \label{f:crefinement}
     \center
     \includegraphics[width=\linewidth]{imgs/crefinement}
-    \caption{\small\label{f:crefinement}Different types of 
-    consistency refinements.  White, grey, and black background is 
-    used to mark respectively must-losing, may-winning, and 
-    must-winning untracked substates.  Dashed and solid arrows 
-    show $C^{m+}$ and $C^{M-}$-consistent abstract transitions.}
-    \vspace{-2mm}
+    \caption{Different types of consistency refinements.  White, grey, and black background is used to mark respectively must-losing, may-winning, and must-winning untracked substates.  Dashed and solid arrows show $C^{m+}$ and $C^{M-}$-consistent abstract transitions.}
 \end{figure}
 
-%Note that in the special case when, after performing consistency 
-%refinement, all untracked substates of $v$ become must-winning or 
-%must-losing, the entire state $v$ can be removed from the boundary 
-%region without performing predicate promotion.  This corresponds 
-%to the two types of refinement labelled as \textsc{refineCpre} in 
-%Figure~\ref{f:reach}.  
+Note that in the special case when, after performing consistency refinement, all untracked substates of $v$ become must-winning or must-losing, the entire state $v$ can be removed from the boundary region without performing predicate promotion.  This corresponds to the two types of refinement labelled as \textsc{refineCpre} in Figure~\ref{f:reach}.  
 
-%For this reason, Algorithm~\ref{alg:generic} recomputes $W^M$ and 
-%$W^m$ after each successful consistency refinement, and only calls 
-%\textsc{refineAbstraction} once no more consistency refinements 
-%are possible.
+For this reason, Algorithm~\ref{alg:generic} recomputes $W^M$ and $W^m$ after each successful consistency refinement, and only calls \textsc{refineAbstraction} once no more consistency refinements are possible.
 
-Algorithm~\ref{alg:refineCpre} shows the pseudocode of 
-\textsc{refineCpre}.  Lines~3--6 compute the set of candidate 
-tuples $\langle v, u, l\rangle\in C^m\setminus C^M$.  Note 
-that for player~$i$ states we consider may-consistent transition to 
-$W^M$, whereas for player~$\overline{i}$ states we consider spoiling 
-transitions to $V\setminus W^M$.
-%Figure~\ref{} illustrates two types of boundary states.  A 
-%player~$i$ boundary state $v$ (Figure~\ref{}a) has a 
-%$C^{m+}$-consistent move $l$ to the must-winning region $W^M$ 
-%available to player~$i$ from one of its untracked substates $u$; 
-%however not all untracked substates of $v$ have a 
-%$C^{M-}$-consistent move to $W^M$.  A player~$\overline{i}$ boundary 
-%state $v$ (Figure~\ref{}a) has a $C^{m+}$-consistent 
-%\emph{spoiling} move $l$ that avoids $W^M$ available to 
-%player~$\overline{i}$ from one of its untracked substates $u$; however 
-%not all untracked substates of $v$ have a $C^{M-}$-consistent 
-%spoiling move. 
-%
-%In both cases, the state-untracked-label tuple $\langle v,u,l 
-%\rangle$ serves as the basis for refinement.  Lines~XXX of 
-%Algorithm~\ref{} compute the set of all such candidate tuples.  
-Line~9 picks a single refinement candidate $\langle v,u,l \rangle$ 
-from the set.  By construction we know that $\langle 
-v,u,l\rangle\in C^{m+}$.  Since $C^{m+}$ is an overapproximation 
-of $C^m$, we check whether $\langle 
-v,u,l\rangle\in C^m$, i.e., whether $v$, $u$, and $l$ satisfy equation (\ref{e:Cm}).  To this end, in line~11 we invoke a decision 
-procedure for the underlying theory to check satisfiability of the 
-formula:
-$(\|\vect{\sigma}\|=v \land \|\vect{\omega}\|=u \land \|\vect{\lambda}\|=l)$.
-If the formula is unsatisfiable, then $\langle v,u,l\rangle$
-is a spurious transition that must be eliminated from $C^{m+}$.  
-Furthermore, by extracting an unsatisfiable core of the formula,
-we obtain an inconsistent subset of its conjuncts 
-$(\bigwedge\|\alpha_i\|=c_i)$, 
-$\alpha_i\in\vect{\sigma}\cup\vect{\omega}\cup\vect{\lambda}$,
-which represents a potentially large set of similar spurious
-transitions.  We eliminate all of these transitions from $C^{m+}$ in
-line~16.
+\subsubsection{Algorithm}
+
+Algorithm~\ref{alg:refineCpre} shows the pseudocode of \textsc{refineCpre}.  Lines~3--6 compute the set of candidate tuples $\langle v, u, l\rangle\in C^m\setminus C^M$.  Note that for player~$i$ states we consider may-consistent transition to $W^M$, whereas for player~$\overline{i}$ states we consider spoiling transitions to $V\setminus W^M$.
+
+Line~9 picks a single refinement candidate $\langle v,u,l \rangle$ from the set.  By construction we know that $\langle v,u,l\rangle\in C^{m+}$.  Since $C^{m+}$ is an overapproximation of $C^m$, we check whether $\langle v,u,l\rangle\in C^m$, i.e., whether $v$, $u$, and $l$ satisfy equation (\ref{e:Cm}).  To this end, in line~11 we invoke a decision procedure for the underlying theory to check satisfiability of the formula:$(\|\vect{\sigma}\|=v \land \|\vect{\omega}\|=u \land \|\vect{\lambda}\|=l)$.If the formula is unsatisfiable, then $\langle v,u,l\rangle$ is a spurious transition that must be eliminated from $C^{m+}$.  Furthermore, by extracting an unsatisfiable core of the formula,we obtain an inconsistent subset of its conjuncts $(\bigwedge\|\alpha_i\|=c_i)$, $\alpha_i\in\vect{\sigma}\cup\vect{\omega}\cup\vect{\lambda}$,which represents a potentially large set of similar spurioustransitions.  We eliminate all of these transitions from $C^{m+}$ inline~16.
 
 \begin{algorithm}[t]
 
-\caption{\small Pseudocode of the \textsc{refineCpre} function}
+\caption{Pseudocode of the \textsc{refineCpre} function}
 \label{alg:refineCpre}
-\scriptsize
 \begin{algorithmic}[1]
 \Function{refineCpre}{$W^M$}
     \State \Comment{player~$i$ may-winning transitions}
@@ -1233,11 +1164,11 @@ line~16.
         \State $F \gets (\|\vect{\sigma}\|=v \land \|\vect{\omega}\|=u \land \|\vect{\lambda}\|=l)$
         \If{\Call{satisfiable}{$F$}}
             \State $A             \gets $ \Call{eliminateQuantifiers}{$\exists Y.\|\vect{\lambda}\|=l$}
-%            \State $A             \gets $ \Call{massage}{$A$}
-%            \State $P             \gets \text{atomic predicates in }A$
-%            \State $\vect{\omega} \gets \vect{\omega} \cup (\text{fresh variables for predicates in } P\setminus\Omega)$
-%            \State $\Omega        \gets \Omega \cup P$
-%            \State $\hat{A}       \gets A[\|x\|\mid x, \text{for all } x\in\Omega \cup \Sigma ]$
+            \State $A             \gets $ \Call{massage}{$A$}
+            \State $P             \gets \text{atomic predicates in }A$
+            \State $\vect{\omega} \gets \vect{\omega} \cup (\text{fresh variables for predicates in } P\setminus\Omega)$
+            \State $\Omega        \gets \Omega \cup P$
+            \State $\hat{A}       \gets A[\|x\|\mid x, \text{for all } x\in\Omega \cup \Sigma ]$
             \State $\hat{A}       \gets$ replace atomic predicates in $A$ with boolean
             \Statex  ~~~~~~~~~~~~~~~~~~~~vars, introducing fresh vars when necessary
             \State $C^{M-}        \gets C^{M-} \lor (\hat{A}\land \vect{\lambda}=l)$% \Comment{add consistent transition}
@@ -1251,28 +1182,9 @@ line~16.
 \end{algorithmic}
 \end{algorithm}
 
-If, on the other hand, the formula is satisfiable, then there 
-exists a concrete state-label pair consistent with $\langle 
-v,u,l\rangle$.  In this case we want to precisely characterise the 
-set of states where label $l$ is available, so that we can either 
-add $\langle v,u,l\rangle$ to $C^{M-}$ (as in 
-Figure~\ref{f:crefinement}c) or refine it with additional 
-untracked predicates (as in Figure~\ref{f:crefinement}d).
+If, on the other hand, the formula is satisfiable, then there exists a concrete state-label pair consistent with $\langle v,u,l\rangle$.  In this case we want to precisely characterise the set of states where label $l$ is available, so that we can either add $\langle v,u,l\rangle$ to $C^{M-}$ (as in Figure~\ref{f:crefinement}c) or refine it with additional untracked predicates (as in Figure~\ref{f:crefinement}d).
 
-Line~12 computes the set of concrete states where abstract label 
-$l$ is available by performing quantifier elimination from formula 
-$(\exists Y.\|\vect{\lambda}\|=l)$, resulting in a quantifier-free 
-formula $A$ over concrete state variables $X$.  We assume that the 
-underlying theory supports quantifier elimination, which is the 
-case for many practically relevant theories, including the theory 
-of fixed-size bit vectors supported by our tool.  In line~13, the 
-resulting formula $A$ is decomposed into atomic predicates
-possibly introducing new untracked and label predicates.  By 
-replacing all atomic predicates in $A$ with corresponding boolean 
-variables, we obtain a formula $\hat{A}$ that describes the set of 
-all state-untracked pairs must-consistent with the abstract label 
-$l$.  Line~14 refines $C^{M-}$ with the set of newly discovered 
-must-consistent transitions.
+Line~12 computes the set of concrete states where abstract label $l$ is available by performing quantifier elimination from formula $(\exists Y.\|\vect{\lambda}\|=l)$, resulting in a quantifier-free formula $A$ over concrete state variables $X$.  We assume that the underlying theory supports quantifier elimination, which is the case for many practically relevant theories, including the theory of fixed-size bit vectors supported by our tool.  In line~13, the resulting formula $A$ is decomposed into atomic predicates possibly introducing new untracked and label predicates.  By replacing all atomic predicates in $A$ with corresponding boolean variables, we obtain a formula $\hat{A}$ that describes the set of all state-untracked pairs must-consistent with the abstract label $l$.  Line~14 refines $C^{M-}$ with the set of newly discovered must-consistent transitions.
 
 %The resulting formula is decomposed into atomic predicates 
 %(lines~11--12).  New predicates from $A$ are added to the set of 
@@ -1300,23 +1212,13 @@ must-consistent transitions.
     \qed
 \end{ex}
 
-\subsection{\textsc{refineAbstraction}}\label{s:refineAbstraction}
+\subsection{Refining the Abstraction}
+\label{s:refineAbstraction}
 
-The \textsc{refineAbstraction} function is invoked by the 
-abstraction refinement algorithm when no further consistency 
-refinements are possible.  At this point, every untracked 
-sub-state of the boundary region is either must-winning or 
-must-losing, i.e., can be coloured white or black using notation 
-of Figure~\ref{f:crefinement}.  \textsc{refineAbstraction} promotes a subset of 
-untracked predicates making sure that the winning region $W^M$ 
-expands after re-solving the game in line~2 of 
-Algorithm~\ref{alg:generic}.  
+The \textsc{refineAbstraction} function is invoked by the abstraction refinement algorithm when no further consistency refinements are possible.  At this point, every untracked sub-state of the boundary region is either must-winning or must-losing, i.e., can be coloured white or black using notation of Figure~\ref{f:crefinement}.  \textsc{refineAbstraction} promotes a subset of untracked predicates making sure that the winning region $W^M$ expands after re-solving the game in line~2 of Algorithm~\ref{alg:generic}.  
 
-Algorithm~\ref{alg:refineAbstraction} shows the pseudocode of 
-\textsc{refineAbstraction}.  Line~2 computes all untracked 
-boundary substates that are must-predecessors of $W^M$.  Here, 
-$CpreU^{M-}$ is the same as $Cpre^{M-}$ 
-(Equation~(\ref{e:cpreM})), but without untracked variable quantification:
+Algorithm~\ref{alg:refineAbstraction} shows the pseudocode of \textsc{refineAbstraction}.  Line~2 computes all untracked boundary substates that are must-predecessors of $W^M$.  Here, $CpreU^{M-}$ is the same as $Cpre^{M-}$ (Equation~(\ref{e:cpreM})), but without untracked variable quantification:
+
 $$
     \small
 \begin{aligned}
@@ -1326,36 +1228,23 @@ $$
 \end{aligned}
 $$
 
-
-We aim to grow  $W^M$ by promoting as few untracked predicates as possible.  To 
-this end, we extract a short prime implicant from $U^M$ and 
-promote the untracked variables in the support of the prime implicant
-(line~3).  This has the effect of adding a large cube over state 
-and untracked predicates to $W^M$.
-The \textsc{promote}
-function invoked in line~4 moves the selected untracked predicates 
-to the set of state predicates $\Sigma$ and recomputes the 
-abstraction transition relation $\Delta$ for the new state
-predicates.  This can lead to the introduction of new untracked 
-and label predicates, which can serve as refinement candidates in the 
-future.
+We aim to grow  $W^M$ by promoting as few untracked predicates as possible.  To this end, we extract a short prime implicant from $U^M$ and promote the untracked variables in the support of the prime implicant(line~3).  This has the effect of adding a large cube over state and untracked predicates to $W^M$. The \textsc{promote} function invoked in line~4 moves the selected untracked predicates to the set of state predicates $\Sigma$ and recomputes the abstraction transition relation $\Delta$ for the new state predicates.  This can lead to the introduction of new untracked and label predicates, which can serve as refinement candidates in the future.
 
 \begin{algorithm}[t]
 
-\caption{\small Pseudocode of \textsc{refineAbstraction}}
+\caption{Pseudocode of \textsc{refineAbstraction}}
 \label{alg:refineAbstraction}
 
-    \scriptsize
 \begin{algorithmic}[1]
+
 \Function{refineAbstraction}{$W^M$}
     \State $U^M \gets CpreU_1^{M-}(W^M) \land \overline{W^M}$
     \State $toPromote \gets \vect{\omega}~\cap~$\Call{support}{\textsc{shortPrime}($U^M$)}
     \State $\Call{promote}{toPromote}$
 \EndFunction
+
 \end{algorithmic}
 \end{algorithm}
-
-
 
 \subsection{Enabling Variables}
 
