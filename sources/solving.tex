@@ -835,24 +835,7 @@ Dually, we compute $Cpre_i^{M-}$ by (1) allowing the opponent player $\overline{
 \end{aligned}
 \end{equation}
 
-%The quantifier prefix $\exists\vect{\omega}$ in (\ref{e:cprem})
-%indicates that an abstract state belongs to the may controllable 
-%predecessor of a set $\phi$ if it has at least one may-winning 
-%untracked substate.  
-%The formula for $CpreU_i^{m+}$ (\ref{e:cpreum}) falls into two 
-%cases: (a) a sub-state of a player-$i$ state is winning if $i$ can choose a 
-%consistent abstract transition ($\exists \vect{\lambda}.  
-%C^{m+}$) that terminates in $\phi$ ($\forall 
-%\vect{\sigma'} (\Delta \rightarrow \phi')$); and (b)
-%an opponent's state is winning for player~$i$ if any 
-%consistent abstract transition available in this state 
-%terminates in $\phi$.
-%Note that the use of $C^{m+}$ and $C^{M-}$ in (\ref{e:cpreum}) and (\ref{e:cpreuM}) 
-%under-constrains moves available to player~$i$ and over-constrains 
-%moves available to the opponent.  The formula for 
-%$CpreU_i^{M-}(\phi)$ is analogous, except that it over-constrains 
-%moves available to $i$ and under-constrains moves available to 
-%$\overline{i}$.
+Note that the use of $C^{m+}$ and $C^{M-}$ in (\ref{e:cprem}) and (\ref{e:cpreM}) under-constrains moves available to player~$i$ and over-constrains moves available to the opponent.  The formula for $CpreU_i^{M-}(\phi)$ is analogous, except that it over-constrains moves available to $i$ and under-constrains moves available to $\overline{i}$.
 
 Equations (\ref{e:cprem}) and (\ref{e:cpreM}) suggest two possible abstraction refinement tactics, which correspond to the two types of refinement used in Algorithm~\ref{alg:generic}.  First, we can refine $C^{m+}$ and $C^{M-}$ by removing spurious transitions from $C^{m+}$ or adding new consistent transitions to $C^{M-}$.  Such a refinement increases the precision of controllable predecessor computation without introducing new state predicates, which corresponds to the \textsc{refineCpre} operation in the algorithm.  Second, we can add some of the untracked predicates to the set of state predicates $\Sigma$, thus reducing the imprecision introduced by treating them as external inputs.  This refinement increases the precision of the abstraction, which corresponds to the \textsc{refineAbstraction} function in the algorithm.
 
