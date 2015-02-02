@@ -793,34 +793,21 @@ The tuple $\langle v,u,l\rangle$ is \emph{must-consistent} if $l$ is available i
 
 Computing $C^m$ and $C^M$ can be prohibitively expensive.  Therefore we use approximations $C^{m+}$ and $C^{M-}$ such that $C^m\subseteq C^{m+}$ and $C^{M-}\subseteq C^M$.  Initially we assign $C^{m+}=\top$ and $C^{M-}=\bot$.  Approximations are refined lazily as part of the abstraction refinement process, as explained below.
 
-%\begin{ex}
-%    \everymath{\mathtt{\xdef\tmp{\fam\the\fam\relax}\aftergroup\tmp}}
-%    \everydisplay{\mathtt{\xdef\tmp{\fam\the\fam\relax}\aftergroup\tmp}}
-%    To illustrate the above definitions, we introduce two label 
-%    predicates to our running example: $\|\lambda_1\|= (val=req)$, 
-%    $\|\lambda_2\| = (val=5)$. Consider the state-untracked-label 
-%    tuple $v=(true,false)$, $u=(true)$, $l=(true, true)$, which 
-%    corresponds to the following assignment to abstract variables: 
-%    $\sigma_1=true \land \sigma_2=false \land \omega_1=true \land 
-%    \lambda_1=true \land\lambda_2=true$. It is easy to see that 
-%    this condition is satisfied for example by the following 
-%    concrete variable valuation: $mem=5$, $dat=5$, $bsy=true$, 
-%    $req=5$, $val=5$, hence $\langle v,u,l\rangle$ is 
-%    may-consistent: $C^m(v,u,l)=true$.  However, it is not     
-%    must-consistent:
-%    $$
-%    \begin{aligned}
-%        C^M(v,u,l) = \forall  mem, dat, bsy,req. (&((req=mem) \land (bsy = true) \land (req=dat)) \rightarrow \\
-%                                                  &\exists val. (val=req) \land (val=5))
-%    \end{aligned}
-%    $$
-%    There exist concrete state variable assignments (e.g., 
-%    $mem=1$, $dat=1$, $bsy=true$, $req=1$) that satisfy state and 
-%    untracked predicates in the left-hand side of the implication 
-%    but that can not be extended with a label variable assignment 
-%    that satisfies the right-hand side, hence $C^M(v,u,l)=false$.  
-%    \qed
-%\end{ex}
+\begin{ex}
+    \everymath{\mathtt{\xdef\tmp{\fam\the\fam\relax}\aftergroup\tmp}}
+    \everydisplay{\mathtt{\xdef\tmp{\fam\the\fam\relax}\aftergroup\tmp}}
+    To illustrate the above definitions, we introduce two label predicates to our running example: $\|\lambda_1\|= (val=req)$, $\|\lambda_2\| = (val=5)$. Consider the state-untracked-label tuple $v=(true,false)$, $u=(true)$, $l=(true, true)$, which corresponds to the following assignment to abstract variables: $\sigma_1=true \land \sigma_2=false \land \omega_1=true \land \lambda_1=true \land\lambda_2=true$. It is easy to see that this condition is satisfied for example by the following concrete variable valuation: $mem=5$, $dat=5$, $bsy=true$, $req=5$, $val=5$, hence $\langle v,u,l\rangle$ is may-consistent: $C^m(v,u,l)=true$.  However, it is not must-consistent:
+
+    $$
+    \begin{aligned}
+        C^M(v,u,l) = \forall  mem, dat, bsy,req. (&((req=mem) \land (bsy = true) \land (req=dat)) \rightarrow \\
+                                                  &\exists val. (val=req) \land (val=5))
+    \end{aligned}
+    $$
+    
+    There exist concrete state variable assignments (e.g., $mem=1$, $dat=1$, $bsy=true$, $req=1$) that satisfy state and untracked predicates in the left-hand side of the implication but that can not be extended with a label variable assignment that satisfies the right-hand side, hence $C^M(v,u,l)=false$.  
+    \qed
+\end{ex}
 
 We compute over- and under-approximations of the controllable predecessor operator by resolving the two sources of imprecision in favour of one of the players.  In particular, we compute $Cpre_i^{m+}$ by (1) allowing player $i$ to pick assignments to untracked predicates, (2) over-approximating consistent labels available to $i$, and (3) under-approximating consistent labels available to the opponent player $\overline{i}$:
 
