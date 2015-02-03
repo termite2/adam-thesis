@@ -8,7 +8,7 @@ import Development.Shake.Util
 
 buildDir = "build"
 
-latexSources  = ["thesis.tex", "background.tex", "game.tex", "intro.tex", "solving.tex", "syntcomp.tex", "userguided.tex"]
+latexSources  = ["thesis.tex", "background.tex", "game.tex", "intro.tex", "solving.tex", "syntcomp.tex", "userguided.tex", "i2c.tex"]
 tslRefSources = ["body.tex"]
 bibSources    = ["extra.bib"]
 
@@ -19,10 +19,12 @@ main = shakeArgs shakeOptions{shakeFiles=".shake/", shakeThreads=4} $ do
     "thesis.pdf" %> \out -> do
         files <- getDirectoryFiles "diagrams" ["//*.hs"]
         bibs  <- getDirectoryFiles "bibtex"   ["//*.bib"]
+        tsls  <- getDirectoryFiles "i2c"      ["//*.tsl"]
+
         let diagramFiles = map (\x -> buildDir </> "diagrams" </> x -<.> "pdf") files
             bibFiles     = map ("bibtex" </>) bibs
 
-        need $ map ("sources" </>) latexSources ++ map ("tsl_reference" </>) tslRefSources ++ bibSources ++ diagramFiles ++ bibFiles
+        need $ map ("sources" </>) latexSources ++ map ("tsl_reference" </>) tslRefSources ++ bibSources ++ diagramFiles ++ bibFiles ++ map ("i2c" </>) tsls
 
         env' <- liftIO getEnvironment
         let env = Env $ ("TEXINPUTS", "sources:build:") : env'
