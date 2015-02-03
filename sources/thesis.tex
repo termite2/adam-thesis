@@ -31,6 +31,16 @@
 \renewcommand{\algorithmicrequire}{\textbf{Input:}}
 \renewcommand{\algorithmicensure}{\textbf{Output:}}
 
+% From the TSL2 spec
+% New definitions
+\algnewcommand\algorithmicswitch{\textbf{case}}
+\algnewcommand\algorithmiccase{\textbf{}}
+% New "environments"
+\algdef{SE}[SWITCH]{Switch}{EndSwitch}[1]{\algorithmicswitch\ #1\ {\bf of}}{\algorithmicend\ \algorithmicswitch}%
+\algdef{SE}[CASE]{Case}{EndCase}[1]{\algorithmiccase\ #1 :}{\algorithmicend\ \algorithmiccase}%
+\algtext*{EndSwitch}%
+\algtext*{EndCase}%
+
 \usepackage{graphicx}
 \usepackage{amsmath}
 \usepackage{amssymb}
@@ -54,6 +64,8 @@
 % Author-year citation, and inline bib entries
 \usepackage[authoryear,square]{natbib}
 \usepackage{bibentry}
+
+\usepackage{tikz}
 
 \newcommand{\buchi}{B\"uchi}
 \newcommand{\cpre}{CPre}
@@ -299,6 +311,9 @@ For Lord Xenu, ruler of the Galactic Confederacy.
 
 \appendix
 \chapter{TSL Language Reference}
+
+\input{tsl_reference/body}
+
 \chapter{User Guided Synthesis of an I2C Driver}
 
 \backmatter
