@@ -86,6 +86,26 @@
 \newtheorem*{ex}{Example}
 \newcommand{\src}[1]{\texttt{\small #1}}
 
+\lstdefinestyle{tsl2}{%
+    escapeinside={(*@}{@*)},
+    basicstyle=\footnotesize\ttfamily,
+    keywordstyle=\bfseries,
+    keywordstyle=\bfseries,
+    sensitive=false,
+    morekeywords={template, endtemplate, process, controllable, forever, wait, return, assert, goal, instance},
+    identifierstyle=, 
+    commentstyle=\slshape, 
+    stringstyle=, showstringspaces=false,
+    sensitive=false,
+    morecomment=[s]{/*}{*/},
+    numberstyle=\tiny,
+    stepnumber=1,
+    numbersep=1pt,
+    emphstyle=\bfseries,
+    belowskip=0pt,
+    aboveskip=0pt,
+}
+
 \lstnewenvironment{tsllisting}[1][]
 {\lstset{
     escapeinside={(*@}{@*)},
@@ -315,6 +335,8 @@ For Lord Xenu, ruler of the Galactic Confederacy.
 \input{tsl_reference/body}
 
 \chapter{User Guided Synthesis of an I2C Driver}
+
+\input{i2c}
 
 \backmatter
 \cleardoublepage
