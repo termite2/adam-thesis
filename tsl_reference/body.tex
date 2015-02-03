@@ -25,7 +25,7 @@ accessed via a reference to a template \emph{instance}.
 
 The following template declares type \src{word} (static object) 
 and variable \src{x} (runtime object):
-\begin{tsllisting}{}
+\begin{tsllisting}
 template A
   // type declaration
   typedef uint<16> word;
@@ -46,7 +46,7 @@ specification must contain a template called \src{main}.
 In the following example, the \src{main} template creates an 
 instance of \src{A}, making its variables accessible from 
 \src{main} via instance name:
-\begin{tsllisting}{}
+\begin{tsllisting}
 template main
   instance A a;
 
@@ -72,7 +72,7 @@ declares port \src{aa} of type \src{A}, which makes runtime
 objects in the scope of \src{A} visible from \src{B}.  Both 
 templates are then instantiated in the \src{main} template, with 
 the instance of \src{A} connected to port \src{aa} of \src{B}.
-\begin{tsllisting}{}
+\begin{tsllisting}
 // template B with port aa of type A
 template B(A aa)
   process proc {
@@ -109,7 +109,7 @@ details.  For example, the following template models common
 device-class callbacks that must be implemented by any OS 
 specification for the IDE device class.  Note that callbacks are 
 defined without bodies, as the exact behaviour is OS-specific.
-\begin{tsllisting}{}
+\begin{tsllisting}
 template ide_os
   procedure void write_sectors(uint<48> lba, 
     uint<16> sectors, uint<32> buf, bool xfer_error);
@@ -121,7 +121,7 @@ endtemplate
 \end{tsllisting}
 This template is specialised by the \src{l4\_ide\_os} template,
 that describes the IDE driver interface defined by the seL4 OS.
-\begin{tsllisting}{}
+\begin{tsllisting}
 template l4_ide_os(l4_ide_drv drv)
   // the derive statement is used to establish the 
   // inheritance relation
@@ -192,7 +192,7 @@ time.
 In the following example, template \src{A} contains a single 
 static process \src{psndrcv}, which spawns two subprocesses 
 \src{psend} and \src{preceive}.
-\begin{tsllisting}{}
+\begin{tsllisting}
 template A
 
 process psndrcv {
@@ -257,7 +257,7 @@ Controllable and uncontrollable task invocations introduce
 implicit pause locations on entry and return from the task.  In 
 the following example execution of process \src{p1} will consist 
 of three transitions.
-\begin{tsllisting}{}
+\begin{tsllisting}
 template A
   uint<16> x;
 
@@ -304,7 +304,7 @@ transition and are updated at the end of the transition.  Initial
 value of a wire is computed based on initial values of global 
 variables.
 
-\begin{tsllisting}{}
+\begin{tsllisting}
 template A
   uint<16> x = 0;
   wire uint<16> w = x + 1;
@@ -347,7 +347,7 @@ returning from the magic block.
 %satisfy all correctness conditions described in the following 
 %section, and not just magic block postconditions.
 
-\begin{tsllisting}{}
+\begin{tsllisting}
 template main
   task uncontrollable bool probe() {
     // Magic block with postcondition
@@ -369,7 +369,7 @@ For correctness conditions specified using goals (see
 Section~\ref{s:o:correctness}), the synthesis algorithm computes a 
 strategy for each goal; however the scheduling of strategies is 
 left to the user, i.e., the user decides when to execute each 
-strategy by assigning goals to magic blocks. \comment{TODO: I 
+strategy by assigning goals to magic blocks. \todo{TODO: I 
 still have not figured out the exact meaning of this construct.}
 
 %\section{Constraints on the environment}
@@ -383,7 +383,7 @@ and Verilog-style binary, octal, decimal and hexadecimal integer
 literals.  The exact number of bits can be specified for each 
 integer literal.  
 
-\begin{bnflisting}{}
+\begin{bnflisting}
 <intLit> := <decNumber>
           | [<width>] "'b"  <binNumber>
           | [<width>] "'sb" <binNumber>
@@ -397,7 +397,7 @@ integer literal.
 \end{bnflisting}
 
 Examples of integer literals:
-\begin{tsllisting}{}
+\begin{tsllisting}
 uint<8> x;
 sint<8> y;
 
@@ -418,7 +418,7 @@ does not perform automatic truncation or extension of integers.
 For example, the following assignment statement is invalid, as the 
 left and the right-hand sides of assignment have different width:
 
-\begin{tsllisting}{}
+\begin{tsllisting}
 uint<8> x = 0; // error: x has width 8, while
                // literal 0 has widt 1
 
@@ -440,7 +440,7 @@ in one of its parent scopes.  For example, simple identifier
 argument of the method, template-global variable, or a type or 
 constant declared in the template or top-level scope.
 
-\begin{bnflisting}{}
+\begin{bnflisting}
 <ident> := (<letter> | "_") (<letter> | <digit> | "_")*
 \end{bnflisting}
 
@@ -449,7 +449,7 @@ static objects declared within template scope.  They can be used
 to refer to static objects declared in templates other than the 
 local template.
 
-\begin{bnflisting}{}
+\begin{bnflisting}
 <staticIdent> := <ident> "::" <ident>
 \end{bnflisting}
 
@@ -458,14 +458,14 @@ be used to refer to runtime objects.  A dynamic identifier is a
 dot-separated sequence of literals that traverses the instance 
 tree (Section~\ref{s:o:templates}) via port and instance names:
 
-\begin{bnflisting}{}
+\begin{bnflisting}
 <dynIdent> := <ident> ["." <ident>]*
 \end{bnflisting}
 
 The following example illustrates the use of different types of 
 identifiers.
 
-\begin{tsllisting}{}
+\begin{tsllisting}
 template A
   typedef uint<16> word;
   export word x;
@@ -503,7 +503,7 @@ constant declarations.  The language currently supports arbitrary
 fixed-width signed and unsigned integers, booleans, enums, 
 structs, arrays, and pointers.
 
-\begin{bnflisting}{}
+\begin{bnflisting}
 <typeSpec>   := ( <sintType>    // signed int
                 | <uintType>    // unsigned int
                 | <boolType>    // boolean
@@ -544,7 +544,7 @@ Type expressions are subject to the following constraints:
 
 Examples of type expressions:
 
-\begin{tsllisting}{}
+\begin{tsllisting}
 typedef uint<16> t1;
 typedef sint<13> t2;
 typedef enum {e1, e2, e3} t3;
@@ -613,7 +613,7 @@ In addition, \tsl supports three kinds of conditional expressions:
 \src{if-else} expressions (or ternary expressions), 
 \src{case}-expressions, and \src{cond}-expressions.  
 
-\begin{bnflisting}{}
+\begin{bnflisting}
 <ternExp> := "if" <expr> <expr> "else" <expr>
 <caseExp> := "case" "(" <expr> ")" "{" (<expr> ":" <expr> ";")* 
                  (<expr> ":" <expr> ";")* 
@@ -634,7 +634,7 @@ described in Section~\ref{s:r:coniditional}.
 Finally, \tsl supports struct expressions with explicit or implicit 
 field names:
 
-\begin{bnflisting}{}
+\begin{bnflisting}
 <structExp>   := <staticIdent> "{" 
                      (<namedFields> | <anonFields>) 
                  "}"
@@ -672,14 +672,14 @@ following type and memory safety rules:
 Special expression \src{*} is used to generate non-deterministic 
 values of arbitrary type.  The exact type is derived from the 
 context, as illustrated in this example:
-\begin{tsllisting}{}
+\begin{tsllisting}
 x = *;  // Generate random value of the same type as x.
 f(*,*); // Generate random values that match argument 
         // types of f.
 \end{tsllisting}
 Note that \src{*} cannot be used as an atom in a bigger expression,
 for example, the following is not valid:
-\begin{tsllisting}{}
+\begin{tsllisting}
 x = * + 2; // Invalid use of *
 \end{tsllisting}
 
@@ -708,7 +708,7 @@ rules:
 
 Expression evaluation order matters in cases when expression 
 operands contain method calls, which may have side effects.  
-\comment{The following description reflects how the compiler works 
+\todo{The following description reflects how the compiler works 
 at the moment; however this behaviour is counter-intuitive and 
 should be fixed to be more C-like}.  All expression operands are 
 evaluated before the expression itself is evaluated.  In 
@@ -721,7 +721,7 @@ Statements are used to describe process behaviour and are used in
 process and method bodies and always-blocks 
 (Section~\ref{s:r:always}).
 
-\begin{bnflisting}{}
+\begin{bnflisting}
 <statement> := <varDecl>  // local var declaration
              | <sseq>     // sequential block
              | <spar>     // parallel blocks
@@ -753,7 +753,7 @@ the process, task, or always-block regardless of the exact
 location where it has been declared.  A variable declaration 
 consists of an optional \src{mem} qualifier, variable type and 
 name and optional initial assignment:
-\begin{bnflisting}{}
+\begin{bnflisting}
 <varDecl> := ["mem"] <typeSpec> <ident> ["=" <expr>]
 \end{bnflisting}
 The \src{mem} qualifier labels the variable as in-memory variable,
@@ -769,14 +769,14 @@ non-deterministically.
 \subsubsection{Sequential blocks} 
 
 C-style sequential blocks; nothing fancy here:
-\begin{bnflisting}{}
+\begin{bnflisting}
 <sseq> = "{" (<statement> ";")* "}"
 \end{bnflisting}
 
 \subsubsection{Parallel blocks}\label{s:r:fork}
 
 The \src{fork} construct is used to spawn several child processes.  
-\begin{bnflisting}{}
+\begin{bnflisting}
 <spar> := "fork" "{" 
                (<ident> ":" <statement> ";")*
           "}"
@@ -793,7 +793,7 @@ its last instruction) or a \src{stop} statement
 
 In the following example two dynamically spawned processes send 
 and receive data in an infinite loop.
-\begin{tsllisting}{}
+\begin{tsllisting}
 process psndrcv {
   fork {
     psend:    forever {
@@ -818,7 +818,7 @@ performed nondeterministically by the environment.  In contrast,
 in the following example, once both processes reach their final 
 control locations, the fork block terminates instantaneously, as 
 neither process can execute any more transitions:
-\begin{tsllisting}{}
+\begin{tsllisting}
 process psndrcv {
   fork {
     psend:    send();
@@ -832,7 +832,7 @@ process psndrcv {
 
 In addition to conventional do, while, and for loops, \tsl 
 supports forever loops, which are equivalent to \src{while(true)}.
-\begin{bnflisting}{}
+\begin{bnflisting}
 <sdo>      := "do" <statement> "while" "(" <expr> ")"
 <swhile>   := "while" "(" <expr> ")" <statement>
 <sfor>     := "for" "(" [<statement>] ";" 
@@ -852,7 +852,7 @@ continues until reaching a pause location inside the loop.  For
 example, in the following example, process \src{foo} executes two 
 transitions: (1) \src{x=16'd0; (x<1) == true; x=x+16'd1}, and 
 (2) \src{(x<1) == false; y=16'd0}.
-\begin{tsllisting}{}
+\begin{tsllisting}
 process foo {
     x = 16'd0;
     while (x < 1) {
@@ -870,7 +870,7 @@ the innermost.
 \subsubsection{Non-deterministic choice}  The \src{choice} construct 
 allows the environment to non-deterministically choose between
 two or more actions:
-\begin{bnflisting}{}
+\begin{bnflisting}
 <schoice> := "choice" "{"
                (<statement> ";")*
              "}"
@@ -882,7 +882,7 @@ two or more actions:
 (Section~\ref{s:o:execmodel}) in the control flow of a process or 
 method: \src{wait}, \src{pause}, and \src{stop}
 statements.
-\begin{bnflisting}{}
+\begin{bnflisting}
 <swait>  := "wait" "(" <expr> ")"
 <spause> := "pause"
 <sstop>  := "stop"
@@ -904,7 +904,7 @@ current process state as final (Section~\ref{s:r:fork}).
 An assertion behaves as a no-op if its argument evaluates to true, 
 and causes a transition to an error
 state otherwise.
-\begin{bnflisting}{}
+\begin{bnflisting}
 <sassert> := "assert" "(" <expr> ")"
 \end{bnflisting}
 The argument of an \src{assert} statement must be a 
@@ -912,7 +912,7 @@ side-effect-free expression.
 
 \subsubsection{Assumptions}  
 
-\begin{bnflisting}{}
+\begin{bnflisting}
 <sassume> := "assume" "(" <expr> ")"
 \end{bnflisting}
 
@@ -926,7 +926,7 @@ assumption.
 Assumptions are particularly useful in imposing restrictions on 
 randomly generated values, as illustrated by the following 
 example.
-\begin{tsllisting}{}
+\begin{tsllisting}
 // assign random values for stopbits and data vars
 stopbits  = *;
 data      = *;
@@ -947,7 +947,7 @@ case (data) {
 
 \tsl supports C-style \src{if-else} statements and \src{case} 
 statements:
-\begin{bnflisting}{}
+\begin{bnflisting}
 <site>  := "if" "(" <expr> ")" <statement>
              ["else" <statement>]
 <scase> := "case" "(" <expr> ")" "{"
@@ -971,7 +971,7 @@ Method invocations can occur as atoms in expressions as well as
 standalone statements.  Method name is a hierarchical identifier 
 that refers either to a method declared in the local template or 
 exported from another template.
-\begin{bnflisting}{}
+\begin{bnflisting}
 <sinvoke> := <dynIdent> "(" [<expr> [("," <expr>)*]] ")"
 \end{bnflisting}
 Method arguments must match the number and types of formal 
@@ -980,7 +980,7 @@ arguments~\ref{s:r:method} must be L-expressions~\ref{s:r:lexpr}.
 
 \subsubsection{Assignment statements}
 
-\begin{bnflisting}{}
+\begin{bnflisting}
 <sassign> := <expr> "=" <expr>
 \end{bnflisting}
 
@@ -991,7 +991,7 @@ and width for integer types.
 
 \subsubsection{Return statements}\label{s:r:return}
 
-\begin{bnflisting}{}
+\begin{bnflisting}
 <sreturn> := "return" [<expr>]
 \end{bnflisting}
 
@@ -1012,7 +1012,7 @@ beginning of the next transition performed by the process.
 
 \subsubsection{Magic blocks}
 
-\begin{bnflisting}{}
+\begin{bnflisting}
 <smagic> := "{" "..." "}" ("using" <ident> | "post" <detexpr>)
 \end{bnflisting}
 
@@ -1023,7 +1023,7 @@ See section~\ref{s:o:magic}.
 A \tsl file consists of \emph{import} statements, type 
 declarations, constant declarations, and template declarations.
 
-\begin{bnflisting}{}
+\begin{bnflisting}
 <tslFile>  := <specItem>*
 <specItem> := <import>
            |  <typeDecl>
@@ -1038,7 +1038,7 @@ single specification.  They are only allowed in the top-level
 syntactic scope, i.e., they are illegal inside template of type 
 declarations.  An import statement consists of the \src{import} 
 keyword followed by file path in angle brackets:
-\begin{tsllisting}{}
+\begin{tsllisting}
 import<ide_dev.tsl>
 import<os/ide_tsl2/l4_ide.tsl>
 import<../../os/ide_tsl2/ide_class.tsl>
@@ -1052,7 +1052,7 @@ file with this name is found.
 Type declarations can be placed in the top-level scope or in a
 template scope.
 
-\begin{bnflisting}{}
+\begin{bnflisting}
 <typeDecl> := "typedef" <typeSpec> <ident>
 \end{bnflisting}
 
@@ -1062,13 +1062,13 @@ Constant declarations can be placed in the top-level scope or in a
 template scope.  The value of a constant is an expression that can
 be evaluated at compile time.
 
-\begin{bnflisting}{}
+\begin{bnflisting}
 <const> := "const" <typeSpec> <ident> "=" <expr>
 \end{bnflisting}
 
 Examples:
 
-\begin{tsllisting}{}
+\begin{tsllisting}
 typedef struct {bool f1; uint<16> f2;} stype;
 
 const bool     b = true;
@@ -1082,7 +1082,7 @@ const stype    s = stype {.f1 = b, .f2 = u};
 Templates must be declared within the top-level scope, i.e., 
 nested template declarations are not allowed.  Template 
 declaration has the following syntax:
-\begin{bnflisting}{}
+\begin{bnflisting}
 <template> := "template" <ident> [(<portDeclarations>)]
                   (<templateItem> ";")*
               "endtemplate"
@@ -1118,7 +1118,7 @@ variables (Section~\ref{s:r:localvar}) with the optional
 \src{export} qualifier that indicates that the variable can be 
 accessed from outside the template:
 
-\begin{bnflisting}{}
+\begin{bnflisting}
 <gvarDecl> := ["export"] <varDecl>
 \end{bnflisting}
 
@@ -1131,7 +1131,7 @@ be further constrained by \src{init} blocks, as described below.
 
 An \src{init} block defines a constraint over initial assignment 
 of global veriables.
-\begin{bnflisting}{}
+\begin{bnflisting}
 <initBlock> := "init" <expr>
 \end{bnflisting}
 The body of an \src{init} block is a boolean expression over 
@@ -1140,7 +1140,7 @@ variables exported from other templates.
 
 The following example constrains initial values of 
 \src{config\_in\_progress} and \src{sendq\_head} variables:
-\begin{tsllisting}{}
+\begin{tsllisting}
 template linux_uart_drv(uart_dev dev)
     bool config_in_progress;
     uint<16> sendq_head;
@@ -1150,7 +1150,7 @@ endtemplate
 \end{tsllisting}
 Note that the same result can be achieved using initial variable 
 assignments:
-\begin{tsllisting}{}
+\begin{tsllisting}
 template linux_uart_drv(uart_dev dev)
     bool config_in_progress = true;
     uint<16> sendq_head = 16'd0;
@@ -1160,7 +1160,7 @@ In general, however, \src{init} blocks are a more general
 mechanism for constraining initial state, for example the 
 following condition cannot be captures using initial variable 
 assignments:
-\begin{tsllisting}{}
+\begin{tsllisting}
 template linux_uart_drv(uart_dev dev)
     init (config_in_progress == true) ||
          (sendq_head == 16'd0);
@@ -1172,7 +1172,7 @@ A template can contain multiple \src{init} blocks.  In using
 blocks do not contradict each other and initial variable 
 assignments, leading to an empty initial set, as in the following 
 example:
-\begin{tsllisting}{}
+\begin{tsllisting}
 template linux_uart_drv(uart_dev dev)
     bool config_in_progress = true;
     init config_in_progress == false;
@@ -1187,7 +1187,7 @@ low-level mechanism that allows implementing certain behaviours
 that are tricky to achieve without it.  It should be used with 
 care and should probably be hidden behind syntactic sugar.
 
-\begin{bnflisting}{}
+\begin{bnflisting}
 <always> := "always" <statement>
 \end{bnflisting}
 
@@ -1195,7 +1195,7 @@ care and should probably be hidden behind syntactic sugar.
 
 See Section~\ref{s:o:execmodel}.
 
-\begin{bnflisting}{}
+\begin{bnflisting}
 <processDecl> := "process" <ident> <statement>
 \end{bnflisting}
 
@@ -1215,7 +1215,7 @@ A method declaration consists of
     \item method body
 \end{itemize}
 
-\begin{bnflisting}{}
+\begin{bnflisting}
 <methodDecl> := ["export"]               // Exported method?
                 <methCateg>              // Method category
                 ("void" | <typeSpec>)       // Return type
@@ -1252,9 +1252,9 @@ argument at the beginning of the next transition performed by the
 process after the implicit pause location following the return 
 statement (Section~\ref{s:r:return}).
 
-\subsubsubsection{Method body}
+\paragraph{Method body}
 
-\comment{The method overriding mechanism described in this section 
+\todo{The method overriding mechanism described in this section 
 is probably too complex and not very useful in practice.  We will 
 most likely simplify it by getting rid of \src{before} and \src{after}
 constructs.}
@@ -1309,7 +1309,7 @@ Algorithm~\ref{a:method}.  The following examples illustrate the algorithm.
     \caption{}\label{a:method}
 \end{algorithm}
 
-\begin{tsllisting}{}
+\begin{tsllisting}
 // global variable
 bool x;
 
@@ -1337,7 +1337,7 @@ procedure void p(uint<16> arg)
 };
 \end{tsllisting}
 
-\begin{tsllisting}{}
+\begin{tsllisting}
 // parent declaration
 procedure void p(uint<16> arg)
 before{ 
@@ -1367,7 +1367,7 @@ after{
 
 \subsubsection{Goals}
 
-\begin{bnflisting}{}
+\begin{bnflisting}
 <goalDecl> := "goal" <ident> "=" <expr>
 \end{bnflisting}
 
@@ -1378,7 +1378,7 @@ See Section~\ref{s:o:correctness}.
 Wire declaration (Section~\ref{s:o:variables}) consists of wire 
 type, wire name, and optional wire expression.  
 
-\begin{bnflisting}{}
+\begin{bnflisting}
 <wire> := ["export"] "wire" <typeSpec> <ident> ["=" <expr>]
 \end{bnflisting}
 
