@@ -720,6 +720,52 @@ The state space $V$ of the abstract game is defined as $V = \mathbb{B}^n$, where
 
 \subsection{Approximate Three Valued Abstraction Refinement}
 
+The abstraction-refinement scheme described in Section \ref{sec:three_val_abs_ref} is very general. It makes the assumption that both of the controllable predecessors, $\cprem$ and $\cpreM$, can be computed precisely and efficiently.
+
+Following \cite{three_val_abs_ref}, we modify the algorithm to work on approximate versions of the controllable predecessor operators, $\cpremp \text{and} \cpreMm :: 2^V \rightarrow 2^V$. We require that, for all $U \subseteq V$ we have:
+
+\begin{equation}
+\cprem \subseteq \cpremp
+\end{equation}
+
+\noindent and
+
+\begin{equation}
+\cpreMm \subseteq \cpreM
+\end{equation}
+
+With these operators we create a new approximate abstraction-refinement scheme given in Algorithm \ref{alg:approx_three_val}.
+
+\begin{algorithm}
+\caption{Approximate three-valued abstraction-refinement}
+\label{alg:generic}
+
+\begin{algorithmic}[1]
+
+\Require {\bf Input:} A game structure $G = \langle S, L, I, \tau_1, \tau_2, \delta \rangle$, a set 
+of target states $T\subseteq S$, and an initial abstraction $\alpha=\langle V, \concrete{}, Cpre_1^{m+}, Cpre_1^{M-} \rangle$
+that is precise for $T$, $I$, and $\tau_i$.
+
+\Ensure {\bf Output:} {\it Yes} if $I \subseteq \reach(T, Cpre_1)$, and {\it No} otherwise.
+
+\Function{Solve}{$transitionRelation$, $goal$}
+    \Loop
+        \State $W^M \gets \reach(\abstractM{T}, Cpre_1^{M-})$
+        \State $W^m \gets \reach(\abstractm{T}, Cpre_1^{m+})$
+        \If{$\abstractM{I} \subseteq W^M$} \Return Yes
+        \ElsIf{$\abstractM{I} \nsubseteq W^m$} \Return No
+        \Else       
+            \State $refined \gets \Call{refineCpre}{W^M}$
+            \State \algorithmicif{} {$(\neg refined)$}
+                $\Call{refineAbstraction}{W^M}$
+            \algorithmicend \algorithmicif
+        \EndIf
+    \EndLoop
+\EndFunction
+
+\end{algorithmic}
+\end{algorithm}
+
 \begin{figure}
 \centering
 \includegraphics[width=0.85\linewidth]{imgs/approxThreeValue.pdf}
