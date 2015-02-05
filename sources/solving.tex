@@ -721,9 +721,25 @@ The state space $V$ of the abstract game is defined as $V = \mathbb{B}^n$, where
 
 \subsection{Approximate Three Valued Abstraction Refinement}
 
+\subsubsection{Motivation}
 The abstraction-refinement scheme described in Section \ref{sec:three_val_abs_ref} is very general. It makes the assumption that both of the controllable predecessors, $\cprem$ and $\cpreM$, can be computed precisely and efficiently.
 
-Following \cite{three_val_abs_ref}, we modify the algorithm to work on approximate versions of the controllable predecessor operators, $\cpremp \text{ and} \cpreMm :: 2^V \rightarrow 2^V$. We require that, for all $U \subseteq V$ we have:
+While it was straightforward to compute them when performing variable abstraction on a boolean game, it is not clear that they can be computed efficiently when performing predicate abstraction.
+
+\begin{ex}
+    \everymath{\mathtt{\xdef\tmp{\fam\the\fam\relax}\aftergroup\tmp}}
+    \everydisplay{\mathtt{\xdef\tmp{\fam\the\fam\relax}\aftergroup\tmp}}
+    Consider the label abstraction induced by abstract variables $\lambda_1$ and $\lambda_2$ and the corresponding label predicates $\|\lambda_1\| = (val=req)$ and $\|\lambda_2\| = (val=5)$.
+
+    When performing variable abstraction, we would have treated $\lambda_1$ and $\lambda_2$ as independent variables. Each player was able to set them to any value in any state. However, when performing predicate abstraction, they are not independent, as they share the $val$ variable. Suppose player~1 tries to set them both to true. This can only be performed when $req=5$. This additional state predicate is needed to keep track of which label predicate combinations are valid.
+    \qed
+\end{ex}
+
+This is jut one of the potential pitfalls of handling predicate abstraction in the same way as variable abstraction. The goal of the following sections is to apply the machinery developed in the proceeding sections to predicate abstraction, so we must identify these pitfalls and take them into account.
+
+\subsubsection{Algorithm}
+
+Following \cite{three_val_abs_ref}, we modify the algorithm to work on approximate versions of the controllable predecessor operators, $\cpremp \text{ and} \cpreMm :: 2^V \rightarrow 2^V$. In the following sections we will show how to efficiently compute these operators. We require that, for all $U \subseteq V$ we have:
 
 \begin{figure}
 \centering
