@@ -721,6 +721,8 @@ The state space $V$ of the abstract game is defined as $V = \mathbb{B}^n$, where
 
 \subsection{Approximate Three Valued Abstraction Refinement}
 
+The goal of the following sections is to apply the machinery developed in the previous sections for variable abstraction to predicate abstraction. There are several pitfalls, so we must identify these pitfalls and take them into account.
+
 \subsubsection{Motivation}
 The abstraction-refinement scheme described in Section \ref{sec:three_val_abs_ref} is very general. It makes the assumption that both of the controllable predecessors, $\cprem$ and $\cpreM$, can be computed precisely and efficiently.
 
@@ -735,11 +737,15 @@ While it was straightforward to compute them when performing variable abstractio
     \qed
 \end{ex}
 
-This is jut one of the potential pitfalls of handling predicate abstraction in the same way as variable abstraction. The goal of the following sections is to apply the machinery developed in the proceeding sections to predicate abstraction, so we must identify these pitfalls and take them into account.
+This is just one of the potential pitfalls of handling predicate abstraction in the same way as variable abstraction. 
 
 \subsubsection{Algorithm}
 
-Following \cite{three_val_abs_ref}, we modify the algorithm to work on approximate versions of the controllable predecessor operators, $\cpremp \text{ and} \cpreMm :: 2^V \rightarrow 2^V$. In the following sections we will show how to efficiently compute these operators. We require that, for all $U \subseteq V$ we have:
+Following \cite{three_val_abs_ref}, we modify the algorithm to work on approximate versions of the controllable predecessor operators, $\cpremp$ and $\cpreMm :: 2^V \rightarrow 2^V$. In the following sections we will show how to efficiently compute these operators using techniques similar to variable abstraction. 
+
+We lose precision when approximating the controllable predecessors, just as we do when approximating the state space with standard three valued abstraction-refinement. Thus, we need to introduce another form of refinement. This form of refinement refines the controllable predecessor operators themselves. This process is shown graphically in Figure \ref{fig:approx_three_val_overview}. Conceptually, refining the controllable predecessors shrinks the gap between $\cpreM$ and $\cpreMm$ or the gap between $\cprem$ and $\cpremp$. We also perform refinement of the abstraction as before.
+
+We require that, for all $U \subseteq V$ we have:
 
 \begin{figure}
 \centering
@@ -761,7 +767,7 @@ Following \cite{three_val_abs_ref}, we modify the algorithm to work on approxima
 \cpreMm \subseteq \cpreM
 \end{equation}
 
-With these operators we create a new approximate abstraction-refinement scheme given in Algorithm \ref{alg:approx_three_val}. A graphical overview of the algorithm is given in Figure \ref{fig:approx_three_val_overview}.
+With these operators we create a new approximate abstraction-refinement scheme given in Algorithm \ref{alg:approx_three_val}. 
 
 \begin{algorithm}
 \caption{Approximate three-valued abstraction-refinement}
