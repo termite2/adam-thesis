@@ -879,13 +879,15 @@ This syntactically computed transition relation contains two sources of imprecis
 
 We formalise this by introducing \emph{consistency relations} $C^m$ and $C^M$ that over- and under-approximate available abstract labels.  A state-untracked-label tuple $\langle v,u,l\rangle$ is \emph{may-consistent} if the abstract label $l$ is available in \emph{at least one} concrete state consistent with $v$ and $u$:
 
-\begin{equation} \label{e:Cm}
+\begin{equation} 
+    \label{eqn:cm}
     C^m(v,u,l) = \exists X,Y. \|\vect{\sigma}\|=v \land \|\vect{\omega}\|=u \land \|\vect{\lambda}\|=l.
 \end{equation}
 
 The tuple $\langle v,u,l\rangle$ is \emph{must-consistent} if $l$ is available in \emph{any} concrete state consistent with $v$ and $u$:
 
 \begin{equation}
+    \label{eqn:cM}
     C^M(v,u,l) = \forall X . ((\|\vect{\sigma}\|=v \land \|\vect{\omega}\|=u) \rightarrow \exists Y.  \|\vect{\lambda}\|=l)
 \end{equation}
 
@@ -1237,7 +1239,7 @@ If there exists a finite region algebra $\mathcal{A}$ such that all abstractions
 
 Let $W^M$ and $\hat{W}^M$ be must-winning sets computed at two subsequent iterations of Algorithm~\ref{alg:generic}.  
 
-We first show that refinement procedures \textsc{refineCpre} and \textsc{refineAbstraction} guarantee that the must-winning set computed at every iteration of the refinement loop grows monotonically, i.e., $\concrete{W^M} \subseteq \concrete{\hat{W}^M}$.  This followsfrom the soundness of the refinement procedures, which improve the precision of $Cpre_i^{M-}$ at every iteration. 
+We first show that refinement procedures \textsc{refineCpre} and \textsc{refineAbstraction} guarantee that the must-winning set computed at every iteration of the refinement loop grows monotonically, i.e., $\concrete{W^M} \subseteq \concrete{\hat{W}^M}$.  This follows from the soundness of the refinement procedures, which improve the precision of $Cpre_i^{M-}$ at every iteration. 
 
 Next we show that the algorithm is guaranteed to make forward progress, i.e., after a finite number of refinements it either terminates or discovers new must-winning states ($\concrete{W^M} \subset \concrete{\hat{W}^M}$).  Consider the consistency refinement procedure \textsc{refineCpre} first.  Every invocation of this procedure classifies some of the untracked substates at the may/must boundary as either must-winning or must-losing (see Figure~\ref{f:crefinement}).  Eventually, it will either classify all boundary states as must-losing, in which case $\concrete{W^m} = W = \concrete{W^M}$, and the algorithm terminates, or find at least one must-winning sub-state (as in Figures~\ref{f:crefinement}c and~\ref{f:crefinement}d).  In the latter case, a subsequent invocation of the abstraction refinement procedure \textsc{refineAbstraction} is guaranteed to partition one of the boundary states so that one of the resulting abstract states is must-winning.  This state will be discovered at the next run of the reachability algorithm, thus expanding the must-winning set.
 
@@ -1249,75 +1251,48 @@ The theory of fixed-size bit vectors supported by our current implementation sat
 
 \subsection{Enabling Variables}
 
-Algorithm~\ref{alg:refineCpre} has an important performance issue: 
-in lines~10--16 it analyses and adds to $C^{M-}$ a single abstract 
-label $l$.  The set of all abstract labels is exponential in size 
-in the number of label predicates and can be very large in 
-practice, making explicit enumeration infeasible.  We therefore 
-modify the algorithm to handle a set of abstract labels at every 
-iteration.  To this end, in line~7, instead of choosing a complete 
-assignment to state, untracked, and label predicates, we compute a 
-\emph{prime implicant} of set $T$, i.e., an assignment to a subset 
-of variables in $\vect{\sigma}\cup\vect{\omega}\cup\vect{\lambda}$ 
-such that any extension of this assignment to the remaining 
-variables satisfies $T$:
-$$\langle v,u,l\rangle \gets \textsc{primeImplicant}(T),$$
-where $v$, $u$, and $l$ are partial valuations of abstract 
-variables, which compactly represent a potentially large set of 
-abstract transitions.  In practice, we typically discover prime 
-implicants that only constrain few of the abstract variables, 
-meaning that other predicates are irrelevant for the outcome of 
-the transition.  
+Algorithm~\ref{alg:refineCpre} has two important performance issues: 
 
-%Next, we modify lines~9 and 14 to 
+\begin{ex}
+    Consider an abstraction of the running example game induced by abstract variable $\sigma_1$ with corresponding predicate $\|\sigma_1\| = (req=dat)$ as well as the abstract label variable $\lambda_1$ with corresponding predicate $\|\lambda_1\| = (val=req)$. There are no untracked variables.
 
+    Our must consistency constraint, $C^{M-}$, is a relation over the variables $\sigma_1$ and $\lambda_1$. For example, the tuple $v=(true), l=(true)$ is must consistent because it is always possible to assert $\lambda_1=true$ when $\sigma_1=true$ by choosing $val$ appropriately.
 
-Given this modification, the $C^{m+}$ refinement case of the 
-algorithm (lines~18--19) is still correct and does not require any 
-changes.  However, changes are needed in the $C^{M-}$ refinement 
-logic.  The set $A$ computed in lines~10--1 contains all
-concrete states where \emph{at least one} abstract label from the 
-set characterised by the partial assignment $l$ of label 
-predicates is available.  It does not guarantee the availability 
-of any particular label from this set.  To model this constraint, we would have 
-to change $C^{M-}$ to be a relation over sets of labels.  Every 
-element of the relation would describe a set of labels, one of 
-which is guaranteed to be available for the given state and 
-untracked predicate assignment.  
+    Suppose, when computing the update function for some variable that has just been promoted we introduce the abstract untracked variable $\omega_2$ with corresponding predicate $\|\omega_2\| = (req=5)$. This partitions each sub-state into two. The definition of $C^{M-}$ (Equation \ref{eqn:cM}) ensures that if a label is must consistent in a given state before the variable promotion then it will be must consistent in each sub-state after the promotion. In this example, the tuples $v=(true), u=(false), l=(true)$ and $v=(true), u=(true), l=(true)$ are both must consistent. Notice that, if we are symbolically representing $C^{M-}$, then the new $C^{M-}$ does not depend on the newly introduced untracked variable. Thus, we may keep the same $C^{M-}$ from before the promotion.
 
-This introduces a new form of imprecision to the consistency 
-relation: rather than categorising each abstract label as 
-available or unavailable in the given state, we record a set of 
-labels, one of which is available.  However, such a relation would 
-be hard to represent and manipulate efficiently in the symbolic 
-form.  Therefore, we propose a different approach that allows 
-symbolic implementation.  
+    The situation is not so good for promotions that introduce new label variables. We cannot simply reuse $C^{M-}$ from before the variable promotion as we do for untracked variables. Consider what happens when, continuing on from before, we add $\lambda_2$ with corresponding predicate $\|\lambda_2\| = (val=5)$. The tuple $v=(true), u=(true), l=(true)$ is must consistent. Extending the tuple to $v=(true), u=(true), l=(true, true)$ is fine, but $v=(true), u=(true), l=(true, false)$ is not. The latter tuple is not must-consistent. Therefore, we may not simply reuse $C^{M-}$ as in the case where an untracked variable is added. 
 
-We transform the game (without changing its winning set) in order 
-to solve it more efficiently.  The idea of our solution is to 
-model the new form of imprecision as non-determinism in the 
-abstract transition relation $\Delta$.  For each abstract label 
-variable $\lambda_i$, we introduce an auxiliary \emph{enabling 
-variable} $\varepsilon_i$ and transform the transition relation 
-$\Delta$ as follows:
-$$\Delta \gets (\varepsilon_i \land \Delta) \lor (\overline{\varepsilon_i} \land \exists \lambda_i. \Delta).$$
-When $\varepsilon_i=true$, $\Delta$ behaves exactly as before.  In 
-case $\varepsilon_i=false$, the value of $\lambda_i$ chosen by the 
-player is ignored and the environment non-deterministically 
-selects next-state variables assignment that is consistent with 
-\emph{some} assignment of $\lambda_i$. 
+    We can rebuild $C^{M-}$ by considering all possible tuples with the additional label. In this case as there are few variables this would work and we would discover that the second tuple above is not part of $C^{M-}$. However, when there are more variables this is infeasible. We resort to resetting $C^{M-}$ to $false$ when a new label variable is added and incrementally rebuilding $C^{M-}$ lazily as before.
 
-We can now modify line~16 of Algorithm~\ref{alg:refineCpre} as 
-follows:
+    \qed
+\end{ex}
+
+\begin{itemize}
+
+    \item Every time an untracked variable is promoted, if a new label variable is created in the process, $C^{M-}$ must be reset to False.
+
+    \item In lines~10--16 it analyses and adds to $C^{M-}$ a single abstract label $l$.  The set of all abstract labels is exponential in size in the number of label predicates and can be very large in practice, making explicit enumeration infeasible.  
+
+\end{itemize}
+
+To address the first issue, we modify the algorithm to handle a set of abstract labels at every iteration.  To this end, in line~7, instead of choosing a complete assignment to state, untracked, and label predicates, we compute a \emph{prime implicant} of set $T$, i.e., an assignment to a subset of variables in $\vect{\sigma}\cup\vect{\omega}\cup\vect{\lambda}$ such that any extension of this assignment to the remaining variables satisfies $T$: 
+$$
+\langle v,u,l\rangle \gets \textsc{primeImplicant}(T),
+$$ 
+where $v$, $u$, and $l$ are partial valuations of abstract variables, which compactly represent a potentially large set of abstract transitions.  In practice, we typically discover prime implicants that only constrain few of the abstract variables, meaning that other predicates are irrelevant for the outcome of the transition.  
+
+Given this modification, the $C^{m+}$ refinement case of the algorithm (lines~18--19) is still correct and does not require any changes.  However, changes are needed in the $C^{M-}$ refinement logic.  The set $A$ computed in lines~10--1 contains allconcrete states where \emph{at least one} abstract label from the set characterised by the partial assignment $l$ of label predicates is available.  It does not guarantee the availability of any particular label from this set.  To model this constraint, we would have to change $C^{M-}$ to be a relation over sets of labels.  Every element of the relation would describe a set of labels, one of which is guaranteed to be available for the given state and untracked predicate assignment.  
+
+This introduces a new form of imprecision to the consistency relation: rather than categorising each abstract label as available or unavailable in the given state, we record a set of labels, one of which is available.  However, such a relation would be hard to represent and manipulate efficiently in the symbolic form.  Therefore, we propose a different approach that allows symbolic implementation.  
+
+We transform the game (without changing its winning set) in order to solve it more efficiently.  The idea of our solution is to model the new form of imprecision as non-determinism in the abstract transition relation $\Delta$.  For each abstract label variable $\lambda_i$, we introduce an auxiliary \emph{enabling variable} $\varepsilon_i$ and transform the transition relation $\Delta$ as follows:
+$$
+\Delta \gets (\varepsilon_i \land \Delta) \lor (\overline{\varepsilon_i} \land \exists \lambda_i. \Delta).
+$$
+When $\varepsilon_i=true$, $\Delta$ behaves exactly as before.  In case $\varepsilon_i=false$, the value of $\lambda_i$ chosen by the player is ignored and the environment non-deterministically selects next-state variables assignment that is consistent with \emph{some} assignment of $\lambda_i$. 
+
+We can now modify line~16 of Algorithm~\ref{alg:refineCpre} as follows:
 $$
 C^{M-} \gets C^{M-} \lor (\hat{A}\land \bigwedge_{i\in{j_1\ldots j_p}}\lambda_i=l_i \land \bigwedge_{i\not\in{j_1\ldots j_p}}\varepsilon_i=false),
 $$
-where $j_1\ldots j_p$ are indices of variables assigned by $l$.  
-The above statement refines $C^{M-}$ by allowing the player to 
-assign a subset of label variables in accordance with $l$ and
-disabling other label variables not constrained by $l$.  The 
-environment will non-deterministically pick arbitrary values for 
-these variables.  In this way we precisely capture what we 
-currently know about consistent predicate assignments in a
-a symbolic form, at the cost of introducing extra variables 
-$\varepsilon_i$.
+where $j_1\ldots j_p$ are indices of variables assigned by $l$.  The above statement refines $C^{M-}$ by allowing the player to assign a subset of label variables in accordance with $l$ anddisabling other label variables not constrained by $l$.  The environment will non-deterministically pick arbitrary values for these variables.  In this way we precisely capture what we currently know about consistent predicate assignments in aa symbolic form, at the cost of introducing extra variables $\varepsilon_i$.
