@@ -719,11 +719,11 @@ The state space $V$ of the abstract game is defined as $V = \mathbb{B}^n$, where
     \end{tabular}
 \end{figure}
 
-\subsection{Approximate Three Valued Abstraction Refinement}
+\section{Approximate Three Valued Abstraction Refinement}
 
 The goal of the following sections is to apply the machinery developed in the previous sections for variable abstraction to predicate abstraction. There are several pitfalls, so we must identify these pitfalls and take them into account.
 
-\subsubsection{Motivation}
+\subsection{Motivation}
 The abstraction-refinement scheme described in Section \ref{sec:three_val_abs_ref} is very general. It makes the assumption that both of the controllable predecessors, $\cprem$ and $\cpreM$, can be computed precisely and efficiently.
 
 While it was straightforward to compute them when performing variable abstraction on a boolean game, it is not clear that they can be computed efficiently when performing predicate abstraction.
@@ -739,7 +739,7 @@ While it was straightforward to compute them when performing variable abstractio
 
 This is just one of the potential pitfalls of handling predicate abstraction in the same way as variable abstraction. 
 
-\subsubsection{Algorithm}
+\subsection{Algorithm}
 
 Following \cite{three_val_abs_ref}, we modify the algorithm to work on approximate versions of the controllable predecessor operators, $\cpremp$ and $\cpreMm :: 2^V \rightarrow 2^V$. In the following sections we will show how to efficiently compute these operators using techniques similar to variable abstraction. 
 
@@ -799,7 +799,7 @@ that is precise for $T$, $I$, and $\tau_i$.
 \end{algorithmic}
 \end{algorithm}
 
-\subsubsection{Correctness}
+\subsection{Correctness}
 
 If the algorithm terminates then it returns the correct answer. By equations \ref{eqn:cpre_p1} and \ref{eqn:cpre_p2}, 
 
@@ -821,9 +821,11 @@ If the algorithm terminates then it returns the correct answer. By equations \re
 
 Thus, if we terminate on lines \ref{alg:atv:t1} or \ref{alg:atv:t2} then we terminate with the right answer.
 
-\subsubsection{Termination}
+\subsection{Termination}
 
 \todo{Do I just handwave? I need some properties of refineCpre and refineAbstraction}
+
+\section{Abstraction-Refinement for Predicate abstraction}
 
 \subsection{Initial Abstraction}
 
@@ -1103,7 +1105,7 @@ Note that in the special case when, after performing consistency refinement, all
 
 For this reason, Algorithm~\ref{alg:generic} recomputes $W^M$ and $W^m$ after each successful consistency refinement, and only calls \textsc{refineAbstraction} once no more consistency refinements are possible.
 
-\subsubsection{Algorithm}
+\subsection{Algorithm}
 
 Algorithm~\ref{alg:refineCpre} shows the pseudocode of \textsc{refineCpre}.  Lines~3--6 compute the set of candidate tuples $\langle v, u, l\rangle\in C^m\setminus C^M$.  Note that for player~$i$ states we consider may-consistent transition to $W^M$, whereas for player~$\overline{i}$ states we consider spoiling transitions to $V\setminus W^M$.
 
@@ -1249,7 +1251,7 @@ Since, by the assumption of the theorem, all must-winning sets $W^M$ generated b
 
 The theory of fixed-size bit vectors supported by our current implementation satisfies the premise of Theorem~\ref{t:termination}, which guarantees the termination of the algorithm.
 
-\subsection{Enabling Variables}
+\section{Optimisation}
 
 Algorithm~\ref{alg:refineCpre} has two important performance issues: 
 
