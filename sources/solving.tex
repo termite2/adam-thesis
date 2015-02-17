@@ -825,7 +825,7 @@ Thus, if we terminate on lines \ref{alg:atv:t1} or \ref{alg:atv:t2} then we term
 
 \todo{Do I just handwave? I need some properties of refineCpre and refineAbstraction}
 
-\section{Abstraction-Refinement for Predicate abstraction}
+\section{Abstraction-Refinement for Predicate Abstraction}
 
 \subsection{Initial Abstraction}
 
@@ -846,7 +846,7 @@ We obtain the initial abstraction by extracting atomic predicates from expressio
 %transition relation $\Delta$.  Finally, we assign $C^{m+}=\top$ 
 %and $C^{M-}=\bot$.
 
-\subsection{Abstract controllable predecessors}
+\subsection{Abstract Transition Relations}
 \label{s:cpre}
 
 Following the three-valued algorithm presented in Section~\ref{sec:three_val_abs_ref}, we would like to find an efficient way to compute over- and under-approximations $Cpre^{m+}$ and $Cpre^{M-}$ of the abstract controllable predecessor operators. Recall that computing $Cpre^m$ and $Cpre^M$ precisely is expensive, as it requires applying the controllable predecessor operator to the concrete transition relation $\delta$. We approximate this costly computation by computing the controllable predecessor over the \emph{abstract transition relation} instead. The abstract transition relation of the game is defined over boolean predicate variables and therefore can be manipulated much more efficiently than the concrete one.
@@ -877,7 +877,14 @@ $$
 \vect{\sigma}'=\Delta(\vect{\sigma},\vect{\omega},\vect{\lambda})
 $$
 
-This syntactically computed transition relation contains two sources of imprecision.  First, untracked variables $\vect{\omega}$ are not part of the abstract state space $\Sigma$ and are therefore treated as external inputs.  Second, not all abstract labels  are available in all abstract states and hence not all transitions in $\Delta$ correspond to a feasible concrete transition.  For example, given the set of predicates shown in Figure~\ref{f:ex}d, the abstract label $\lambda_1 = true, \lambda_2 = true$ is only available in concrete states that satisfy the condition $req=5$.  In general, given a state-untracked-label tuple $\langle v,u,l\rangle$, the abstract label $l$ may be available in all, some, or none of the concrete states consistent with $v$ and $u$.  
+This syntactically computed transition relation contains two sources of imprecision.  
+
+\begin{itemize}
+    \item First, untracked variables $\vect{\omega}$ are not part of the abstract state space $\Sigma$ and are therefore treated as external inputs.  
+    \item Second, not all abstract labels  are available in all abstract states and hence not all transitions in $\Delta$ correspond to a feasible concrete transition.  For example, given the set of predicates shown in Figure~\ref{f:ex}d, the abstract label $\lambda_1 = true, \lambda_2 = true$ is only available in concrete states that satisfy the condition $req=5$.  In general, given a state-untracked-label tuple $\langle v,u,l\rangle$, the abstract label $l$ may be available in all, some, or none of the concrete states consistent with $v$ and $u$.  
+\end{itemize}
+
+\subsection{Consistency Relations}
 
 We formalise this by introducing \emph{consistency relations} $C^m$ and $C^M$ that over- and under-approximate available abstract labels.  A state-untracked-label tuple $\langle v,u,l\rangle$ is \emph{may-consistent} if the abstract label $l$ is available in \emph{at least one} concrete state consistent with $v$ and $u$:
 
@@ -893,7 +900,17 @@ The tuple $\langle v,u,l\rangle$ is \emph{must-consistent} if $l$ is available i
     C^M(v,u,l) = \forall X . ((\|\vect{\sigma}\|=v \land \|\vect{\omega}\|=u) \rightarrow \exists Y.  \|\vect{\lambda}\|=l)
 \end{equation}
 
-Computing $C^m$ and $C^M$ can be prohibitively expensive.  Therefore we use approximations $C^{m+}$ and $C^{M-}$ such that $C^m\subseteq C^{m+}$ and $C^{M-}\subseteq C^M$.  Initially we assign $C^{m+}=\top$ and $C^{M-}=\bot$.  Approximations are refined lazily as part of the abstraction refinement process, as explained below.
+Computing $C^m$ and $C^M$ can be prohibitively expensive.  Therefore we use approximations $C^{m+}$ and $C^{M-}$ such that 
+
+\begin{equation}
+    C^m\subseteq C^{m+}
+\end{equation}
+and 
+\begin{equation}
+    C^{M-}\subseteq C^M
+\end{equation} 
+
+Initially we assign $C^{m+}=\top$ and $C^{M-}=\bot$.  Approximations are refined lazily as part of the abstraction refinement process, as explained below.
 
 \begin{ex}
     \everymath{\mathtt{\xdef\tmp{\fam\the\fam\relax}\aftergroup\tmp}}
@@ -910,6 +927,8 @@ Computing $C^m$ and $C^M$ can be prohibitively expensive.  Therefore we use appr
     There exist concrete state variable assignments (e.g., $mem=1$, $dat=1$, $bsy=true$, $req=1$) that satisfy state and untracked predicates in the left-hand side of the implication but that can not be extended with a label variable assignment that satisfies the right-hand side, hence $C^M(v,u,l)=false$.  
     \qed
 \end{ex}
+
+\subsection{Abstract Controllable Predecessor}
 
 We compute over- and under-approximations of the controllable predecessor operator by resolving the two sources of imprecision in favour of one of the players.  In particular, we compute $Cpre_i^{m+}$ by (1) allowing player $i$ to pick assignments to untracked predicates, (2) over-approximating consistent labels available to $i$, and (3) under-approximating consistent labels available to the opponent player $\overline{i}$:
 
@@ -941,19 +960,16 @@ Note that the use of $C^{m+}$ and $C^{M-}$ in (\ref{e:cprem}) and (\ref{e:cpreM}
 
 Equations (\ref{e:cprem}) and (\ref{e:cpreM}) suggest two possible abstraction refinement tactics, which correspond to the two types of refinement used in Algorithm~\ref{alg:generic}.  First, we can refine $C^{m+}$ and $C^{M-}$ by removing spurious transitions from $C^{m+}$ or adding new consistent transitions to $C^{M-}$.  Such a refinement increases the precision of controllable predecessor computation without introducing new state predicates, which corresponds to the \textsc{refineCpre} operation in the algorithm.  Second, we can add some of the untracked predicates to the set of state predicates $\Sigma$, thus reducing the imprecision introduced by treating them as external inputs.  This refinement increases the precision of the abstraction, which corresponds to the \textsc{refineAbstraction} function in the algorithm.
 
-In summary, we solve the abstract game by decomposing potentially expensive computations into three types of light-weight operations performed on demand, as required to improve the precision of the abstraction:
+In summary, we solve the abstract game by decomposing potentially expensive computations into four types of light-weight operations performed on demand, as required to improve the precision of the abstraction:
 
 \begin{itemize}
-    \item Computing the abstract transition relation $\Delta$ via 
-        light-weight syntactic analysis of the concrete game
-    \item Computing consistency relations $C^{m+}$ and $C^{M-}$ by 
-        iteratively identifying spurious and consistent 
-        transitions
-    \item Solving the abstract game using abstract controllable 
-        predecessor operators (\ref{e:cprem}) and (\ref{e:cpreM})
+    \item Computing the abstract transition relation $\Delta$ via light-weight syntactic analysis of the concrete game
+    \item Computing consistency relations $C^{m+}$ and $C^{M-}$ by iteratively identifying spurious and consistent transitions
+    \item Iteratively refining the abstraction used in the syntactic computation of the transition relation
+    \item Solving the abstract game using abstract controllable predecessor operators (\ref{e:cprem}) and (\ref{e:cpreM})
 \end{itemize}
 
-The computational bottleneck in this method can arise either from having to perform an excessive number of refinements or if abstractions generated by the algorithm are too complex.  Our refinement procedures, described below, are designed to avoid such situations by heuristically picking refinements that are likely tospeed up the convergence of the algorithm.
+The computational bottleneck in this method can arise either from having to perform an excessive number of refinements or if abstractions generated by the algorithm are too complex.  Our refinement procedures, described below, are designed to avoid such situations by heuristically picking refinements that are likely to speed up the convergence of the algorithm.
 
 %\subsection{Abstract transition relation}
 %
@@ -1194,7 +1210,7 @@ $$
 \end{aligned}
 $$
 
-We aim to grow  $W^M$ by promoting as few untracked predicates as possible.  To this end, we extract a short prime implicant from $U^M$ and promote the untracked variables in the support of the prime implicant(line~3).  This has the effect of adding a large cube over state and untracked predicates to $W^M$. The \textsc{promote} function invoked in line~4 moves the selected untracked predicates to the set of state predicates $\Sigma$ and recomputes the abstraction transition relation $\Delta$ for the new state predicates.  This can lead to the introduction of new untracked and label predicates, which can serve as refinement candidates in the future.
+We aim to grow  $W^M$ by promoting as few untracked predicates as possible.  To this end, we extract a short prime implicant from $U^M$ and promote the untracked variables in the support of the prime implicant (line~3).  This has the effect of adding a large cube over state and untracked predicates to $W^M$. The \textsc{promote} function invoked on line~4 moves the selected untracked predicates to the set of state predicates $\Sigma$ and recomputes the abstraction transition relation $\Delta$ for the new state predicates.  This can lead to the introduction of new untracked and label predicates, which can serve as refinement candidates in the future.
 
 \begin{algorithm}[t]
 
@@ -1211,6 +1227,31 @@ We aim to grow  $W^M$ by promoting as few untracked predicates as possible.  To 
 
 \end{algorithmic}
 \end{algorithm}
+
+We must be careful when refining the abstraction. Do our consistency constraints remain valid after the abstraction has been refined? The following example shows that in some cases they do not.
+
+\begin{ex}
+    Consider an abstraction of the running example game induced by abstract variable $\sigma_1$ with corresponding predicate $\|\sigma_1\| = (req=dat)$ as well as the abstract label variable $\lambda_1$ with corresponding predicate $\|\lambda_1\| = (val=req)$. There are no untracked variables.
+
+    Our must consistency constraint, $C^{M-}$, is a relation over the variables $\sigma_1$ and $\lambda_1$. For example, the tuple $v=(true), l=(true)$ is must consistent because it is always possible to assert $\lambda_1=true$ when $\sigma_1=true$ by choosing $val$ appropriately.
+
+    Suppose, when computing the update function for some variable that has just been promoted we introduce the abstract untracked variable $\omega_2$ with corresponding predicate $\|\omega_2\| = (req=5)$. This partitions each sub-state into two. The definition of $C^{M-}$ (Equation \ref{eqn:cM}) ensures that if a label is must consistent in a given state before the variable promotion then it will be must consistent in each sub-state after the promotion. In this example, the tuples $v=(true), u=(false), l=(true)$ and $v=(true), u=(true), l=(true)$ are both must consistent. Notice that, if we are symbolically representing $C^{M-}$, then the new $C^{M-}$ does not depend on the newly introduced untracked variable. Thus, we may keep the same $C^{M-}$ from before the promotion.
+
+    The situation is not so good for promotions that introduce new label variables. We cannot simply reuse $C^{M-}$ from before the variable promotion as we do for untracked variables. Consider what happens when, continuing on from before, we add $\lambda_2$ with corresponding predicate $\|\lambda_2\| = (val=5)$. The tuple $v=(true), u=(true), l=(true)$ is must consistent. Extending the tuple to $v=(true), u=(true), l=(true, true)$ is fine, but $v=(true), u=(true), l=(true, false)$ is not. The latter tuple is not must-consistent. Therefore, we may not simply reuse $C^{M-}$ as in the case where an untracked variable is added. 
+
+    We can rebuild $C^{M-}$ by considering all possible tuples with the additional label. In this case as there are few variables this would work and we would discover that the second tuple above is not part of $C^{M-}$. However, when there are more variables this is infeasible. 
+
+    \qed
+\end{ex}
+
+From this example, we make two important observations. When compiling the update function for a untracked predicate that is being promoted to a state predicate when refining the abstraction, 
+
+\begin{itemize}
+    \item if the compilation only introduces new untracked predicates, then we can keep the consistency relations from the previous iteration.
+    \item if the compilation introduces new label predicates, then we cannot reuse $C^{M-}$ from the previous iteration without modification.
+\end{itemize}
+
+We resort to conservatively resetting $C^{M-}$ to $false$ when a new label variable is added and incrementally rebuilding $C^{M-}$ lazily as before. This is a severe performance impediment as $C^{M-}$ may have to be rebuilt many times. We present a pragmatic solution to this problem that is used by Termite in Section \ref{sec:optimisation}.
 
 \subsection{Correctness}
 
@@ -1252,22 +1293,9 @@ Since, by the assumption of the theorem, all must-winning sets $W^M$ generated b
 The theory of fixed-size bit vectors supported by our current implementation satisfies the premise of Theorem~\ref{t:termination}, which guarantees the termination of the algorithm.
 
 \section{Optimisation}
+\label{sec:optimisation}
 
 Algorithm~\ref{alg:refineCpre} has two important performance issues: 
-
-\begin{ex}
-    Consider an abstraction of the running example game induced by abstract variable $\sigma_1$ with corresponding predicate $\|\sigma_1\| = (req=dat)$ as well as the abstract label variable $\lambda_1$ with corresponding predicate $\|\lambda_1\| = (val=req)$. There are no untracked variables.
-
-    Our must consistency constraint, $C^{M-}$, is a relation over the variables $\sigma_1$ and $\lambda_1$. For example, the tuple $v=(true), l=(true)$ is must consistent because it is always possible to assert $\lambda_1=true$ when $\sigma_1=true$ by choosing $val$ appropriately.
-
-    Suppose, when computing the update function for some variable that has just been promoted we introduce the abstract untracked variable $\omega_2$ with corresponding predicate $\|\omega_2\| = (req=5)$. This partitions each sub-state into two. The definition of $C^{M-}$ (Equation \ref{eqn:cM}) ensures that if a label is must consistent in a given state before the variable promotion then it will be must consistent in each sub-state after the promotion. In this example, the tuples $v=(true), u=(false), l=(true)$ and $v=(true), u=(true), l=(true)$ are both must consistent. Notice that, if we are symbolically representing $C^{M-}$, then the new $C^{M-}$ does not depend on the newly introduced untracked variable. Thus, we may keep the same $C^{M-}$ from before the promotion.
-
-    The situation is not so good for promotions that introduce new label variables. We cannot simply reuse $C^{M-}$ from before the variable promotion as we do for untracked variables. Consider what happens when, continuing on from before, we add $\lambda_2$ with corresponding predicate $\|\lambda_2\| = (val=5)$. The tuple $v=(true), u=(true), l=(true)$ is must consistent. Extending the tuple to $v=(true), u=(true), l=(true, true)$ is fine, but $v=(true), u=(true), l=(true, false)$ is not. The latter tuple is not must-consistent. Therefore, we may not simply reuse $C^{M-}$ as in the case where an untracked variable is added. 
-
-    We can rebuild $C^{M-}$ by considering all possible tuples with the additional label. In this case as there are few variables this would work and we would discover that the second tuple above is not part of $C^{M-}$. However, when there are more variables this is infeasible. We resort to resetting $C^{M-}$ to $false$ when a new label variable is added and incrementally rebuilding $C^{M-}$ lazily as before.
-
-    \qed
-\end{ex}
 
 \begin{itemize}
 
