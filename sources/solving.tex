@@ -731,7 +731,7 @@ While it was straightforward to compute them when performing variable abstractio
 \begin{ex}
     \everymath{\mathtt{\xdef\tmp{\fam\the\fam\relax}\aftergroup\tmp}}
     \everydisplay{\mathtt{\xdef\tmp{\fam\the\fam\relax}\aftergroup\tmp}}
-    Consider the label abstraction induced by abstract variables $\lambda_1$ and $\lambda_2$ and the corresponding label predicates $\|\lambda_1\| = (val=req)$ and $\|\lambda_2\| = (val=5)$.
+    Consider the label abstraction induced by abstract label variables $\lambda_1$ and $\lambda_2$ and the corresponding label predicates $\|\lambda_1\| = (val=req)$ and $\|\lambda_2\| = (val=5)$.
 
     When performing variable abstraction, we would have treated $\lambda_1$ and $\lambda_2$ as independent variables. Each player was able to set them to any value in any state. However, when performing predicate abstraction, they are not independent, as they share the $val$ variable. Suppose player~1 tries to set them both to true. This can only be performed when $req=5$. This additional state predicate is needed to keep track of which label predicate combinations are valid.
     \qed
@@ -826,6 +826,8 @@ Thus, if we terminate on lines \ref{alg:atv:t1} or \ref{alg:atv:t2} then we term
 \todo{Do I just handwave? I need some properties of refineCpre and refineAbstraction}
 
 \section{Abstraction-Refinement for Predicate Abstraction}
+
+The goal of the following sections is to create a symbolic version of algorithm \ref{alg:approx_three_val} adapted to predicate abstraction.
 
 \subsection{Initial Abstraction}
 
@@ -1063,38 +1065,6 @@ The computational bottleneck in this method can arise either from having to perf
 %potentially useful candidates for promotion to state predicates 
 %as part of the abstraction refinement process.
 
-\begin{algorithm}
-\caption{Three-valued abstraction refinement for games.}
-\label{alg:genericc}
-
-\begin{algorithmic}[1]
-
-\Function{Solve}{$transitionRelation$, $goal$}
-    \Statex {\bf Input:} A game structure $G = \langle S, L, I, \tau_1, \tau_2, \delta \rangle$, a set 
-    of target states $T\subseteq S$, and an initial abstraction $\alpha=\langle V, \concrete{}, Cpre_1^{m+}, Cpre_1^{M-} \rangle$
-    that is precise for $T$, $I$, and $\tau_i$.
-
-    \Statex {\bf Output:} {\it Yes} if $I \subseteq \reach(T, Cpre_1)$, and {\it No} otherwise.
-
-    \Loop
-        \State $W^M \gets \reach(\abstractM{T}, Cpre_1^{M-})$
-        \State $W^m \gets \reach(\abstractm{T}, Cpre_1^{m+})$
-        \If{$\abstractM{I} \subseteq W^M$} 
-            \State\Return Yes
-        \ElsIf{$\abstractM{I} \nsubseteq W^m$} 
-            \State\Return No
-        \Else       
-            \State $refined \gets \Call{refineCpre}{W^M}$
-            \If {$(\neg refined)$}
-                \State$\Call{refineAbstraction}{W^M}$
-            \EndIf
-        \EndIf
-    \EndLoop
-\EndFunction
-
-\end{algorithmic}
-\end{algorithm}
-
 \subsection{Consistency Refinement}
 
 Figure~\ref{f:crefinement} illustrates the main idea of the consistency refinement algorithm.  It shows an abstract state $v$ (Figure~\ref{f:crefinement}a) at the may-must boundary whose untracked substates $u_1$, $u_2$, and $u_3$ have $C^{m+}$-consistent transitions to the must-winning set $W^M$, but none of these transitions is consistent with $C^{M-}$.  The \textsc{refineCpre} algorithm attempts to precisely categorise these substates as must-winning or must-losing.
@@ -1253,6 +1223,79 @@ From this example, we make two important observations. When compiling the update
 
 We resort to conservatively resetting $C^{M-}$ to $false$ when a new label variable is added and incrementally rebuilding $C^{M-}$ lazily as before. This is a severe performance impediment as $C^{M-}$ may have to be rebuilt many times. We present a pragmatic solution to this problem that is used by Termite in Section \ref{sec:optimisation}.
 
+\subsection{Consistency of the Initial Set}
+
+The last remaining step of the approximate three valued abstraction-refinement algorithm is checking whether the winning set contains the initial set. Again, predicate abstraction complicates things as the following example shows.
+
+\begin{ex}
+    Consider an abstraction of the running example induced by the abstract variables $\sigma_1$, $\sigma_2$ and $\sigma_3$ and corresponding predicates $\|\sigma_1\| = (req=dat)$, $\|\sigma_2\| = (req=mem)$ and $\|\sigma_3\| = (dat=mem)$. The initial set is specified as $req=dat \land req=mem$ which is abstracted to $\sigma_1 \land \sigma_2$. Suppose that the may winning set of states, $W^{m+}$, that the game solving algorithm returns is $\{v=(true, true, true)\}$. Importantly, this set does not contain $v=(true, true, false)$. Naively, we might check if the initial set implies the winning set, i.e., if $(\sigma_1 \land \sigma_2) \rightarrow W^{m+}$. However, as $\sigma_1 \land \sigma_2 \land \neg\sigma_3$ is not part of $W^{m+}$, this implication is false i.e. $(\sigma_1 \land \sigma_2) \centernot\rightarrow (\sigma_1 \land \sigma_2 \land \sigma_3)$.
+
+    We should have ignored the losing state $v=(true, true, false)$ when checking if the winning set consumes the initial set as it is inconsistent and does not correspond to any real states in the concrete game. 
+
+    \qed
+\end{ex}
+
+As the example shows, checking if the initial set implies each of the winning sets is not correct. We modify the check to find a witness losing state and we then check consistency of this state. If the state is consistent, then we have found at least one losing concrete state. Otherwise, we extract an unsatisfiable core and add this to a consistency constraint that prevents this and other states from being selected as witnesses in the future. Effectively, we have another refinement loop that iteratively refines a consistency relation over states. The algorithm is given in Algorithm \ref{alg:initial_inclusion}.
+
+\begin{algorithm}
+\caption{Checking inclusion of the initial set}
+\label{alg:initial_inclusion}
+
+\begin{algorithmic}[1]
+
+\Function{refineInit}{$W$, $Init$, $inconsistent$}
+    \If{$Init \rightarrow W$}
+        \State\Return $True$
+    \Else
+        \State $witnesses \gets Init \land \neg W \land \neg inconsistent$
+        \State $implicant \gets \Call{primeImplicant}{witnesses}$
+        \If{$\Call{satisfiable}{implicant}$}
+            \State\Return $False$
+        \Else
+            \State $inconsistent \gets inconsistent \lor \Call{unsatCore}{implicant}$
+            \State\Call{refineInit}{$W$, $Init$, $inconsistent$}
+        \EndIf
+    \EndIf
+\EndFunction
+
+\end{algorithmic}
+\end{algorithm}
+
+\subsection{Putting it Together}
+
+\begin{algorithm}
+\caption{Three-valued abstraction refinement for games.}
+\label{alg:genericc}
+
+\begin{algorithmic}[1]
+
+\Function{Solve}{$transitionRelation$, $goal$}
+    \Statex {\bf Input:} A game structure $G = \langle S, L, I, \tau_1, \tau_2, \delta \rangle$, a set 
+    of target states $T\subseteq S$, and an initial abstraction $\alpha=\langle V, \concrete{}, Cpre_1^{m+}, Cpre_1^{M-} \rangle$
+    that is precise for $T$, $I$, and $\tau_i$.
+
+    \Statex {\bf Output:} {\it Yes} if $I \subseteq \reach(T, Cpre_1)$, and {\it No} otherwise.
+
+    \Loop
+        \State $W^M \gets \reach(\abstractM{T}, Cpre_1^{M-})$
+        \State $W^m \gets \reach(\abstractm{T}, Cpre_1^{m+})$
+        \If{$\abstractM{I} \subseteq W^M$} 
+            \State\Return Yes
+        \ElsIf{$\abstractM{I} \nsubseteq W^m$} 
+            \State\Return No
+        \Else       
+            \State $refined \gets \Call{refineCpre}{W^M}$
+            \If {$(\neg refined)$}
+                \State$\Call{refineAbstraction}{W^M}$
+            \EndIf
+        \EndIf
+    \EndLoop
+\EndFunction
+
+\end{algorithmic}
+\end{algorithm}
+
+
 \subsection{Correctness}
 
 The correctness and termination theorems of~\cite{Alfaro_Roy_07} hold for Algorithm~\ref{alg:generic} with \textsc{refineCpre} and \textsc{refineAbstraction} functions defined above.
@@ -1311,7 +1354,7 @@ $$
 $$ 
 where $v$, $u$, and $l$ are partial valuations of abstract variables, which compactly represent a potentially large set of abstract transitions.  In practice, we typically discover prime implicants that only constrain few of the abstract variables, meaning that other predicates are irrelevant for the outcome of the transition.  
 
-Given this modification, the $C^{m+}$ refinement case of the algorithm (lines~18--19) is still correct and does not require any changes.  However, changes are needed in the $C^{M-}$ refinement logic.  The set $A$ computed in lines~10--1 contains allconcrete states where \emph{at least one} abstract label from the set characterised by the partial assignment $l$ of label predicates is available.  It does not guarantee the availability of any particular label from this set.  To model this constraint, we would have to change $C^{M-}$ to be a relation over sets of labels.  Every element of the relation would describe a set of labels, one of which is guaranteed to be available for the given state and untracked predicate assignment.  
+Given this modification, the $C^{m+}$ refinement case of the algorithm (lines~18--19) is still correct and does not require any changes.  However, changes are needed in the $C^{M-}$ refinement logic.  The set $A$ computed in lines~10--1 contains all concrete states where \emph{at least one} abstract label from the set characterised by the partial assignment $l$ of label predicates is available.  It does not guarantee the availability of any particular label from this set.  To model this constraint, we would have to change $C^{M-}$ to be a relation over sets of labels.  Every element of the relation would describe a set of labels, one of which is guaranteed to be available for the given state and untracked predicate assignment.  
 
 This introduces a new form of imprecision to the consistency relation: rather than categorising each abstract label as available or unavailable in the given state, we record a set of labels, one of which is available.  However, such a relation would be hard to represent and manipulate efficiently in the symbolic form.  Therefore, we propose a different approach that allows symbolic implementation.  
 
@@ -1325,4 +1368,4 @@ We can now modify line~16 of Algorithm~\ref{alg:refineCpre} as follows:
 $$
 C^{M-} \gets C^{M-} \lor (\hat{A}\land \bigwedge_{i\in{j_1\ldots j_p}}\lambda_i=l_i \land \bigwedge_{i\not\in{j_1\ldots j_p}}\varepsilon_i=false),
 $$
-where $j_1\ldots j_p$ are indices of variables assigned by $l$.  The above statement refines $C^{M-}$ by allowing the player to assign a subset of label variables in accordance with $l$ anddisabling other label variables not constrained by $l$.  The environment will non-deterministically pick arbitrary values for these variables.  In this way we precisely capture what we currently know about consistent predicate assignments in aa symbolic form, at the cost of introducing extra variables $\varepsilon_i$.
+where $j_1\ldots j_p$ are indices of variables assigned by $l$.  The above statement refines $C^{M-}$ by allowing the player to assign a subset of label variables in accordance with $l$ and disabling other label variables not constrained by $l$.  The environment will non-deterministically pick arbitrary values for these variables.  In this way we precisely capture what we currently know about consistent predicate assignments in a symbolic form, at the cost of introducing extra variables $\varepsilon_i$.
