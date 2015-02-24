@@ -142,9 +142,7 @@ At every iteration, the algorithm computes the must-winning set $W^M$ that under
 
 \begin{algorithmic}[1]
 
-\Require A game structure $G = \langle S, L, I, \tau_1, \tau_2, \delta \rangle$, a set 
-of target states $T\subseteq S$, and an initial abstraction $\alpha=\langle V, \concrete{} \rangle$
-that is precise for $T$, $I$, and $\tau_i$.
+\Require A game structure $G = \langle S, L, I, \tau_1, \tau_2, \delta \rangle$, a set of target states $T\subseteq S$, and an initial abstraction $\alpha=\langle V, \concrete{} \rangle$ that is precise for $T$, $I$, and $\tau_i$.
 
 \Ensure {\it Yes} if $I \subseteq \reach(T, Cpre_1)$, and {\it No} otherwise.
 
@@ -775,9 +773,7 @@ With these operators we create a new approximate abstraction-refinement scheme g
 
 \begin{algorithmic}[1]
 
-\Require {\bf Input:} A game structure $G = \langle S, L, I, \tau_1, \tau_2, \delta \rangle$, a set 
-of target states $T\subseteq S$, and an initial abstraction $\alpha=\langle V, \concrete{}, Cpre_1^{m+}, Cpre_1^{M-} \rangle$
-that is precise for $T$, $I$, and $\tau_i$.
+\Require {\bf Input:} A game structure $G = \langle S, L, I, \tau_1, \tau_2, \delta \rangle$, a set of target states $T\subseteq S$, and an initial abstraction $\alpha=\langle V, \concrete{}, Cpre_1^{m+}, Cpre_1^{M-} \rangle$ that is precise for $T$, $I$, and $\tau_i$.
 
 \Ensure {\bf Output:} {\it Yes} if $I \subseteq \reach(T, Cpre_1)$, and {\it No} otherwise.
 
@@ -828,25 +824,6 @@ Thus, if we terminate on lines \ref{alg:atv:t1} or \ref{alg:atv:t2} then we term
 \section{Abstraction-Refinement for Predicate Abstraction}
 
 The goal of the following sections is to create a symbolic version of algorithm \ref{alg:approx_three_val} adapted to predicate abstraction.
-
-\subsection{Initial Abstraction}
-
-We obtain the initial abstraction by extracting atomic predicates from expressions $T$, $I$, and $\tau_i$, which guarantees that the abstraction is precise for $T$, $I$, and $\tau_i$. While this property is not essential for our approach, we will rely on it to simplify the presentation of the algorithm.
-
-%\subsection{Initial abstraction}
-%
-%Algorithm~\ref{alg:generic} takes initial abstraction $\alpha$ as 
-%one of its inputs. This requires fixing sets of predicates 
-%$\Sigma$, $\Omega$, and $\Lambda$, and consistency relations 
-%$C^{m+}$ and $C^{M-}$.  We obtain initial state predicates 
-%$\Sigma$ by extracting atomic predicates from expressions $T$, 
-%$I$, and $\tau_i$, which guarantees that the initial abstraction 
-%is precise for $T$, $I$, and $\tau_i$, as required by the 
-%algorithm.  Next, we apply the \textsc{Delta} function 
-%(Algorithm~\ref{alg:delta}) to predicates in $\Sigma$ to compute 
-%initial untracked and label predicates, and the abstract 
-%transition relation $\Delta$.  Finally, we assign $C^{m+}=\top$ 
-%and $C^{M-}=\bot$.
 
 \subsection{Abstract Transition Relations}
 \label{s:cpre}
@@ -1091,7 +1068,7 @@ Note that in the special case when, after performing consistency refinement, all
 
 For this reason, Algorithm~\ref{alg:generic} recomputes $W^M$ and $W^m$ after each successful consistency refinement, and only calls \textsc{refineAbstraction} once no more consistency refinements are possible.
 
-\subsection{Algorithm}
+\subsubsection{Consistency Refinement Algorithm}
 
 Algorithm~\ref{alg:refineCpre} shows the pseudocode of \textsc{refineCpre}.  Lines~3--6 compute the set of candidate tuples $\langle v, u, l\rangle\in C^m\setminus C^M$.  Note that for player~$i$ states we consider may-consistent transition to $W^M$, whereas for player~$\overline{i}$ states we consider spoiling transitions to $V\setminus W^M$.
 
@@ -1223,7 +1200,7 @@ From this example, we make two important observations. When compiling the update
 
 We resort to conservatively resetting $C^{M-}$ to $false$ when a new label variable is added and incrementally rebuilding $C^{M-}$ lazily as before. This is a severe performance impediment as $C^{M-}$ may have to be rebuilt many times. We present a pragmatic solution to this problem that is used by Termite in Section \ref{sec:optimisation}.
 
-\subsection{Consistency of the Initial Set}
+\subsection{Checking Containment of the Initial Set}
 
 The last remaining step of the approximate three valued abstraction-refinement algorithm is checking whether the winning set contains the initial set. This check is performed for each winning set in Algorithm \ref{alg:approx_three_val}. Again, predicate abstraction complicates things as the following example shows.
 
@@ -1264,6 +1241,26 @@ If it is not, we extract a witness state on line \ref{a:init_incl:l:implicant}. 
 
 \end{algorithmic}
 \end{algorithm}
+
+\subsection{Initial Abstraction}
+
+We obtain the initial abstraction by extracting atomic predicates from expressions $T$, $I$, and $\tau_i$, which guarantees that the abstraction is precise for $T$, $I$, and $\tau_i$. While this property is not essential for our approach, we will rely on it to simplify the presentation of the algorithm.
+
+%\subsection{Initial abstraction}
+%
+%Algorithm~\ref{alg:generic} takes initial abstraction $\alpha$ as 
+%one of its inputs. This requires fixing sets of predicates 
+%$\Sigma$, $\Omega$, and $\Lambda$, and consistency relations 
+%$C^{m+}$ and $C^{M-}$.  We obtain initial state predicates 
+%$\Sigma$ by extracting atomic predicates from expressions $T$, 
+%$I$, and $\tau_i$, which guarantees that the initial abstraction 
+%is precise for $T$, $I$, and $\tau_i$, as required by the 
+%algorithm.  Next, we apply the \textsc{Delta} function 
+%(Algorithm~\ref{alg:delta}) to predicates in $\Sigma$ to compute 
+%initial untracked and label predicates, and the abstract 
+%transition relation $\Delta$.  Finally, we assign $C^{m+}=\top$ 
+%and $C^{M-}=\bot$.
+
 
 \subsection{Putting it Together}
 
