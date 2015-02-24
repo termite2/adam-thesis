@@ -1125,19 +1125,7 @@ Line~12 computes the set of concrete states where abstract label $l$ is availabl
 \begin{ex}
     \everymath{\mathtt{\xdef\tmp{\fam\the\fam\relax}\aftergroup\tmp}}
     \everydisplay{\mathtt{\xdef\tmp{\fam\the\fam\relax}\aftergroup\tmp}}
-    Assume that in line~9 the algorithm picks a tuple $\langle 
-    v,u,l\rangle$ where $l=(true, true)$.  Line~12 performs 
-    quantifier elimination from the formula $\exists val.  
-    (\|\lambda_1\|=true \land  \|\lambda_2\|=true) =
-    \exists val. (val=req \land val=5) = (req=5)$.
-%    , i.e., conditions $(val=req)$ and $(val=5)$ can only hold 
-%    simultaneously if $(req=5)$.
-    We have discovered a new predicate $req=5$ that 
-    must hold in states where abstract label $l$ is 
-    available.  We introduce a new untracked variable $\omega_2$, 
-    $\|\omega_2\|=(req=5)$ and refine $C^{M-}$ with a new 
-    consistent transition: $C^{M-} \gets C^{M-} \lor (\omega_2 
-    \land \lambda_1 \land \lambda_2)$.
+    Assume that in line~9 the algorithm picks a tuple $\langle v,u,l\rangle$ where $l=(true, true)$.  Line~12 performs quantifier elimination from the formula $\exists val. (\|\lambda_1\|=true \land  \|\lambda_2\|=true) = \exists val. (val=req \land val=5) = (req=5)$, i.e., conditions $(val=req)$ and $(val=5)$ can only hold simultaneously if $(req=5)$. We have discovered a new predicate $req=5$ that must hold in states where abstract label $l$ is available.  We introduce a new untracked variable $\omega_2$, $\|\omega_2\|=(req=5)$ and refine $C^{M-}$ with a new consistent transition: $C^{M-} \gets C^{M-} \lor (\omega_2 \land \lambda_1 \land \lambda_2)$.
     \qed
 \end{ex}
 
@@ -1187,7 +1175,6 @@ We must be careful when refining the abstraction. Do our consistency constraints
     The situation is not so good for promotions that introduce new label variables. We cannot simply reuse $C^{M-}$ from before the variable promotion as we do for untracked variables. Consider what happens when, continuing on from before, we add $\lambda_2$ with corresponding predicate $\|\lambda_2\| = (val=5)$. The tuple $v=(true), u=(true), l=(true)$ is must consistent. Extending the tuple to $v=(true), u=(true), l=(true, true)$ is fine, but $v=(true), u=(true), l=(true, false)$ is not. The latter tuple is not must-consistent. Therefore, we may not simply reuse $C^{M-}$ as in the case where an untracked variable is added. 
 
     We can rebuild $C^{M-}$ by considering all possible tuples with the additional label. In this case as there are few variables this would work and we would discover that the second tuple above is not part of $C^{M-}$. However, when there are more variables this is infeasible. 
-
     \qed
 \end{ex}
 
@@ -1202,13 +1189,14 @@ We resort to conservatively resetting $C^{M-}$ to $false$ when a new label varia
 
 \subsection{Checking Containment of the Initial Set}
 
-The last remaining step of the approximate three valued abstraction-refinement algorithm is checking whether the winning set contains the initial set. This check is performed for each winning set in Algorithm \ref{alg:approx_three_val}. Again, predicate abstraction complicates things as the following example shows.
+We create an abstraction of the initial set by introducing a boolean state variable for each predicate that appears in the expression for the initial set. We then replace each predicate by the corresponding boolean variable.
+
+The approximate three valued abstraction-refinement algorithm must check whether the winning set contains the initial set. This check is performed for both winning sets in Algorithm \ref{alg:approx_three_val}. Again, predicate abstraction complicates things as the following example shows.
 
 \begin{ex}
     Consider an abstraction of the running example induced by the abstract variables $\sigma_1$, $\sigma_2$ and $\sigma_3$ and corresponding predicates $\|\sigma_1\| = (req=dat)$, $\|\sigma_2\| = (req=mem)$ and $\|\sigma_3\| = (dat=mem)$. The initial set is specified as $req=dat \land req=mem$ which is abstracted to $\sigma_1 \land \sigma_2$. Suppose that the may winning set of states, $W^{m+}$, that the game solving algorithm returns is $\{v=(true, true, true)\}$. Importantly, this set does not contain $v=(true, true, false)$. Naively, we might check if the initial set implies the winning set, i.e., if $(\sigma_1 \land \sigma_2) \rightarrow W^{m+}$. However, as $\sigma_1 \land \sigma_2 \land \neg\sigma_3$ is not part of $W^{m+}$, this implication is false i.e. $(\sigma_1 \land \sigma_2) \centernot\rightarrow (\sigma_1 \land \sigma_2 \land \sigma_3)$.
 
     We should have ignored the losing state $v=(true, true, false)$ when checking if the winning set consumes the initial set as it is inconsistent and does not correspond to any real states in the concrete game. 
-
     \qed
 \end{ex}
 
@@ -1244,23 +1232,11 @@ If it is not, we extract a witness state on line \ref{a:init_incl:l:implicant}. 
 
 \subsection{Initial Abstraction}
 
-We obtain the initial abstraction by extracting atomic predicates from expressions $T$, $I$, and $\tau_i$, which guarantees that the abstraction is precise for $T$, $I$, and $\tau_i$. While this property is not essential for our approach, we will rely on it to simplify the presentation of the algorithm.
+We obtain the initial abstraction by extracting atomic predicates from expressions $T$, and $\tau_i$, which guarantees that the abstraction is precise for $T$, and $\tau_i$. While this property is not essential for our approach, we will rely on it to simplify the presentation of the algorithm.
 
-%\subsection{Initial abstraction}
-%
-%Algorithm~\ref{alg:generic} takes initial abstraction $\alpha$ as 
-%one of its inputs. This requires fixing sets of predicates 
-%$\Sigma$, $\Omega$, and $\Lambda$, and consistency relations 
-%$C^{m+}$ and $C^{M-}$.  We obtain initial state predicates 
-%$\Sigma$ by extracting atomic predicates from expressions $T$, 
-%$I$, and $\tau_i$, which guarantees that the initial abstraction 
-%is precise for $T$, $I$, and $\tau_i$, as required by the 
-%algorithm.  Next, we apply the \textsc{Delta} function 
-%(Algorithm~\ref{alg:delta}) to predicates in $\Sigma$ to compute 
-%initial untracked and label predicates, and the abstract 
-%transition relation $\Delta$.  Finally, we assign $C^{m+}=\top$ 
-%and $C^{M-}=\bot$.
+The initial state and label predicates are those that are created during compilation of the update functions for these predicates.
 
+Finally, we assign $C^{m+}=\top$ and $C^{M-}=\bot$.
 
 \subsection{Putting it Together}
 
