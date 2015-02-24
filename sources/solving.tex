@@ -1225,7 +1225,7 @@ We resort to conservatively resetting $C^{M-}$ to $false$ when a new label varia
 
 \subsection{Consistency of the Initial Set}
 
-The last remaining step of the approximate three valued abstraction-refinement algorithm is checking whether the winning set contains the initial set. Again, predicate abstraction complicates things as the following example shows.
+The last remaining step of the approximate three valued abstraction-refinement algorithm is checking whether the winning set contains the initial set. This check is performed for each winning set in Algorithm \ref{alg:approx_three_val}. Again, predicate abstraction complicates things as the following example shows.
 
 \begin{ex}
     Consider an abstraction of the running example induced by the abstract variables $\sigma_1$, $\sigma_2$ and $\sigma_3$ and corresponding predicates $\|\sigma_1\| = (req=dat)$, $\|\sigma_2\| = (req=mem)$ and $\|\sigma_3\| = (dat=mem)$. The initial set is specified as $req=dat \land req=mem$ which is abstracted to $\sigma_1 \land \sigma_2$. Suppose that the may winning set of states, $W^{m+}$, that the game solving algorithm returns is $\{v=(true, true, true)\}$. Importantly, this set does not contain $v=(true, true, false)$. Naively, we might check if the initial set implies the winning set, i.e., if $(\sigma_1 \land \sigma_2) \rightarrow W^{m+}$. However, as $\sigma_1 \land \sigma_2 \land \neg\sigma_3$ is not part of $W^{m+}$, this implication is false i.e. $(\sigma_1 \land \sigma_2) \centernot\rightarrow (\sigma_1 \land \sigma_2 \land \sigma_3)$.
@@ -1235,7 +1235,11 @@ The last remaining step of the approximate three valued abstraction-refinement a
     \qed
 \end{ex}
 
-As the example shows, checking if the initial set implies each of the winning sets is not correct. We modify the check to find a witness losing state and we then check consistency of this state. If the state is consistent, then we have found at least one losing concrete state. Otherwise, we extract an unsatisfiable core and add this to a consistency constraint that prevents this and other states from being selected as witnesses in the future. Effectively, we have another refinement loop that iteratively refines a consistency relation over states. The algorithm is given in Algorithm \ref{alg:initial_inclusion}.
+As the example shows, checking if the initial set implies each of the winning sets is not correct. Instead, we find a witness losing state and we then check consistency of this state. The algorithm is given in Algorithm \ref{alg:initial_inclusion}. 
+
+In line \ref{a:init_incl:l:imp} we check if the abstraction of the initial set is a subset of the abstraction of the given winning set. If so, we return True.
+
+If it is not, we extract a witness state on line \ref{a:init_incl:l:implicant}. We check consistency of the state on line \ref{a:init_incl:l:sat}. If the state is consistent, then we have found at least one losing concrete state. Otherwise, we extract an unsatisfiable core on line \ref{a:init_incl:l:core} and add this to a consistency constraint that prevents this and other states from being selected as witnesses in the future. We then recurse with the updated consistency constraint on line \ref{a:init_incl:l:recurse}. Effectively, we have another refinement loop that iteratively refines a consistency relation over states. 
 
 \begin{algorithm}
 \caption{Checking inclusion of the initial set}
@@ -1244,16 +1248,16 @@ As the example shows, checking if the initial set implies each of the winning se
 \begin{algorithmic}[1]
 
 \Function{refineInit}{$W$, $Init$, $inconsistent$}
-    \If{$Init \rightarrow W$}
+\If{$Init \rightarrow W$} \label{a:init_incl:l:imp}
         \State\Return $True$
     \Else
-        \State $witnesses \gets Init \land \neg W \land \neg inconsistent$
-        \State $implicant \gets \Call{primeImplicant}{witnesses}$
-        \If{$\Call{satisfiable}{implicant}$}
+        \State $witnesses \gets Init \land \neg W \land \neg inconsistent$ \label{a:init_incl:l:witness}
+        \State $implicant \gets \Call{primeImplicant}{witnesses}$ \label{a:init_incl:l:implicant}
+        \If{$\Call{satisfiable}{implicant}$} \label{a:init_incl:l:sat}
             \State\Return $False$
         \Else
-            \State $inconsistent \gets inconsistent \lor \Call{unsatCore}{implicant}$
-            \State\Call{refineInit}{$W$, $Init$, $inconsistent$}
+            \State $inconsistent \gets inconsistent \lor \Call{unsatCore}{implicant}$ \label{a:init_incl:l:core}
+            \State\Call{refineInit}{$W$, $Init$, $inconsistent$} \label{a:init_incl:l:recurse}
         \EndIf
     \EndIf
 \EndFunction
