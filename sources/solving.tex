@@ -1043,6 +1043,7 @@ The computational bottleneck in this method can arise either from having to perf
 %as part of the abstraction refinement process.
 
 \subsection{Consistency Refinement}
+\label{sec:cons_refinement}
 
 Figure~\ref{f:crefinement} illustrates the main idea of the consistency refinement algorithm.  It shows an abstract state $v$ (Figure~\ref{f:crefinement}a) at the may-must boundary whose untracked substates $u_1$, $u_2$, and $u_3$ have $C^{m+}$-consistent transitions to the must-winning set $W^M$, but none of these transitions is consistent with $C^{M-}$.  The \textsc{refineCpre} algorithm attempts to precisely categorise these substates as must-winning or must-losing.
 
@@ -1130,7 +1131,7 @@ Line~12 computes the set of concrete states where abstract label $l$ is availabl
 \end{ex}
 
 \subsection{Refining the Abstraction}
-\label{s:refineAbstraction}
+\label{sec:refineAbstraction}
 
 The \textsc{refineAbstraction} function is invoked by the abstraction refinement algorithm when no further consistency refinements are possible.  At this point, every untracked sub-state of the boundary region is either must-winning or must-losing, i.e., can be coloured white or black using notation of Figure~\ref{f:crefinement}.  \textsc{refineAbstraction} promotes a subset of untracked predicates making sure that the winning region $W^M$ expands after re-solving the game in line~2 of Algorithm~\ref{alg:generic}.  
 
@@ -1188,6 +1189,7 @@ From this example, we make two important observations. When compiling the update
 We resort to conservatively resetting $C^{M-}$ to $false$ when a new label variable is added and incrementally rebuilding $C^{M-}$ lazily as before. This is a severe performance impediment as $C^{M-}$ may have to be rebuilt many times. We present a pragmatic solution to this problem that is used by Termite in Section \ref{sec:optimisation}.
 
 \subsection{Checking Containment of the Initial Set}
+\label{sec:init_containment}
 
 We create an abstraction of the initial set by introducing a boolean state variable for each predicate that appears in the expression for the initial set. We then replace each predicate by the corresponding boolean variable.
 
@@ -1236,34 +1238,34 @@ We obtain the initial abstraction by extracting atomic predicates from expressio
 
 The initial state and label predicates are those that are created during compilation of the update functions for these predicates.
 
-Finally, we assign $C^{m+}=\top$ and $C^{M-}=\bot$.
+Finally, we assign $C^{m+}=\top$ and $C^{M-}=\bot$ initially.
 
 \subsection{Putting it Together}
 
+The Algorithm for three valued predicate abstraction-refinement is given in Algorithm \ref{alg:final}. In lines \ref{a:final:l:must} and \ref{a:final:l:may} we compute the must and may winning sets. We then check if the initial set is a subset of the must winning set using the procedure described in Section \ref{sec:init_containment} on line \ref{a:final:l:term1}. If it is, we terminate as the game is winning. We then check if the initial set is a subset of the may winning set using the same procedure on line \ref{a:final:l:term2}. If it is not, we terminate as the game is losing. Finally, if none of the termination conditions are met, we refine. First, we attempt to refine the consistency constraints on line \ref{a:final:l:refcpre} using the procedure described in Section \ref{sec:cons_refinement}. If that fails, we refine he abstraction on line \ref{a:final:l:refabs} using the procedure described in Section \ref{sec:cons_refinement}.
+
 \begin{algorithm}
 \caption{Three-valued abstraction refinement for games.}
-\label{alg:genericc}
+\label{alg:final}
 
 \begin{algorithmic}[1]
 
+\Require A game structure $G = \langle S, L, I, \tau_1, \tau_2, \delta \rangle$, a set of target states $T\subseteq S$, and an initial abstraction $\alpha=\langle V, \concrete{}, Cpre_1^{m+}, Cpre_1^{M-} \rangle$ that is precise for $T$, $I$, and $\tau_i$.
+
+\Ensure {\it Yes} if $I \subseteq \reach(T, Cpre_1)$, and {\it No} otherwise.
+
 \Function{Solve}{$transitionRelation$, $goal$}
-    \Statex {\bf Input:} A game structure $G = \langle S, L, I, \tau_1, \tau_2, \delta \rangle$, a set 
-    of target states $T\subseteq S$, and an initial abstraction $\alpha=\langle V, \concrete{}, Cpre_1^{m+}, Cpre_1^{M-} \rangle$
-    that is precise for $T$, $I$, and $\tau_i$.
-
-    \Statex {\bf Output:} {\it Yes} if $I \subseteq \reach(T, Cpre_1)$, and {\it No} otherwise.
-
     \Loop
-        \State $W^M \gets \reach(\abstractM{T}, Cpre_1^{M-})$
-        \State $W^m \gets \reach(\abstractm{T}, Cpre_1^{m+})$
-        \If{$\abstractM{I} \subseteq W^M$} 
+        \State $W^M \gets \reach(T, Cpre_1^{M-})$             \label{a:final:l:must}
+        \State $W^m \gets \reach(T, Cpre_1^{m+})$             \label{a:final:l:may}
+        \If{$\Call{refineInit}{W^M, I, inconsistentInit}$}    \label{a:final:l:term1}
             \State\Return Yes
-        \ElsIf{$\abstractM{I} \nsubseteq W^m$} 
+        \ElsIf{$\Call{refineInit}{W^m, I, inconsistentInit}$} \label{a:final:l:term2}
             \State\Return No
         \Else       
-            \State $refined \gets \Call{refineCpre}{W^M}$
+            \State $refined \gets \Call{refineCpre}{W^M}$     \label{a:final:l:refcpre}
             \If {$(\neg refined)$}
-                \State$\Call{refineAbstraction}{W^M}$
+                \State$\Call{refineAbstraction}{W^M}$         \label{a:final:l:refabs}
             \EndIf
         \EndIf
     \EndLoop
