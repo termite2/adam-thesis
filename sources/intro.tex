@@ -4,12 +4,37 @@ Device driver synthesis has been proposed as a radical alternative to traditiona
 
 The primary motivations for device driver synthesis are the fact that device drivers are hard and tedious to write, and they are notorious for being unreliable~\cite{Chou_YCHE_01,Ganapathi_GP_06}. Drivers generally take a long time to bring to production---given the speed at which new devices can be brought to market today, it is not uncommon for a device release to be delayed by driver rather than silicon issues~\cite{Yavatkar_12}. 
 
-Automatic driver synthesis was proposed in earlier work on the Termite-1 project~\cite{Ryzhyk_CKSH_09}, which formulated the key principles behind the approach and demonstrated its feasibility by synthesizing drivers for several real-world devices.  The next logical step is to develop driver synthesis into a practical methodology, capable of replacing the conventional driver development process.  To this end we have addressed the key problems left open by Termite-1:
+Automatic driver synthesis was proposed in earlier work on the Termite-1 project~\cite{Ryzhyk_CKSH_09}, which formulated the key principles behind the approach and demonstrated its feasibility by synthesizing drivers for several real-world devices.  The next logical step was to develop driver synthesis into a practical methodology, capable of replacing the conventional driver development process.  To this end we have addressed the key problems left open by Termite-1:
 
 \begin{itemize}
     \item The scalability of the Termite-1 synthesis algorithm was severely limited, which made synthesis of drivers for real-world devices intractable. Termite-1 got around the problem by using carefully crafted simplified device specifications, which is acceptable in a proof-of-concept prototype, but not in a practical tool. Addressing this issue is the major contribution of this dissertation.
     \item Termite-1 produced poor quality synthesized code.  While functionally correct, Termite-1 drivers were bloated and poorly structured.  This made it impossible for a programmer to maintain and improve the generated code and prevented synthesized drivers from being adopted by Linux and other major operating systems.  Furthermore, it was impossible to enforce non-functional properties such as CPU and power efficiency.
 \end{itemize}
+
+\section{Scalable Synthesis Algorithm}
+
+To address the scalability problem, we created a new scalable synthesis algorithm, which mitigates the computational bottleneck in driver synthesis.  Following the approach proposed in Termite-1, we treat the driver synthesis problem as a two-player game between the driver and its environment, comprised of the device and the OS.  In this work, we develop this approach into the first precise mathematical formulation of the driver synthesis problem based on game theory.  This enables us to apply theoretical results and algorithmic techniques from game theory to driver synthesis.  
+
+Our game-based synthesis algorithm relies on abstraction and symbolic reasoning to achieve orders of magnitude speed up compared to the current state-of-the-art synthesis techniques.  The algorithm is described in Chapter ~\ref{ch:solving}.
+
+\emph{Abstraction} offers an effective approach to mitigating the state explosion.  For example, in the model checking domain abstraction proved instrumental in enabling automatic verification of complex hardware and software systems~\cite{Clarke_GJLV_00,Clarke_KSY_04,Henzinger_JMS_02}.  The reactive synthesis community has also identified the key role of abstraction in tackling real-world synthesis problems; however most research in this area has so far been of theoretical nature~\cite{Alfaro_Roy_07,Henzinger_JM_03}.  
+
+In this dissertation I present the first practical abstraction-refinement algorithm for solving games.  Our algorithm is based on \emph{predicate abstraction}, which proved to be particularly successful in model checking~\cite{Graf_Saidi_97}.  Predicate abstraction partitions the state space of the game based on a set of predicates, which capture essential properties of the system.  States inside a partition are indistinguishable to the abstraction, which limits the maximal precision of solving the game achievable within the given abstraction.  The abstraction is iteratively refined by introducing new predicates.
+
+The key difficulty in applying predicate abstraction to games is to efficiently solve the abstract game arising at every iteration of the abstraction refinement loop.  This requires computing the abstract \emph{controllable predecessor} operator, which maps a set of abstract states, winning for one of the players, into the set of states from which the player can force the game into the winning set in one round of the game.  This involves enumerating concrete moves available to both players in each abstract state, which can be prohibitively expensive.  
+
+We address the problem by further approximating the expensive controllable predecessor computation and refining the approximation when necessary. To this end, we introduce additional predicates that partition the set of actions available to the players into \emph{abstract actions}.  The controllable predecessor computation then consists of two steps: (1) computing abstract actions available in each abstract state, and (2) evaluating controllable predecessor over abstract states and actions.  
+
+The first step involves potentially expensive analysis of concrete transitions of the system and is therefore computed approximately.  More specifically, solving the abstract game requires overapproximating moves available to one of the players, while underapproximating moves available to the other~\cite{Henzinger_JM_03}.  The former is achieved by allowing an abstract action in an abstract state if it is available in at least one corresponding concrete state, the latter allows an action only if it is available in all corresponding concrete states.  We compute the overapproximation by initially allowing all actions in all states and gradually refining the abstraction by eliminating spurious actions.  Conversely, we start with an empty underapproximation and add available actions as necessary.
+
+This dissertation makes three contributions in the field of reactive synthesis:
+\begin{enumerate}
+    \item We propose the first practical predicate-based abstraction refinement algorithm for two-player games.
+
+    \item We introduce a new type of refinement, which increases the precision of controllable predecessor computation without refining the abstract state space of the game.  This approach avoids costly operations involved in solving the abstract game, approximating them with a sequence of light-weight operations performed on demand, leading to dramatically improved scalability.
+
+    \item We evaluate the algorithm by implementing it as part of the Termite driver synthesis toolkit~\cite{Ryzhyk_WKLRSV_14} and using it to synthesise drivers for complex real-world devices.  Our algorithm efficiently solves games with very large state spaces, which is impossible without using abstraction or using simpler forms of abstraction.
+\end{enumerate}
 
 \section{User Guided Synthesis}
 
@@ -25,11 +50,10 @@ From the developer's perspective, user-guided synthesis appears as an enhancemen
 
 Most previous research on automatic synthesis, including Termite-1, considered input specifications to be ``correct by definition''.  In contrast, we recognise that input specifications produced by human developers are likely to contain defects, which can prevent the synthesis algorithm from finding a correct driver implementation.  Therefore \termite incorporates powerful debugging tools that help the developer identify and fix specification defects through well-defined steps, similar to how conventional debuggers help troubleshoot implementation errors.
 
-\section{Scalable Synthesis Algorithm}
+We evaluate \termite by synthesizing drivers for several I/O devices.  Our experience demonstrates that our methodology meets our design goals, and indeed makes automatic driver synthesis practical.
 
-Another important contribution of this project is a new scalable synthesis algorithm, which mitigates the computational bottleneck in driver synthesis.  Following the approach proposed in Termite-1, we treat the driver synthesis problem as a two-player game between the driver and its environment, comprised of the device and the OS.  In this work, we develop this approach into the first precise mathematical formulation of the driver synthesis problem based on game theory.  This enables us to apply theoretical results and algorithmic techniques from game theory to driver synthesis.  
+%%%%%%%%%%
 
-Our game-based synthesis algorithm relies on abstraction and symbolic reasoning to achieve orders of magnitude speed up compared to the current state-of-the-art synthesis techniques.  The main idea of the algorithm is described in Section~\ref{s:synthesis}, but we refer the reader to a detailed description in an accompanying publication~\cite{Walker_Ryzhyk_14}. 
 
 %by interactively augmenting or modifying synthesized code as it 
 %gets generated.  As long as user-provided code does not violate 
@@ -181,8 +205,4 @@ Our game-based synthesis algorithm relies on abstraction and symbolic reasoning 
 %        to find an error in the implementation.
 %
 
-We evaluate \termite by synthesizing drivers for several I/O devices.  Our experience demonstrates that our methodology meets our design goals, and indeed makes automatic driver synthesis practical.
-
-
-\section{Termite}
 \section{Chapter outline}
