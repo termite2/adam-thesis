@@ -3,7 +3,7 @@
 
 \section{Introduction}\label{sec:user_guided_intro}
 
-\subsection{Overview of \termite} Figure~\ref{f:termite} gives an overview of the driver synthesis process, described in detail in the rest of the paper.  \termite takes three specifications as its inputs: a device model that simulates software-visible device behavior, an OS model that specifies the software interface between the driver and the OS, and a driver template that contains driver entry point declarations and, optionally, their partial implementation to be completed by \termite.
+\subsection{Overview of \termite} Figure~\ref{f:termite} gives an overview of the driver synthesis process, described in detail in the rest of this chapter.  \termite takes three specifications as its inputs: a device model that simulates software-visible device behavior, an OS model that specifies the software interface between the driver and the OS, and a driver template that contains driver entry point declarations and, optionally, their partial implementation to be completed by \termite.
 
 \begin{figure}
     \center
@@ -55,7 +55,7 @@ The virtual interface between the device and the OS, shown with the dashed arrow
 
 Finally, the driver template contains a partial driver implementation to be completed by \termite.  A minimal template consists of a list of driver entrypoints without implementation.  At the other extreme, it can provide a complete implementation, in which case \termite acts as a static verifier for the driver.
 
-All specifications are written using the \termite Specification Language (\tsl).  In line with our goal of making synthesis as close to the conventional driver development workflow as possible, \tsl is designed as a dialect of C with additional constructs for use in synthesis.  We introduce relevant features of \tsl throughout this section.
+All specifications are written using the \termite Specification Language (\tsl).  In line with our goal of making synthesis as close to the conventional driver development workflow as possible, \tsl is designed as a dialect of C with additional constructs for use in synthesis.  The full specification of the \tsl language is given in Appendix \ref{ch:tsl_ref}. We introduce relevant features of \tsl throughout this section.
 
 We minimize the amount of work needed to develop specifications for every synthesized driver by maximizing the reuse of specifications.  In particular, \termite allows the use of existing device specifications developed by hardware designers in driver synthesis.  Furthermore, the OS specification for the driver can be derived from a generic specification for a class of similar devices (e.g., network or storage).  Thus we expect that additional per-driver effort will consist of: (1) inserting device-class callbacks in appropriate locations of the device model and (2) extending the OS specification to support device-specific features missing in the  generic OS specification.
 
