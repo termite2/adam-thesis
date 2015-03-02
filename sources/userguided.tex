@@ -53,30 +53,26 @@ Input to \termite consists of the three specifications, which model the complete
 
 The virtual interface between the device and the OS, shown with the dashed arrow in Figure~\ref{f:actions}, is used by the device model to notify the OS model about important hardware events, such as completion of I/O transactions and error conditions.  Methods of the virtual interface do not represent real runtime interactions between the device and the OS, but are used by the OS model to specify correctness constraints for the driver (see Section~\ref{s:virt}).
 
-Finally, the driver template contains a partial driver implementation to be completed by \termite.  A minimal template consists of a list of driver entrypoints without implementation.  At the other extreme, it can provide a complete implementation, in which case \termite acts as a static verifier for the driver.
+Finally, the driver template contains a partial driver implementation to be completed by \termite.  A minimal template consists of a list of driver entrypoints without implementation.  At the other extreme, it can provide a complete implementation, in which case \termite acts as a static verifier for the driver. By this we mean that it checks that the interactions between the driver software and the hardware ensure that all operating system requests are eventually fulfilled. It does not, for example, check for the absence of null pointer dereferences and similar defects that can be found by tools such as SLAM \cite{slam}. In fact, \tsl is designed to express state machines, not arbitrary programs and such defects are not expressible. Of course, this also limits the drivers that can be expressed.
 
 All specifications are written using the \termite Specification Language (\tsl).  In line with our goal of making synthesis as close to the conventional driver development workflow as possible, \tsl is designed as a dialect of C with additional constructs for use in synthesis.  The full specification of the \tsl language is given in Appendix \ref{ch:tsl_ref}. We introduce relevant features of \tsl throughout this section.
 
-We minimize the amount of work needed to develop specifications for every synthesized driver by maximizing the reuse of specifications.  In particular, \termite allows the use of existing device specifications developed by hardware designers in driver synthesis.  Furthermore, the OS specification for the driver can be derived from a generic specification for a class of similar devices (e.g., network or storage).  Thus we expect that additional per-driver effort will consist of: (1) inserting device-class callbacks in appropriate locations of the device model and (2) extending the OS specification to support device-specific features missing in the  generic OS specification.
+We minimize the amount of work needed to develop specifications for every synthesized driver by maximizing the reuse of specifications.  In particular, \termite allows the use of existing device specifications developed by hardware designers in driver synthesis.  It does this by providing a compiler from the modelling language used for the existing specification to \tsl. This is explained in Section \ref{sec:device_model}.
+
+Furthermore, the OS specification for the driver can be derived from a generic specification for a class of similar devices (e.g., network or storage).  Thus we expect that additional per-driver effort will consist of: 
+\begin{enumerate}
+    \item inserting device-class callbacks in appropriate locations of the device model and 
+    \item extending the OS specification to support device-specific features missing in the  generic OS specification.
+\end{enumerate}
 
 \subsection{Device model}
+\label{sec:device_model}
 
 The device model simulates the device operation at a level of detail sufficient to synthesize a correct driver for it.  To this end, it must accurately model external device behavior visible to software.  At the same time, it is not required to precisely capture internal device operation and timing, as these aspects are opaque to the driver.
 
 Such device models are routinely developed by hardware designers for the purposes of design exploration, simulation, and testing. They are widely used by hardware manufacturers in-house~\cite{cofluent} and are available commercially from major silicon IP vendors~\cite{vp}.  These models are known as \emph{transaction-level models} (TLMs) (in contrast to the detailed register-transfer-level models used in gate-level synthesis)~\cite{Cai_Gajski_03}.  A TLM focuses on software-visible events, or \emph{transactions}, such as a write to a device register or a network packet transmission.
 
-%\change{While the transaction-level modeling technology is 
-%relatively new, TLMs are already widely used by hardware 
-%manufacturers in-house~\cite{cofluent} and are available 
-%commercially from major silicon IP vendors~\cite{vp}.  We expect 
-%that in the future open-source TLMs will become commonplace, since 
-%a TLM does not expose internal implementation details of the 
-%device and is therefore not part of sensitive IP.}
-
-%In the actual hardware circuit a transaction can take multiple 
-%(possibly thousands) clock cycles.
-
-%(it does not have a receive function).
+While the transaction-level modeling technology is relatively new, TLMs are already widely used by hardware manufacturers in-house~\cite{cofluent} and are available commercially from major silicon IP vendors~\cite{vp}.  We are optimistic that in the future open-source TLMs will become commonplace, since a TLM does not expose internal implementation details of the device and is therefore less likely to expose sensitive IP.
 
 \begin{figure}
 \lstset{numbers=left}
