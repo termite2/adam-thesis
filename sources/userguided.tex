@@ -75,79 +75,113 @@ Such device models are routinely developed by hardware designers for the purpose
 While the transaction-level modeling technology is relatively new, TLMs are already widely used by hardware manufacturers in-house~\cite{cofluent} and are available commercially from major silicon IP vendors~\cite{vp}.  We are optimistic that in the future open-source TLMs will become commonplace, since a TLM does not expose internal implementation details of the device and is therefore less likely to expose sensitive IP.
 
 \begin{figure}
-\lstset{numbers=left}
-\lstset{firstnumber=last}
-    \scriptsize
-%\begin{tabular}{p{0.45\textwidth}p{0.05\textwidth}p{0.45\textwidth}}
-%            \center
 \begin{tsllisting}[name=ex]
-template dev /* Device model */
-  uint8 reg_dat, reg_cmd, reg_status = 0;
-  /* device commands */
-  controllable void write_dat(uint8 v) 
-  { reg_dat = v; };
-  controllable void write_cmd(uint8 v) 
-  { reg_cmd = v; };
-  controllable uint8 read_cmd() 
-  { return reg_cmd; };
-  controllable uint8 read_status() 
-  { return reg_status; };
-  /* internal behavior */
-  process ptx {
-    forever {
-      wait (reg_cmd == 1);
-      choice {
-        { os.evt_send(reg_dat);
-          reg_status=0; };
-        { os.evt_send_fail(reg_dat);
-          reg_status=1; };
-      };
-      reg_cmd = 0;
-      /*drv.irq(); (see Section 4*/
-    };
-  };
-endtemplate
+/* Device model */
+template dev 
 
-template os /* OS model */
-  uint8 dat;
-  bool inprogress, acked, success;
-  /* driver workload generator */
-  process psend {
-    forever {
-      dat = *; /*randomise dat*/
-      inprogress = true;
-      acked = false;
-      drv.send(dat);
-      wait(acked);
-    };
-  };
-  /* I/O completions */
-  controllable void send_ack(bool status) {
-    assert (!inprogress && !acked && 
-            status == success);
-    acked = true;
-  };
-  /* virtual callbacks */
-  void evt_send(uint8 v) {
-    assert (inprogress && v==dat);
-    inprogress = false;
-    success = true;
-  };
-  void evt_send_fail(uint8 v) {
-    assert (inprogress && v==dat);
-    inprogress = false;
-    success = false;
-  };
-  goal idle_goal = acked;
-endtemplate
+    /* Device internal state */
+    uint8 reg_dat, reg_cmd, reg_status = 0;
 
-template drv /* Driver template */
-  void send(uint8 v){...;};
-  /*void irq(){...;}; (see Section 4)*/
+    /* device commands */
+    controllable void write_dat(uint8 v) { 
+        reg_dat = v; 
+    };
+
+    controllable void write_cmd(uint8 v) { 
+        reg_cmd = v; 
+    };
+
+    controllable uint8 read_cmd() { 
+        return reg_cmd; 
+    };
+
+    controllable uint8 read_status() { 
+        return reg_status; 
+    };
+
+    /* internal behavior */
+    process ptx {
+        forever {
+            wait (reg_cmd == 1);
+            choice {
+                { 
+                    os.evt_send(reg_dat);
+                    reg_status=0; 
+                };
+                { 
+                    os.evt_send_fail(reg_dat);
+                    reg_status=1; 
+                };
+            };
+            reg_cmd = 0;
+            /*drv.irq(); (see Section 4)*/
+        };
+    };
 endtemplate
 \end{tsllisting}
-    \caption{\small Trivial serial controller driver specifications.}
-    \label{f:ex}
+\caption{\small Trivial serial controller driver specifications.}
+\label{f:ex}
+\end{figure}
+
+\begin{figure}
+\lstset{firstnumber=last}
+\begin{tsllisting}[name=ex]
+/* OS model */
+template os 
+
+    uint8 dat;
+    bool inprogress, acked, success;
+
+    /* driver workload generator */
+    process psend {
+        forever {
+            dat = *; /*randomise dat*/
+            inprogress = true;
+            acked = false;
+            drv.send(dat);
+            wait(acked);
+        };
+    };
+
+    /* I/O completions */
+    controllable void send_ack(bool status) {
+        assert (!inprogress && !acked && status == success);
+        acked = true;
+    };
+
+    /* virtual callbacks */
+    void evt_send(uint8 v) {
+        assert (inprogress && v==dat);
+        inprogress = false;
+        success = true;
+    };
+
+    void evt_send_fail(uint8 v) {
+        assert (inprogress && v==dat);
+        inprogress = false;
+        success = false;
+    };
+
+    /* The goal */
+    goal idle_goal = acked;
+endtemplate
+\end{tsllisting}
+\caption{\small Trivial serial controller driver specifications.}
+\label{f:ex}
+\end{figure}
+
+\begin{figure}
+\lstset{firstnumber=last}
+\begin{tsllisting}[name=ex]
+/* Driver template */
+template drv 
+
+    void send(uint8 v){...;};
+    /*void irq(){...;}; (see Section 4)*/
+endtemplate
+\end{tsllisting}
+\caption{\small Trivial serial controller driver specifications.}
+\label{f:ex}
 \end{figure}
 
 Existing TLMs created by hardware designers can be used with minor modifications (explained in Section~\ref{s:virt}) for driver synthesis.  Model reuse dramatically reduces the effort involved in synthesizing a driver and is therefore crucial to practical success of driver synthesis.  By reusing an existing model, we also reuse the effort invested by hardware designers into testing and debugging the model throughout the hardware design cycle, thus making driver synthesis less susceptible to specification bugs.  Finally, since TLMs are created early in the hardware design cycle, TLM-based driver synthesis can be carried out early as well, thus removing driver development from the critical path to product delivery.
