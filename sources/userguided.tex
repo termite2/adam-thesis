@@ -74,16 +74,24 @@ Such device models are routinely developed by hardware designers for the purpose
 
 While the transaction-level modeling technology is relatively new, TLMs are already widely used by hardware manufacturers in-house~\cite{cofluent} and are available commercially from major silicon IP vendors~\cite{vp}.  We are optimistic that in the future open-source TLMs will become commonplace, since a TLM does not expose internal implementation details of the device and is therefore less likely to expose sensitive IP.
 
+Existing TLMs created by hardware designers can be used with minor modifications (explained in Section~\ref{s:virt}) for driver synthesis.  Model reuse dramatically reduces the effort involved in synthesizing a driver and is therefore crucial to practical success of driver synthesis.  By reusing an existing model, we also reuse the effort invested by hardware designers into testing and debugging the model throughout the hardware design cycle, thus making driver synthesis less susceptible to specification bugs.  Finally, since TLMs are created early in the hardware design cycle, TLM-based driver synthesis can be carried out early as well, thus removing driver development from the critical path to product delivery.
+
+TLMs are written in high-level hardware description languages like SystemC and DML.  In order to use these models in driver synthesis, we need to convert them to \tsl.  This translation can be performed automatically, and we are currently working on a DML-to-\tsl compiler.  Since this work is not yet complete, device models used in the experimental section of this paper are either manually translated from existing TLMs or written from scratch using TLM modeling style guidelines~\cite{dml_ug}.
+
+Unfortunately, few TLMs are publicly available at the moment, which means that driver synthesis must be performed by  device vendors in-house.  However this is likely to change in the future.  A TLM does not expose internal implementation details of the device and is therefore not part of sensitive IP.  At the same time, there exist strong incentives for manufacturers to make device TLMs available to third-party vendors to test their software and hardware products for compatibility with the given device.
+
+\subsubsection{Running example}
+
 \begin{figure}
 \begin{tsllisting}[name=ex]
 /* Device model */
 template dev 
 
     /* Device internal state */
-    uint8 reg_dat, reg_cmd, reg_status = 0;
+    uint8 reg_dat, reg_cmd, reg_status = 0; (*@\label{f:ex_dev:l:reg_decls}@*)
 
     /* device commands */
-    controllable void write_dat(uint8 v) { 
+    controllable void write_dat(uint8 v) { (*@\label{f:ex_dev:l:start_access}@*)
         reg_dat = v; 
     };
 
@@ -97,31 +105,51 @@ template dev
 
     controllable uint8 read_status() { 
         return reg_status; 
-    };
+    }; (*@\label{f:ex_dev:l:end_access}@*)
 
     /* internal behavior */
-    process ptx {
+    process ptx { (*@\label{f:ex_dev:l:start_xmit}@*)
         forever {
-            wait (reg_cmd == 1);
+            wait (reg_cmd == 1); (*@\label{f:ex_dev:l:wait}@*)
             choice {
                 { 
-                    os.evt_send(reg_dat);
+                    os.evt_send(reg_dat); (*@\label{f:ex_dev:l:cb_succ}@*)
                     reg_status=0; 
                 };
                 { 
-                    os.evt_send_fail(reg_dat);
+                    os.evt_send_fail(reg_dat);(*@\label{f:ex_dev:l:cb_fail}@*)
                     reg_status=1; 
                 };
             };
             reg_cmd = 0;
             /*drv.irq(); (see Section 4)*/
         };
-    };
+    }; (*@\label{f:ex_dev:l:end_xmit}@*)
 endtemplate
 \end{tsllisting}
-\caption{\small Trivial serial controller driver specifications.}
-\label{f:ex}
+\caption{Trivial serial controller device specifications.}
+\label{f:ex_dev}
 \end{figure}
+
+Figure~\ref{f:ex_dev} shows a fragment of a model of a trivial serial controller device used as a running example.  The fragment specifies the send logic of the controller, which allows software to send data characters over the serial line.  The model is implemented as a \tsl \emph{template}.  The template encapsulates data and code that manipulates the data, similar to a class in OOP.
+
+The software interface of the device consists of data, command, and status registers declared in line~\ref{f:ex_dev:l:reg_decls}.  The registers can be accessed from software via the \src{write\_dat}, \src{write\_cmd}, \src{read\_cmd}, and \src{read\_status} methods (lines~\ref{f:ex_dev:l:start_access}--\ref{f:ex_dev:l:end_access}).  The \src{controllable} qualifier denotes a method that is available to the driver and can be invoked from synthesized code.
+
+The transmitter logic is modelled in lines~\ref{f:ex_dev:l:start_xmit}--\ref{f:ex_dev:l:end_xmit}.  It is implemented as a \tsl \emph{process}.  A \tsl specification can contain multiple processes.  The choice of the process to run is made non-deterministically by the scheduler.  The process executes atomically until reaching a \src{wait} statement or a controllable placeholder (see below).
+
+In line~\ref{f:ex_dev:l:wait}, the transmitter waits for a command, issued by the driver by writing value $1$ to the command register.  Upon receiving the command, it sends the value in the data register over the serial line.  The transmission may fail, e.g., due to a serial link problem.  The device signals transmission status to software by setting the status register to $0$ or $1$.  Finally, it clears the command register, thus notifying the driver the request has completed.
+
+Internally, the transmitter circuit consists of a shift register and a baud rate generator used to output data on the serial line.  These details are not visible to software and are abstracted away in the model.  We use the non-deterministic \src{choice} construct to choose between successful transmission and failure, without modelling the details of serial link operation.  Successful and failed transmissions are modelled using\src{evt\_send} and \src{evt\_send\_fail} events, explained in Section~\ref{s:os}.
+
+\subsection{OS model}\label{s:os}
+
+The OS model specifies the API mandated by the OS for all drivers of the given type.  For example, any Ethernet driver must implement the interface for sending and receiving Ethernet packets.  A separate specification is needed for each supported OS, as different OSs define different interfaces for device drivers.
+
+A high degree of specification reuse can be achieved by  creating a library of generic specifications for common types of drivers, e.g., network, storage, or serial drivers.  A generic specification describes the API mandated by the OS for all drivers of the given type.  For example, any Ethernet driver must implement the interface for sending and receiving Ethernet packets.  A separate generic specification is needed for each supported OS, as different OSs define different interfaces for device drivers.
+
+Additionally, each particular device can support non-standard features, e.g., device-specific configuration options or transfer modes.  These features must be added as extensions to the generic OS specification in order to synthesize support for them in the driver.  \tsl supports such extensions in a systematic way via the template inheritance mechanism.  This is described in Appendix \ref{ch:tsl_ref}.
+
+\subsubsection{Running example}
 
 \begin{figure}
 \lstset{firstnumber=last}
@@ -130,30 +158,30 @@ endtemplate
 template os 
 
     uint8 dat;
-    bool inprogress, acked, success;
+    bool inprogress, acked, success; (*@\label{f:ex_os:l:vars}@*)
 
     /* driver workload generator */
     process psend {
         forever {
-            dat = *; /*randomise dat*/
+            dat = *; /*randomise dat*/ (*@\label{f:ex_os:l:nondet}@*)
             inprogress = true;
             acked = false;
             drv.send(dat);
-            wait(acked);
+            wait(acked); (*@\label{f:ex_os:l:wait}@*)
         };
     };
 
     /* I/O completions */
-    controllable void send_ack(bool status) {
+    controllable void send_ack(bool status) { (*@\label{f:ex_os:l:ack}@*)
         assert (!inprogress && !acked && status == success);
         acked = true;
     };
 
     /* virtual callbacks */
-    void evt_send(uint8 v) {
-        assert (inprogress && v==dat);
-        inprogress = false;
-        success = true;
+    void evt_send(uint8 v) { (*@\label{f:ex_os:l:send_cb}@*)
+        assert (inprogress && v==dat); (*@\label{f:ex_os:l:assert}@*)
+        inprogress = false; (*@\label{f:ex_os:l:inprogress}@*)
+        success = true; (*@\label{f:ex_os:l:success}@*)
     };
 
     void evt_send_fail(uint8 v) {
@@ -163,86 +191,19 @@ template os
     };
 
     /* The goal */
-    goal idle_goal = acked;
+    goal idle_goal = acked; (*@\label{f:ex_os:l:goal}@*)
 endtemplate
 \end{tsllisting}
-\caption{\small Trivial serial controller driver specifications.}
-\label{f:ex}
+\caption{Trivial serial controller driver specifications.}
+\label{f:ex_os}
 \end{figure}
 
-\begin{figure}
-\lstset{firstnumber=last}
-\begin{tsllisting}[name=ex]
-/* Driver template */
-template drv 
+Figure~\ref{f:ex_os} shows the operating system model. It is written in the form of a test harness that simulates all possible sequences of driver invocations issued by the OS.  The \src{os} template in Figure~\ref{f:ex_os} shows the OS model for our running example.  The main part of the model is the \src{psend} process.  At every iteration of the loop, it non-deterministically chooses an 8-bit value (line~\ref{f:ex_os:l:nondet}) and calls the \src{send} method of the driver, passing this value as an argument.  It then waits for the driver to acknowledge the transmission of the byte (line~\ref{f:ex_os:l:wait}) before issuing another request.  The driver acknowledges the transmission via the \src{send\_ack} callback (line~\ref{f:ex_os:l:ack}).  The callback sets the \src{acked} flag, which unblocks the \src{psend} process.
 
-    void send(uint8 v){...;};
-    /*void irq(){...;}; (see Section 4)*/
-endtemplate
-\end{tsllisting}
-\caption{\small Trivial serial controller driver specifications.}
-\label{f:ex}
-\end{figure}
+We keep the specification concise by modeling the state of the driver-OS interface, as opposed to the internal OS state and behavior.  For example, the \src{acked} variable (line~\ref{f:ex_os:l:ack}) serves to model the flow of data between the OS and the driver and is not necessarily present in the OS implementation.
 
-Existing TLMs created by hardware designers can be used with minor modifications (explained in Section~\ref{s:virt}) for driver synthesis.  Model reuse dramatically reduces the effort involved in synthesizing a driver and is therefore crucial to practical success of driver synthesis.  By reusing an existing model, we also reuse the effort invested by hardware designers into testing and debugging the model throughout the hardware design cycle, thus making driver synthesis less susceptible to specification bugs.  Finally, since TLMs are created early in the hardware design cycle, TLM-based driver synthesis can be carried out early as well, thus removing driver development from the critical path to product delivery.
-
-TLMs are written in high-level hardware description languages like SystemC and DML.  In order to use these models in driver synthesis, we need to convert them to \tsl.  This translation can be performed automatically, and we are currently working on a DML-to-\tsl compiler.  Since this work is not yet complete, device models used in the experimental section of this paper are either manually translated from existing TLMs or written from scratch using TLM modeling style guidelines~\cite{dml_ug}.
-
-Unfortunately, few TLMs are publicly available at the moment, which means that driver synthesis must be performed by  device vendors in-house.  However this is likely to change in the future.  A TLM does not expose internal implementation details of the device and is therefore not part of sensitive IP.  At the same time, there exist strong incentives for manufacturers to make device TLMs available to third-party vendors to test their software and hardware products for compatibility with the given device.
-
-\subsubsection{Running example}
-
-The top part of Figure~\ref{f:ex} shows a fragment of a model of a trivial serial controller device used as a running example.  The fragment specifies the send logic of the controller, which allows software to send data characters over the serial line.  The model is implemented as a \tsl \emph{template}.  The template encapsulates data and code that manipulates the data, similar to a class in OOP.
-
-The software interface of the device consists of data, command, and status registers declared in line~2.  The registers can be accessed from software via the \src{write\_dat}, \src{write\_cmd}, \src{read\_cmd}, and \src{read\_status} methods (lines~4--11).  The \src{controllable} qualifier denotes a method that is available to the driver and can be invoked from synthesized code.
-
-The transmitter logic is modelled in lines~13--25.  It is implemented as a \tsl \emph{process}.  A \tsl specification can contain multiple processes.  The choice of the process to run is made non-deterministically by the scheduler.  The process executes atomically until reaching a \src{wait} statement or a controllable placeholder (see below).
-
-In line~15, the transmitter waits for a command, issued by the driver by writing value $1$ to the command register.  Upon receiving the command, it sends the value in the data register over the serial line.  The transmission may fail, e.g., due to a serial link problem.  The device signals transmission status to software by setting the status register to $0$ or $1$.  Finally, it clears the command register, thus notifying the driver the request has completed.
-
-Internally, the transmitter circuit consists of a shift register and a baud rate generator used to output data on the serial line.  These details are not visible to software and are abstracted away in the model.  We use the non-deterministic \src{choice} construct to choose between successful transmission and failure, without modelling the details of serial link operation.  Successful and failed transmissions are modelled using\src{evt\_send} and \src{evt\_send\_fail} events, explained in Section~\ref{s:os}.
-
-%The \src{ptx} process is initially paused in line~15.  Upon 
-%observing value $1$ written to the command register, it sends the 
-%value in the data register over the serial line.  The transmission 
-%may fail, e.g., due to a serial link problem.  This behavior is 
-%modelled using the \src{choice} construct in line~16, which 
-%non-deterministically chooses between successful transmission and 
-%failure.  The two outcomes are modeled by the \src{evt\_send} and 
-%\src{evt\_send\_fail} events respectively.  The device sets the 
-%status register to $0$ or $1$ to reflect the 
-%
-%The actual implementation of the transmitter circuit contains much 
-%more detail than captured by this specification.  
-
-\subsection{OS model}\label{s:os}
-
-The OS model specifies the API mandated by the OS for all drivers of the given type.  For example, any Ethernet driver must implement the interface for sending and receiving Ethernet packets.  A separate specification is needed for each supported OS, as different OSs define different interfaces for device drivers.
-
-%A high degree of specification reuse can be achieved by  creating 
-%a library of generic specifications for common types of drivers, 
-%e.g., network, storage, or serial drivers.  A generic 
-%specification describes the API mandated by the OS for all drivers 
-%of the given type.  For example, any Ethernet driver must 
-%implement the interface for sending and receiving Ethernet 
-%packets.  A separate generic specification is needed for each 
-%supported OS, as different OSs define different interfaces for 
-%device drivers.
-
-Additionally, each particular device can support non-standard features, e.g., device-specific configuration options or transfer modes.  These features must be added as extensions to the generic OS specification in order to synthesize support for them in the driver.  \tsl supports such extensions in a systematic way via the template inheritance mechanism.  We do not describe this in detail due to limited space.
-
-\subsubsection{Running example}
-
-The OS model is written in the form of a test harness that simulates all possible sequences of driver invocations issued by the OS.  The \src{os} template in Figure~\ref{f:ex} shows the OS model for our running example.  The main part of the model is the \src{psend} process.  At every iteration of the loop, it non-deterministically chooses an 8-bit value (line~34) and calls the \src{send} method of the driver, passing this value as an argument.  It then waits for the driver to acknowledge the transmission of the byte (line~38) before issuing another request.  The driver acknowledges the transmission via the \src{send\_ack} callback (line~42).  The callback sets the \src{acked} flag, which unblocks the \src{psend} process.
-
-We keep the specification concise by modeling the state of the driver-OS interface, as opposed to the internal OS state and behavior.  For example, the \src{acked} variable (line~30) serves to model the flow of data between the OS and the driver and is not necessarily present in the OS implementation.
-
-%As another example, we use non-determinism in line~26 to model all 
-%possible data values passed to the driver while abstracting away 
-%the data path from a user-level program to the driver via various 
-%kernel subsystems.
-
-\subsection{Connecting device and OS models}\label{s:virt}
+\subsection{Connecting device and OS models}
+\label{s:virt}
 
 In addition to simulating I/O requests to the driver, the OS model also specifies the semantics of each request in terms of device-internal events that must occur in order to complete the requested I/O operation.  In our running example, after the OS invokes the \src{send} method of the driver and before the driver acknowledges completion of the request, the device must attempt to send the requested data over the serial line.  This requirement establishes a connection between the device and OS models and must be specified explicitly in order to enable \termite to generate a driver implementation that correctly handles the OS request.  Note that we only need to specify \emph{which} hardware events must occur, but not \emph{how} the driver generates them.
 
@@ -252,13 +213,38 @@ We define a virtual interface for each class of devices.  Such \emph{device-clas
 
 \subsubsection{Running example}
 
-In our example, we define a device-class interface consisting of two virtual callbacks: \src{evt\_send} and \src{ev\_send\_failed}, invoked respectively when the device successfully transmits and fails to transmit a byte.  These callbacks are invoked in lines~17 and 19 of the device model.  The \src{evt\_send} handler is shown in line~48 of the OS model.  The assertion in line~49 specifies that the send event is only allowed to occur if there is an outstanding send request in progress and the value being sent is the same as the one requested by the OS.  We reset the \src{inprogress} flag to false in line~50, thus marking the current request as completed; line~51 sets the \src{success} flag to true, thus indicating that the transfer completed without an error.  The \src{evt\_send\_fail} handler is identical, except that it sets the \src{success} flag to false.  The flags are checked by the \src{send\_ack} method, which asserts that the driver is only allowed to acknowledge a completed request (\src{!inprogress}) that has not been acknowledged yet (\src{!acked}) and that the completion status reported by the driver must match the one recorded in the \src{success} flag.
+\todo{device class source}
 
-In this example we use C-style assertions to rule out invalid system behaviors.  Assertions alone do not fully capture requirements for a correct driver behavior.  For example, a driver that remains idle does not violate any assertions.  Hence, we need to specify requirements for the driver to make forward progress.  We introduce such requirements into the model in the form of \emph{goal conditions}, that must hold \emph{infinitely often} in any run of the system.  For example, a goal may require that the driver is infinitely often in an idle state with no outstanding requests from the OS.  The OS can force the driver out of the goal by issuing a new I/O request.  To satisfy the goal condition, the driver must return to the goal state by completing the request.  Line~58 in Figure~\ref{f:ex} defines such a goal condition that holds whenever the \src{acked} flag is set, i.e., the driver has no unacknowledged send requests.
+In our example, we define a device-class interface consisting of two virtual callbacks: \src{evt\_send} and \src{ev\_send\_failed}, invoked respectively when the device successfully transmits and fails to transmit a byte.  These callbacks are invoked in lines~\ref{f:ex_dev:l:cb_succ} and \ref{f:ex_dev:l:cb_fail} of the device model.  The \src{evt\_send} handler is shown in line~\ref{f:ex_os:l:send_cb} of the OS model.  The assertion in line~\ref{f:ex_os:l:assert} specifies that the send event is only allowed to occur if there is an outstanding send request in progress and the value being sent is the same as the one requested by the OS.  We reset the \src{inprogress} flag to false in line~\ref{f:ex_os:l:inprogress}, thus marking the current request as completed; line~\ref{f:ex_os:l:success} sets the \src{success} flag to true, thus indicating that the transfer completed without an error.  The \src{evt\_send\_fail} handler is identical, except that it sets the \src{success} flag to false.  The flags are checked by the \src{send\_ack} method, which asserts that the driver is only allowed to acknowledge a completed request (\src{!inprogress}) that has not been acknowledged yet (\src{!acked}) and that the completion status reported by the driver must match the one recorded in the \src{success} flag.
+
+In this example we use C-style assertions to rule out invalid system behaviors.  Assertions alone do not fully capture requirements for a correct driver behavior.  For example, a driver that remains idle does not violate any assertions.  Hence, we need to specify requirements for the driver to make forward progress.  We introduce such requirements into the model in the form of \emph{goal conditions}, that must hold \emph{infinitely often} in any run of the system.  For example, a goal may require that the driver is infinitely often in an idle state with no outstanding requests from the OS.  The OS can force the driver out of the goal by issuing a new I/O request.  To satisfy the goal condition, the driver must return to the goal state by completing the request.  Line~\ref{f:ex_os:l:goal} in Figure~\ref{f:ex_os} defines such a goal condition that holds whenever the \src{acked} flag is set, i.e., the driver has no unacknowledged send requests.
 
 \subsection{Driver template}
 
-The bottom part of Figure~\ref{f:ex} shows the driver template for the running example consisting of a single \src{send} entry point invoked by the OS.  The ellipsis in line~62 represent a location for inserting synthesized code and are part of \tsl syntax.  We refer to such locations as \emph{controllable placeholders}. 
+\subsubsection{Running example}
+
+\begin{figure}
+\lstset{firstnumber=last}
+\begin{tsllisting}[name=ex]
+/* Driver template */
+template drv 
+
+    void send(uint8 v){
+        ...; (*@\label{f:ex_drv:l:magic}@*)
+    }; 
+
+    /*
+    void irq(){ (see Section 4)
+        ...;
+    }; 
+    */
+endtemplate
+\end{tsllisting}
+\caption{Trivial serial controller driver specifications.}
+\label{f:ex_drv}
+\end{figure}
+
+Figure~\ref{f:ex_drv} shows the driver template for the running example consisting of a single \src{send} entry point invoked by the OS.  The ellipsis in line~\ref{f:ex_drv:l:magic} represent a location for inserting synthesized code and are part of \tsl syntax.  We refer to such locations as \emph{controllable placeholders}. 
 
 \section{Heuristic code generation}
 
