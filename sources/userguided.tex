@@ -188,15 +188,7 @@ Existing TLMs created by hardware designers can be used with minor modifications
 
 TLMs are written in high-level hardware description languages like SystemC and DML.  In order to use these models in driver synthesis, we need to convert them to \tsl.  This translation can be performed automatically, and we are currently working on a DML-to-\tsl compiler.  Since this work is not yet complete, device models used in the experimental section of this paper are either manually translated from existing TLMs or written from scratch using TLM modeling style guidelines~\cite{dml_ug}.
 
-%Unfortunately, few TLMs are publicly available at the moment, 
-%which means that driver synthesis must be performed by  device 
-%vendors in-house.  However this is likely to change in the future.  
-%A TLM does not expose internal implementation details of the 
-%device and is therefore not part of sensitive IP.  At the same 
-%time, there exist strong incentives for manufacturers to make 
-%device TLMs available to third-party vendors to test their 
-%software and hardware products for compatibility with the given 
-%device.
+Unfortunately, few TLMs are publicly available at the moment, which means that driver synthesis must be performed by  device vendors in-house.  However this is likely to change in the future.  A TLM does not expose internal implementation details of the device and is therefore not part of sensitive IP.  At the same time, there exist strong incentives for manufacturers to make device TLMs available to third-party vendors to test their software and hardware products for compatibility with the given device.
 
 \subsubsection{Running example}
 
