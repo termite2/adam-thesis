@@ -122,7 +122,7 @@ template dev
                 };
             };
             reg_cmd = 0;
-            /*drv.irq(); (see Section 4)*/
+            /*drv.irq(); (see Section 4)*/(*@\label{f:ex_dev:l:irq}@*)
         };
     }; (*@\label{f:ex_dev:l:end_xmit}@*)
 endtemplate
@@ -229,12 +229,12 @@ In this example we use C-style assertions to rule out invalid system behaviors. 
 /* Driver template */
 template drv 
 
-    void send(uint8 v){
+    void send(uint8 v){ (*@\label{f:ex_drv:l:send}@*)
         ...; (*@\label{f:ex_drv:l:magic}@*)
     }; 
 
     /*
-    void irq(){ (see Section 4)
+    void irq(){ (see Section 4) (*@\label{f:ex_drv:l:irq}@*)
         ...;
     }; 
     */
@@ -246,70 +246,35 @@ endtemplate
 
 Figure~\ref{f:ex_drv} shows the driver template for the running example consisting of a single \src{send} entry point invoked by the OS.  The ellipsis in line~\ref{f:ex_drv:l:magic} represent a location for inserting synthesized code and are part of \tsl syntax.  We refer to such locations as \emph{controllable placeholders}. 
 
-\section{Heuristic code generation}
-
 \section{User-guided code generation}
 \label{s:user-guided}
 
 The set of input \tsl specifications is fed into the \termite synthesis engine, which then automatically computes the most general strategy for the driver.  Given a state of the system, the most general strategy determines the set of all valid driver actions in this state.  The most general strategy is used by the \termite code generator to produce a driver implementation in C in a user-guide fashion.
 
+\subsection{Motivation}
 
-%\paragraph{Experience with automatic code generation}
-%
-%Early versions of \termite implemented fully automatic code  
-%generation as their only mode of operation.  In many cases we 
-%found that the tool produced unsatisfactory code
-%, which led to a series of improvements to the code generation 
-%algorithm, aimed to generate more compact, user-readable, and 
-%efficient implementations.  At the same time, we found that many 
-%aspects of what is perceived by developers as a good 
-%implementation are very hard to formalize, and, even when 
-%possible, the effort involved in such a formalization exceeds the 
-%effort needed to achieve the desired effect manually.
-%
-%For example, the interrupt handler logic of most drivers follows
-%the standard structure, where the driver checks every interrupt
-%source in the order of its priority and invokes a separate handler
-%function for every signaled interrupt.  Interrupt prioritization
-%and functional decomposition are hard to synthesize automatically
-%without manual guidance.
-%
-%One might argue that structure and readability are not relevant
-%for synthesized code.  In practice, however, if synthesized
-%drivers are to make their way into Linux and other major OSs, they
-%must follow standard coding guidelines adopted by these OSs and be
-%amenable to manual code inspection.  Furthermore, human readable
-%code is needed for quality assurance.  While automatic synthesis
-%guarantees that the synthesized driver is correct with respect to
-%input specifications, it does not protect against specification
-%defects: despite our best effort to maximize specification reuse
-%and follow good modeling practices, specification defects cannot
-%be avoided altogether.  Hence, manual inspection remains an
-%important way to eliminate driver bugs.
-%
-%In summary, while there exists a potential for further improvement
-%of automatic code generation algorithms, we believe that a truly
-%practical driver synthesis tool must put the user in control of
-%the resulting code and not enforce any particular code structure
-%nor attempt to override user's design decisions.
-%
-%\paragraph{User-guided code generation}
+Early versions of \termite implemented fully automatic code generation as their only mode of operation.  In many cases we found that the tool produced unsatisfactory code, which led to a series of improvements to the code generation algorithm, aimed to generate more compact, user-readable, and efficient implementations.  At the same time, we found that many aspects of what is perceived by developers as a good implementation are very hard to formalize, and, even when possible, the effort involved in such a formalization exceeds the effort needed to achieve the desired effect manually.
 
-%The code generator works as advanced auto-complete, that can be 
-%used to generate a single statement or an entire function.  
-%\termite automatically and on the fly verifies that the driver 
-%implementation, comprised of a mix of generated and manually 
-%written code, is consistent with the most general strategy, thus 
-%maintaining strong correctness guarantees that one would expect in 
-%automatically synthesized code.
+For example, the interrupt handler logic of most drivers follows the standard structure, where the driver checks every interrupt source in the order of its priority and invokes a separate handler function for every signaled interrupt.  Interrupt prioritization and functional decomposition are hard to synthesize automatically without manual guidance.
+
+One might argue that structure and readability are not relevant for synthesized code.  In practice, however, if synthesized drivers are to make their way into Linux and other major OSs, they must follow standard coding guidelines adopted by these OSs and be amenable to manual code inspection.  Furthermore, human readable code is needed for quality assurance.  While automatic synthesis guarantees that the synthesized driver is correct with respect to input specifications, it does not protect against specification defects: despite our best effort to maximize specification reuse and follow good modeling practices, specification defects cannot be avoided altogether.  Hence, manual inspection remains an important way to eliminate driver bugs.
+
+In summary, while there exists a potential for further improvement of automatic code generation algorithms, we believe that a truly practical driver synthesis tool must put the user in control of the resulting code and not enforce any particular code structure nor attempt to override user's design decisions.
+
+\subsection{Workflow}
 
 The \termite code generator GUI is similar to a traditional integrated development environment with two additional built-in tools: the \emph{generator} and the \emph{verifier}.  The generator works as advanced auto-complete that helps the user to fill the controllable placeholders inside the driver template with code.  At any point, the user can invoke the generator to synthesize a single statement or a complete block of code inside a controllable placeholder via a mouse click on the target code location.  The user can arbitrarily modify and amend the generated code.  However, the generator never modifies user code.  Instead it tries to extend it to a complete implementation, which is always possible provided that the existing code is consistent with the most general strategy.  The generator currently only allows synthesizing statements after the last control location within a branch.  However this restriction is not a conceptual one and will be lifted by ongoing development.
 
 The verifier automatically and on the fly checks that the driver implementation, comprised of a mix of generated and manually written code, is consistent with the most general strategy, thus maintaining strong correctness guarantees that one would expect in automatically synthesized code.  The verifier symbolically simulates execution of the system, following the partial driver implementation created so far, and signals the user whenever it encounters a transition that violates the most general strategy.
 
-In the first approximation, the generator algorithm is quite simple: given a source code location, it determines the set of possible system states in this location, picks an action for each state from the most general strategy and translates this action into a code statement.  In practice the algorithm uses a number of heuristics to produce compact and human-readable code.  In particular, whenever there exists a common action in all possible states in the given location, the algorithm produces straight-line code without branching.  For example, when running the generator on the specification in Figure~\ref{f:ex}, it automatically generates the following code for the \src{send} function(line~62):
+In the first approximation, the generator algorithm is quite simple: given a source code location, it determines the set of possible system states in this location, picks an action for each state from the most general strategy and translates this action into a code statement.  In practice the algorithm uses a number of heuristics to produce compact and human-readable code.  In particular, whenever there exists a common action in all possible states in the given location, the algorithm produces straight-line code without branching. These heuristics are described in Section \ref{sec:heuristic_codegen}.
 
-\begin{tsllisting}[keywords=, frame=single]
+\subsection{Running Example}
+
+When running the generator on our running example, it automatically generates the code in Figure \ref{f:ex_gen_send} for the \src{send} function (line~\ref{f:ex_drv:l:send} of the device template, Figure \ref{f:ex_drv}):
+
+\begin{figure}
+\begin{tsllisting}
 void send(uint8 v){
     dev.write_dat(v);
     dev.write_cmd(1);
@@ -318,16 +283,21 @@ void send(uint8 v){
         os.send_ack(true);
     } else {
         os.send_ack(false);
-    };}
+    };
+};
 \end{tsllisting}
+\caption{Generated \code{send} function}
+\label{f:ex_gen_send}
+\end{figure}
 
 This implementation correctly starts the data transfer by writing the value to be sent to the data register and setting the command register to $1$.  It then waits for the transfer to complete, which is signalled by the device by resetting the command register to $0$.  Finally, it acknowledges the completion of the transfer to the OS.
 
 Note that the generated code refers to the \src{dev.reg\_cmd} and \src{os.success} variables.  These variables model internal device and OS state respectively and cannot be directly accessed by the driver.  This example illustrates an important limitation of \termite---it assumes a white-box model of the system, where every state variable is visible to the driver.  Ideally, we would like to synthesize an implementation that automatically infers the values of important unobservable variables.  In this case, the value of the command register can be obtained by the driver by executing the \src{read\_cmd} action.  Furthermore, the value of the \src{os.success} variable is correlated with the completion status of the last transfer, which can be obtained by reading the device status register.
 
-While \termite currently cannot produce such an implementation automatically, it implements a pragmatic tradeoff that helps the user build and validate a correct implementation with modest manual effort.  The code generator warns the user that the auto-generated code accesses  private variables of the device and OS templates.  This prompts the user to provide a functionally equivalent valid implementation, replacing the \src{wait} statement with a polling loop and using the \src{read\_status} method to check transfer status:
+While \termite currently cannot produce such an implementation automatically, it implements a pragmatic tradeoff that helps the user build and validate a correct implementation with modest manual effort.  The code generator warns the user that the auto-generated code accesses  private variables of the device and OS templates.  This prompts the user to provide a functionally equivalent valid implementation, replacing the \src{wait} statement with a polling loop and using the \src{read\_status} method to check transfer status, as shown in Figure \ref{f:ex_man_send}.
 
-\begin{tsllisting}[keywords=, frame=single]
+\begin{figure}
+\begin{tsllisting}
 void send(uint8 v){
     dev.write_dat(v);
     dev.write_cmd(1);
@@ -336,8 +306,12 @@ void send(uint8 v){
         os.send_ack(true);
     } else {
         os.send_ack(false);
-    };}
+    };
+};
 \end{tsllisting}
+\caption{Manually written \code{send} function}
+\label{f:ex_man_send}
+\end{figure}
 
 The verifier automatically checks the resulting implementation and confirms that it satisfies the input specification.
 
@@ -352,11 +326,21 @@ Device driver development is not a one-off task: following the initial implement
 
 The user-guided code generation method naturally supports such incremental maintenance. Since \termite uses \tsl as both its input and output language;  a completely or partially synthesized driver can be given as input to \termite, along with modified versions of the device and OS models.
 
-A typical maintenance task proceeds in three steps.  First, the developer amends device and OS models to reflect the new or changed functionality.  Second, they add new methods to the previously synthesized driver, if necessary, and replace existing driver code that is expected to change with a controllable  placeholder.  Finally, the user runs \termite to synthesize code for all controllable placeholders.  \termite treats all existing driver code as part of the uncontrollable environment.  Hence, if some of the old code is incorrect in the context of the new specifications, this will lead to a synthesis failure, and counterexample-based debugging is used to identify the faulty code, as described in Section~\ref{s:debug}.
+A typical maintenance task proceeds in three steps:
 
-As an example, we synthesize a new version of the driver for our running example assuming a more advanced version of the serial controller device that uses interrupts to notify the driver on completion of a data transfer.  The new device model is obtained by uncommenting line~23 of the device model in Figure~\ref{f:ex}, which invokes the interrupt handler method of the driver after each transfer.  The driver template is extended with the \src{irq} method (line~63).  We use the previously synthesized implementation of the \src{send} method, but manually remove the last two lines, which implement polling, as we want the new implementation to use interrupts instead:
+\begin{enumerate}
+    \item First, the developer amends device and OS models to reflect the new or changed functionality.  
+    \item Second, they add new methods to the previously synthesized driver, if necessary, and replace existing driver code that is expected to change with a controllable  placeholder.  
+    \item Finally, the user runs \termite to synthesize code for all controllable placeholders.  
+\end{enumerate}
+        
+\termite treats all existing driver code as part of the uncontrollable environment.  Hence, if some of the old code is incorrect in the context of the new specifications, this will lead to a synthesis failure, and counterexample-based debugging is used to identify the faulty code, as described in Section~\ref{s:debug}.
 
-\begin{tsllisting}[keywords=, frame=single]
+\subsubsection{Running Example}
+
+As an example, we synthesize a new version of the driver for our running example assuming a more advanced version of the serial controller device that uses interrupts to notify the driver on completion of a data transfer.  The new device model is obtained by uncommenting line~\ref{f:ex_dev:l:irq} of the device model in Figure~\ref{f:ex_dev}, which invokes the interrupt handler method of the driver after each transfer.  The driver template (Figure \ref{f:ex_drv}) is extended with the \src{irq} method (line~\ref{f:ex_drv:l:irq}).  We use the previously synthesized implementation of the \src{send} method, but manually remove the last two lines, which implement polling, as we want the new implementation to use interrupts instead:
+
+\begin{tsllisting}
 void send(uint8 v){
     dev.write_dat(v);
     dev.write_cmd(1);}
@@ -364,7 +348,7 @@ void send(uint8 v){
 
 Finally, we run \termite on the resulting specifications and use the generator to automatically produce the following implementation of the new \src{irq} method:
 
-\begin{tsllisting}[keywords=, frame=single]
+\begin{tsllisting}
 void irq(){
     if (os.success) {
         os.send_ack(true);
@@ -375,7 +359,7 @@ void irq(){
 
 As before, we manually replace the if-condition in the first line with
 
-\begin{tsllisting}[keywords=, frame=single]
+\begin{tsllisting}
 if (dev.read_status())
 \end{tsllisting}
 
@@ -384,7 +368,11 @@ This example illustrates how \termite supports incremental changes to the driver
 \subsection{Instrumenting synthesized code~~} 
 \termite does not automatically instrument synthesized code for debugging, logging, accounting, etc.  However, the user can add such instrumentation manually.  \termite interprets such code as no-ops and, as with any manual code, never makes any modifications to it.
 
+\section{Heuristic code generation}
+\label{sec:heuristic_codegen}
+
 \section{Counterexample guided debugging}
+\label{s:debug}
 
 An important practical issue in game-based synthesis is the complexity of diagnosing synthesis failures due to defects in the input specifications.  In the event that \termite fails to solve the game, the user needs to trace the failure back to the specification defect.  However, the failure does not carry any information about the defect, which makes the problem harder to resolve.
 
@@ -465,8 +453,6 @@ Drivers execute in a concurrent OS environment and must handle invocations from 
 \subsection{Real time synthesis}
 
 \termite does not explicitly support specification and synthesis of timed behaviors.  Instead, it uses a pragmatic approach that allows it to synthesize time-sensitive behavior without having to explicitly reason about time.  To this end, \termite conservatively approximates timed operations by fairness constraints: it ignores the exact duration of each device operation, but keeps the knowledge that the operation will complete \emph{eventually}, and synthesizes a driver that waits for the completion.  \termite is also able to handle time-out conditions, modeled as external events.  However, at this time it is not capable of generating device drivers for hard real-time systems, where the driver must guarantee completion of I/O operations by a certain deadline.
-
-\section{A realistic example}
 
 \section{Implementation}
 
