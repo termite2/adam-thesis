@@ -378,65 +378,25 @@ An important practical issue in game-based synthesis is the complexity of diagno
 
 In \termite we propose a new approach to troubleshooting synthesis failures based on the use of \emph{counterexample strategies}.  A counterexample strategy is a strategy on behalf of the environment that prevents the driver from winning the game.  It is obtained by solving the \emph{dual game}, where, in order to win, the environment must permanently force the game out of one of the goal regions.  A winning strategy in the dual game is guaranteed to exist whenever solving of the primary game fails.
 
-%    \item By exploring the counterexample strategy, the user can 
-%        identify the defect in the input specification.  This is 
-%        similar to the use of counterexamples in software 
-%        verification, where for each discovered bug the 
-%        verification tool generates a counterexample trace that 
-%        triggers the bug.  However, a counterexample strategy 
-%        cannot in the general case be represented by a single 
-%        execution trace, as the choice of spoiling moves for the 
-%        environment depends on the actions performed by the 
-%        driver.
+By exploring the counterexample strategy, the user can identify the defect in the input specification.  This is similar to the use of counterexamples in software verification, where for each discovered bug the verification tool generates a counterexample trace that triggers the bug.  However, a counterexample strategy cannot in the general case be represented by a single execution trace, as the choice of spoiling moves for the environment depends on the actions performed by the driver.
 
 In order to detect and fix the defect in an input specification, the driver developer relies on their  understanding of the OS and device logic.  The role of the counterexample strategy is to guide the developer towards the defect.  To automate this process, we developed a powerful visual debugging tool that allows the user to interactively simulate intended driver behavior and observe environment responses to it.  The user plays the game on behalf of the driver, while the tool responds on behalf of the environment, according to the counterexample strategy.
  
-In a typical debugging session, the debugger, following the counterexample strategy, generates a sequence of requests that are guaranteed to win against the driver.  The user plays against these requests by specifying device commands that, they believe, represent a correct way to handle the request.  Since this sequence of requests \emph{cannot} be handled correctly given the current input specification, at some point in the game the user runs into an unexpected behavior of one of the players, e.g., one of user-provided commands does not change the state of the device as expected or the environment performs an uncontrollable transition that violates an assertion.  Based on this information, the user can revise the faulty specification.
-
-%       
-%        To this end, we developed a powerful visual debugging tool 
-%        that allows the user to interactively simulate intended 
-%        driver behaviour and observe enviroment responses to it.  
-%        The user plays the game on behalf of the driver, while the 
-%        tool responds on behalf of the enviroment 
-%        
-%        We rely on the fact that the driver developer has a good 
-%        understanding of the OS and device logic.  Given that 
-%        there does not exist a specification-compliant driver 
-%        implementation, our goal is to help the developer to 
-%        identify a discrepancy between their mental model of the 
-%        system behaviour and the acual behaviour as described in 
-%        the input specifications.  To this end, we developed a 
-%        powerful visual debugging tool that allows the user to 
-%        interactively simulate intended driver behaviour and 
-%        observe enviroment responses to it.  The user plays the 
-%        game on behalf of the driver, while the tool responds on 
-%        behalf of the enviroment.
+In a typical debugging session, the debugger, following the counterexample strategy, generates a sequence of requests that are guaranteed to win against the driver.  The user plays against these requests by specifying device commands that, they believe, represent a correct way to handle the request.  Since this sequence of requests \emph{cannot} be handled correctly given the current input specification, at some point in the game the user runs into an unexpected behavior of one of the players, e.g., one of the user-provided commands does not change the state of the device as expected or the environment performs an uncontrollable transition that violates an assertion.  Based on this information, the user can revise the faulty specification.
 
 At every step of the interactive debugging session, the debugger either chooses a spoiling uncontrollable action based on the counterexample strategy or, if the system is inside a controllable placeholder, allows the user to choose a controllable action to execute on behalf of the driver.  In the former case the spoiling uncontrollable action corresponds to a transition in one of the \tsl processes.  The user can explore this transition by stepping through it, exactly as they would in a conventional debugger.  In the latter case, the user provides the action that they would like to perform by typing and executing corresponding code statements.
 
-The tool supports a number of features aimed to make the debugging process as simple as possible for the user. We mention two of them here.  First, the debugger interactively prompts actions available to the driver at each step.  Second, the debugger keeps the entire history of the game and allows the user to go back to one of previously explored states and try a different behavior from there.
+The tool supports a number of features aimed at making the debugging process as simple as possible for the user. We mention two of them here: 
+\begin{itemize}
+    \item First, the debugger interactively prompts actions available to the driver at each step.  
+    \item Second, the debugger keeps the entire history of the game and allows the user to go back to one of previously explored states and try a different behavior from there.
+\end{itemize}
 
 \section{Limitations}\label{s:limitations}
 
+The core of a device driver entails translating I/O requests from the OS into sequences of low-level device commands and responses. We focus on synthesizing driver logic that performs these functions, and this is where game-based synthesis really shines, as it helps to implement tedious and error-prone logic with minimal manual effort and without bugs. However, there are several real world aspects of device driver creation that are not handled as gracefully by the game based approach.
+
 In Section~\ref{s:user-guided}, we described one limitation of \termite, namely the lack of support for grey-box synthesis.  In this section we discuss other limitations, which, we hope, will help define the agenda for continuing research in driver synthesis.
-
-%The core of a device driver entails translating I/O requests from 
-%the OS into sequences of low-level device commands and responses.  
-%We focus on synthesizing driver logic that performs these 
-%functions, and this is where game-based synthesis really shines, 
-%as it helps to implement tedious and error-prone logic with 
-%minimal manual effort and without bugs.
-
-
-%The other important limitation of \termite is that its game-based 
-%synthesis engine currently assumes the white-box view of the 
-%system, where the driver can fully observe the state of the 
-%system, including internal device state.  As a result, 
-%automatically synthesized driver code may refer to state variables 
-%outside of its syntactic scope.  As we explain in 
-%Section~\ref{s:user-guided}, our user-guided synthesis approach 
-%resolve such situations by relying on manual user input.
 
 \subsection{Direct Memory Access}
 
@@ -444,11 +404,11 @@ Most importantly, \termite does not currently support automatic synthesis of dir
 
 \subsection{Boilerplate Code}
 
-Device drivers in modern OSs contain a significant amount of boilerplate code that is not directly related to the task of controlling the device.  This includes binding the driver to I/O resources (memory mapped regions, interrupts, timers), registering the driver with various OS subsystems, allocating DMA memory regions, creating sysfs entries, etc.  While much of this functionality could be synthesized within the game-based framework, we do not believe that this is the correct approach.  Previous research has demonstrated that this boilerplate code can be generated in a principled way from declarative specifications of the driver's requirements and capabilities~\cite{Spear_RHHL_06}.  This technique has lower computational complexity than game solving and better captures the essence of the task.  A practical driver synthesis tool cancombine game-based synthesis of the core driver logic responsible for controlling the device with declarative synthesis of boilerplate code.  As a result, the current version of \termite assumes this boilerplate code is written manually as a wrapper around the synthesized driver.
+Device drivers in modern OSs contain a significant amount of boilerplate code that is not directly related to the task of controlling the device.  This includes binding the driver to I/O resources (memory mapped regions, interrupts, timers), registering the driver with various OS subsystems, allocating DMA memory regions, creating sysfs entries, etc.  While much of this functionality could be synthesized within the game-based framework, we do not believe that this is the correct approach.  Previous research has demonstrated that this boilerplate code can be generated in a principled way from declarative specifications of the driver's requirements and capabilities~\cite{Spear_RHHL_06}.  This technique has lower computational complexity than game solving and better captures the essence of the task.  A practical driver synthesis tool can combine game-based synthesis of the core driver logic responsible for controlling the device with declarative synthesis of boilerplate code.  As a result, the current version of \termite assumes this boilerplate code is written manually as a wrapper around the synthesized driver.
 
 \subsection{Concurrency}
 
-Drivers execute in a concurrent OS environment and must handle invocations from multiple threads, as well as asynchronous hardware interrupts.  We separate synthesis for concurrency into a separate step.  Drivers synthesized by \termite are correct assuming a sequential environment, where driver entry points are invoked atomically.  The resulting sequential driver is then processed by a separate tool that performs a sequence of transformations of the driver source code, which preserve the driver's sequential behavior, while making the driver thread-safe.  Such transformations include adding locks around critical code sections, inserting memory barriers, and reordering instructions to avoid race conditions.  Concurrency synthesis is still work in progress and is beyond the scope of this paper.  Our preliminary results are published in~\cite{Cerny_HRRT_13, Cerny_HRRT_14}.
+Drivers execute in a concurrent OS environment and must handle invocations from multiple threads, as well as asynchronous hardware interrupts.  We separate synthesis for concurrency into a separate step.  Drivers synthesized by \termite are correct assuming a sequential environment, where driver entry points are invoked atomically.  The resulting sequential driver is then processed by a separate tool that performs a sequence of transformations of the driver source code, which preserve the driver's sequential behavior, while making the driver thread-safe.  Such transformations include adding locks around critical code sections, inserting memory barriers, and reordering instructions to avoid race conditions.  Concurrency synthesis is still work in progress and is not the subject of this thesis.  Preliminary results are published in~\cite{Cerny_HRRT_13, Cerny_HRRT_14}.
 
 \subsection{Real time synthesis}
 
@@ -456,9 +416,10 @@ Drivers execute in a concurrent OS environment and must handle invocations from 
 
 \section{Implementation}
 
-We implemented all components of the Termite toolkit, including the TSL compiler, the game solver, the counterexample debugger, the user-guided code generator, and the TSL-to-C compiler, in Haskell.  Our implementation uses the CUDD BDD library for efficient symbolic manipulations over boolen relations, and the Z3 SMT solver for satisfiability queries over the theory of bit vectors, as described in~\cite{Walker_Ryzhyk_14}.  Termite is publicly available under the BSD license and can be downloaded from the project website \texttt{\url{http://termite2.org}}. The version of \termite presented here consists of 30,000 lines of code.  The estimated overall project effort is 10 person years. 
+We implemented all components of the Termite toolkit, including the TSL compiler, the game solver, the counterexample debugger, the user-guided code generator, and the TSL-to-C compiler, in the Haskell programming language.  Our implementation uses the CUDD BDD library for efficient symbolic manipulations over boolen relations, and the Z3 SMT solver for satisfiability queries over the theory of bit vectors, as described in~\cite{Walker_Ryzhyk_14}.  Termite is publicly available under the BSD license and can be downloaded from the project website \texttt{\url{http://termite2.org}}. The version of \termite presented here consists of 30,000 lines of code.  The estimated overall project effort is 10 person years. 
 
 \section{Evaluation}
+\label{s:eval}
 We evaluate \termite by synthesizing drivers for eight I/O devices.  Specifically, we synthesized drivers for a UVC-compliant USB webcam, the 16550 UART serial controller, the DS12887 real-time clock, and the IDE disk controller for Linux, as well as seL4~\cite{Klein_EHACDEEKNSTW_09} drivers for I2C, SPI, and UART controllers on the Samsung exynos 5 chipset\footnote{At the time of writing, the exynos drivers have not yet been tested due to hardware availability issues; however we confirmed via manual inspection that they implement the same device control sequences as existing manually developed drivers.} and SPI controller on the STM32F10 chipset.  With the exception of the IDE disk, these devices are representative of peripherals found in a typical embedded platform, such as a smartphone.  Our synthesized drivers implement data transfer, configuration and error handling.  The main barrier to synthesizing drivers for more advanced devices, e.g., high-performance network controllers, is the current lack of support for synthesis of DMA code in the current version of \termite.  
 
 \subsection{Modelling complexity} 
