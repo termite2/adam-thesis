@@ -91,20 +91,20 @@
     escapeinside={(*@}{@*)},
     basicstyle=\footnotesize\ttfamily,
     keywordstyle=\bfseries,
-    keywordstyle=\bfseries,
     sensitive=false,
     morekeywords={template, endtemplate, process, controllable, forever, wait, return, assert, goal, instance},
     identifierstyle=, 
     commentstyle=\slshape, 
     stringstyle=, showstringspaces=false,
-    sensitive=false,
     morecomment=[s]{/*}{*/},
+    numbers=left,
     numberstyle=\tiny,
     stepnumber=1,
-    numbersep=1pt,
+    numbersep=10pt,
     emphstyle=\bfseries,
     belowskip=0pt,
     aboveskip=0pt,
+    frame=tb,
 }
 
 \lstnewenvironment{tsllisting}[1][]
@@ -112,7 +112,6 @@
     escapeinside={(*@}{@*)},
     basicstyle=\footnotesize\ttfamily,
     keywordstyle=\bfseries,
-    keywordstyle=\bfseries,
     sensitive=false,
     morekeywords={template, endtemplate, process, controllable, forever, wait, return, assert, goal, instance},
     identifierstyle=, 
@@ -120,12 +119,14 @@
     stringstyle=, showstringspaces=false,
     sensitive=false,
     morecomment=[s]{/*}{*/},
+    numbers=left,
     numberstyle=\tiny,
     stepnumber=1,
-    numbersep=1pt,
+    numbersep=10pt,
     emphstyle=\bfseries,
     belowskip=0pt,
     aboveskip=0pt,
+    frame=tb,
     #1
 }}{}
 
