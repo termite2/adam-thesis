@@ -1393,75 +1393,11 @@ The core abstraction-refinement algorithm consists of 1800 lines of Haskell code
 \vspace{-4mm}
 \end{table*}
 
-We evaluate Termite by synthesising drivers for several real-world 
-I/O devices, including an IDE hard disk, a real-time clock, two 
-versions of UART serial controller, two versions of I2C bus 
-controller, an SPI bus controller, and a UVC webcam.  We developed 
-corresponding device and OS models using the Termite Specification 
-Language (TSL) by following the common methodology used by 
-hardware developers in building high-level device models.  We 
-refer the reader to an accompanying paper for a more detailed 
-description of the TSL language and the modelling 
-methodology~\cite{Ryzhyk_WKLRSV_14}.  The source code of the case 
-studies is available as part of the Termite 
-distribution~\cite{termite}.
+We evaluate our synthesis algorithm by synthesising drivers for several real-world I/O devices, including an IDE hard disk, a real-time clock, two UART serial controllers, two I2C bus controllers, an SPI bus controller, and a UVC webcam.  We developed corresponding device and OS models using the Termite Specification Language (TSL) by following the common methodology used by hardware developers in building high-level device models.  We refer the reader to Chapter~\ref{c:userguided} for a description of the TSL language and the modelling methodology.  The source code of the case studies is available as part of the Termite distribution~\cite{termite}.
 
-%In specifying device behaviour, we followed the 
-%standard modelling guidelines used by hardware designers in 
-%writing high-level device models~\cite{dml_ug}. 
+Table~\ref{t:exp} summarises our experiments.  The first two rows characterise the complexity of the input models in terms of the number of variables and the total number of bits used in the concrete specification of the game.  Concrete state variables model internal device state, as well as the state of the driver-OS interface; label variables model commands and responses exchanged by the driver, the device, and the OS.  
 
+Rows~3 and 4 show the number of iterations of the abstraction refinement loop required to solve the game.  Rows~5 through 7 show the size of the abstract game at the final iteration, when a winning strategy for the driver was obtained, in terms of the number of state, label, and untracked predicates.  These results demonstrate the dramatic reduction of the problem dimension achieved by our abstraction refinement method.  The resulting abstract games are still too complex to solve using explicit state enumeration, hence the use of symbolic techniques is essential.  In all case studies, Termite was able to find the winning strategy within 11 minutes running on a 2.9GHz Intel Core i7 laptop (row~8), with peak BDD size under one million nodes (row~9).
 
-Table~\ref{t:exp} summarises our experiments.  The first two rows 
-characterise the complexity of the input models in terms of the 
-number of variables and the total number of bits used in the 
-concrete specification of the game.  Concrete state variables 
-model internal device state, as well as the state of the driver-OS 
-interface; label variables model commands and responses exchanged 
-by the driver, the device, and the OS.  
+The two final rows show the performance of the original three-valued variable abstraction refinement algorithm of de~Alfaro and Roy on our benchmarks.  As expected, the algorithm does not terminate on any of the real-world driver benchmarks within a two-hour time limit.  We therefore developed simplified versions of two of the benchmarks (SPI and I2C-2) with significantly reduced state spaces.  As shown in the last two columns of the table, the de~Alfaro and Roy algorithm terminates on these benchmarks; however it takes several orders of magnitude longer than our new algorithm, which uses predicate abstraction.  These results show that predicate abstraction is essential to solving complex real-world games.
 
-%We tried running Termite 
-%on the IDE example with abstraction disabled, but were unable to 
-%synthesise even significantly simplified version of this model.  
-%This clearly indicates that the use of abstraction is essential if 
-%we want to be able to solve complex real-world games.
-
-Rows~3 and 4 show the number of iterations of the abstraction 
-refinement loop required to solve the game.  Rows~5 through 7 show 
-the size of the abstract game at the final iteration, when a 
-winning strategy for the driver was obtained, in terms of the 
-number of state, label, and untracked predicates.  These results 
-demonstrate the dramatic reduction of the problem dimension 
-achieved by our abstraction refinement method.  The resulting 
-abstract games are still too complex to solve using explicit state 
-enumeration, hence the use of symbolic techniques is essential.  
-In all case studies, Termite was able to find the winning 
-strategy within 11 minutes running on a 2.9GHz Intel Core i7 laptop 
-(row~8), with peak BDD size under one million nodes (row~9).
-
-The two final rows show the performance of the original 
-three-valued abstraction refinement algorithm of de~Alfaro and Roy 
-on our benchmarks.  As expected, the algorithm does not terminate 
-on any of the real-world driver benchmarks within a two-hour time 
-limit.  We therefore developed simplified versions of two of the 
-benchmarks (SPI and I2C-2) with significantly reduced state 
-spaces.  As shown in the last two columns of the table, the de~Alfaro 
-and Roy algorithm terminates on these benchmarks; however it takes 
-several orders of magnitude longer than our new algorithm, which 
-uses predicate abstraction.  These results show that predicate 
-abstraction is essential to solving complex real-world games.
-
-%One interesting question is whether we could solve our case 
-%studies using a simpler form of abstraction, e.g., variable 
-%abstraction, as described for example in~\cite{Alfaro_Roy_07}.
-%The two final rows of the table indirectly answer this question.  
-%They show the number of concrete variables involved in at least 
-%one of the predicates in the abstract game.  These variables are 
-%likely to be essential for solving the game and hence cannot be 
-%eliminated without introducing too much imprecision to the 
-%abstract model.  The large number of such essential variables 
-%indicates that variable abstraction is unlikely to be effective in 
-%these examples.  The effectiveness of the predicate-based 
-%abstraction method comes from the fact that in most cases only 
-%relations among variables are important, as opposed to their exact 
-%values.  Such relations can be compactly represented by boolean 
-%predicates.
