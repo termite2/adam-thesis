@@ -474,6 +474,7 @@ that is precise for $T$, $I$, and $\tau_i$.
 \end{algorithm}
 
 \subsection{Arbitrary $\omega$-regular games}
+\label{sec:omega_reg}
 
 We generalise the algorithm to games specified by $\mu$-calculus formulas in prefix normal form, ie, formulas of the form:
 
@@ -1087,8 +1088,8 @@ Line~9 picks a single refinement candidate $\langle v,u,l \rangle$ from the set.
     \Else
         \State choose $\langle v,u,l\rangle \in T$
         \State $F \gets (\|\vect{\sigma}\|=v \land \|\vect{\omega}\|=u \land \|\vect{\lambda}\|=l)$
-        \If{\Call{satisfiable}{$F$}}
-            \State $A             \gets $ \Call{eliminateQuantifiers}{$\exists Y.\|\vect{\lambda}\|=l$}
+        \If{\Call{satisfiable}{$F$}} \label{a:refineCpre:sat}
+            \State $A             \gets $ \Call{eliminateQuantifiers}{$\exists Y.\|\vect{\lambda}\|=l$} \label{a:refineCpre:quant}
             \State $A             \gets $ \Call{massage}{$A$}
             \State $P             \gets \text{atomic predicates in }A$
             \State $\vect{\omega} \gets \vect{\omega} \cup (\text{fresh variables for predicates in } P\setminus\Omega)$
@@ -1099,7 +1100,7 @@ Line~9 picks a single refinement candidate $\langle v,u,l \rangle$ from the set.
             \State $C^{M-}        \gets C^{M-} \lor (\hat{A}\land \vect{\lambda}=l)$% \Comment{add consistent transition}
         \Else
 %            \State $(\bigwedge\|\alpha_i\|=c_i) \gets$ \Call{unsatCore}{$F$}
-            \State $C^{m+}\gets C^{m+} \land \overline{\textsc{unsatCore}(F)}$ %\Comment{eliminate spurious transitions}
+            \State $C^{m+}\gets C^{m+} \land \overline{\textsc{unsatCore}(F)}$ \label{a:refineCpre:core}%\Comment{eliminate spurious transitions} 
         \EndIf
         \State \Return $true$
     \EndIf
@@ -1349,5 +1350,118 @@ $$
 where $j_1\ldots j_p$ are indices of variables assigned by $l$.  The above statement refines $C^{M-}$ by allowing the player to assign a subset of label variables in accordance with $l$ and disabling other label variables not constrained by $l$.  The environment will non-deterministically pick arbitrary values for these variables.  In this way we precisely capture what we currently know about consistent predicate assignments in a symbolic form, at the cost of introducing extra variables $\varepsilon_i$.
 
 \section{Implementation}
+We implemented this abstraction refinement algorithm as part of Termite. Termite currently supports specifications in its own domain-specific Termite Specification Language (TSL), which will be described in Chapter~\ref{c:userguided}.
 
-\section{Results}
+We extended our abstraction-refinement algorithm to handle GR(1) games as outlined in Section \ref{sec:omega_reg}.
+
+Termite currently supports input specifications over the concrete domain of fixed-size bit vectors and arrays.  We use the Z3 SMT solver to check satisfiability and retrieve unsatisfiable cores of formulas over concrete variables (lines~\ref{a:refineCpre:sat} and~\ref{a:refineCpre:core} of Algorithm~\ref{alg:refineCpre}).  Quantifier elimination (line~\ref{a:refineCpre:quant}) over bit vector formulas is performed using our custom implementation of the decision procedure for bit vectors by Barrett et al.~\cite{Barrett_DL_98}.  Termite interacts with the theory solver through a well-defined interface and hence can be readily extended with additional theories.  All computations over the abstract domain are performed symbolically using the CUDD BDD package.  
+
+In addition to the techniques described for variable and predicate abstraction implemented the optimisations described in Section~\ref{sec:syntcomp_optimisations}.
+
+We also implemented an optimised version of the original algorithm by de~Alfaro and Roy, as described in Section~\ref{sec:variable_abstraction}, which enables a direct comparison of the two techniques.
+
+The core abstraction-refinement algorithm consists of 1800 lines of Haskell code took approximately 10 person-years to develop.
+
+\section{Evaluation}
+\begin{table*}
+    \center
+    \scriptsize
+\begin{tabular} {| l | l | r | r | r | r | r | r | r | r | r | r |}
+    \hline
+    \multirow{2}{*}{} & \multirow{2}{*}{Statistic} & \multicolumn{10} {|c|} {Case study} \\ \cline{3-12} & & \multicolumn{1}{c}{IDE} & \multicolumn{1}{c}{RTC} & \multicolumn{1}{c}{UART-1} & \multicolumn{1}{c}{UART-2} & \multicolumn{1}{c}{I2C-1} & \multicolumn{1}{c}{I2C-2} & \multicolumn{1}{c}{SPI} & \multicolumn{1}{c|}{UVC} & \multicolumn{1}{c|}{simple SPI} & \multicolumn{1}{c|}{simple I2C} \\
+    \hline \hline
+    1  & concrete state vars (bits)                   & 83 (952) & 64 (624) & 61 (335) & 65(896) & 64 (458) & 50(222) & 66(644) & 95 (75908) & 7 (46) & 11 (64) \\ 
+    2  & concrete label vars (bits)                   & 27 (389) & 24 (199) & 20 (86)  & 15(289) & 25 (199) & 15(81)  & 24(384) & 33 (49657) & 9 (58) & 14 (42) \\ 
+    3  & consistency refinements                      &     11   &      9   &     42   & 4       &     12   & 4       & 6       & 22         & 0      & 23 \\ 
+    4  & state refinements                            &     18   &     16   &     18   & 50      &     15   & 17      & 26      & 25         & 11     & 9  \\ 
+    5  & state predicates                             &     31   &     25   &     33   & 58      &     24   & 24      & 31      & 30         & 14     & 17 \\ 
+    6  & label predicates                             &     57   &     41   &     40   & 53      &     36   & 32      & 28      & 130        & 19     & 36 \\ 
+    7  & untracked predicates                         &      7   &      4   &     35   & 2       &      5   & 1       & 6       & 32         & 0      & 0  \\ 
+    8  & run time (s)                                 &     71   &     74   &    309   & 603     &     39   & 43      & 14      & 190        & 1      & 10 \\ 
+    9  & peak BDD size                                & 864612   & 515088   & 907536   & 1142596 & 440482   & 688828  & 324996  & 785918     & 87892  & 242214 \\
+    \hline
+    \multicolumn{2} {|c} {} & \multicolumn{10} {c|} {Performance of the de~Alfaro and Roy algorithm~\cite{Alfaro_Roy_07}} \\
+    \hline
+    10 & run time (s)                                 & $\infty$ & $\infty$ & $\infty$ & $\infty$& $\infty$ & $\infty$& $\infty$& $\infty$   & 865    & 1151 \\ 
+    11 & peak BDD size                                &  -       & -        & -        & -       & -        & -       & -       & -          & 400624 & 4088000 \\
+%    10 & concrete state vars in predicates (bits)     & 26 (262) & 24 (190) & 27 (156) & & 26 (206) & & & 39 (25556) \\
+%    11 & concrete label vars in predicates (bits)     & 24 (341) & 23 (191) & 16 (82)  & & 25 (199) & & & 30 (25095) \\
+%    Size of winning BDD                    &    108 &     98 &    %    202 & \\ 
+    \hline
+\end{tabular}
+\caption{\small Summary of experimental case studies.}\label{t:exp}
+\vspace{-4mm}
+\end{table*}
+
+We evaluate Termite by synthesising drivers for several real-world 
+I/O devices, including an IDE hard disk, a real-time clock, two 
+versions of UART serial controller, two versions of I2C bus 
+controller, an SPI bus controller, and a UVC webcam.  We developed 
+corresponding device and OS models using the Termite Specification 
+Language (TSL) by following the common methodology used by 
+hardware developers in building high-level device models.  We 
+refer the reader to an accompanying paper for a more detailed 
+description of the TSL language and the modelling 
+methodology~\cite{Ryzhyk_WKLRSV_14}.  The source code of the case 
+studies is available as part of the Termite 
+distribution~\cite{termite}.
+
+%In specifying device behaviour, we followed the 
+%standard modelling guidelines used by hardware designers in 
+%writing high-level device models~\cite{dml_ug}. 
+
+
+Table~\ref{t:exp} summarises our experiments.  The first two rows 
+characterise the complexity of the input models in terms of the 
+number of variables and the total number of bits used in the 
+concrete specification of the game.  Concrete state variables 
+model internal device state, as well as the state of the driver-OS 
+interface; label variables model commands and responses exchanged 
+by the driver, the device, and the OS.  
+
+%We tried running Termite 
+%on the IDE example with abstraction disabled, but were unable to 
+%synthesise even significantly simplified version of this model.  
+%This clearly indicates that the use of abstraction is essential if 
+%we want to be able to solve complex real-world games.
+
+Rows~3 and 4 show the number of iterations of the abstraction 
+refinement loop required to solve the game.  Rows~5 through 7 show 
+the size of the abstract game at the final iteration, when a 
+winning strategy for the driver was obtained, in terms of the 
+number of state, label, and untracked predicates.  These results 
+demonstrate the dramatic reduction of the problem dimension 
+achieved by our abstraction refinement method.  The resulting 
+abstract games are still too complex to solve using explicit state 
+enumeration, hence the use of symbolic techniques is essential.  
+In all case studies, Termite was able to find the winning 
+strategy within 11 minutes running on a 2.9GHz Intel Core i7 laptop 
+(row~8), with peak BDD size under one million nodes (row~9).
+
+The two final rows show the performance of the original 
+three-valued abstraction refinement algorithm of de~Alfaro and Roy 
+on our benchmarks.  As expected, the algorithm does not terminate 
+on any of the real-world driver benchmarks within a two-hour time 
+limit.  We therefore developed simplified versions of two of the 
+benchmarks (SPI and I2C-2) with significantly reduced state 
+spaces.  As shown in the last two columns of the table, the de~Alfaro 
+and Roy algorithm terminates on these benchmarks; however it takes 
+several orders of magnitude longer than our new algorithm, which 
+uses predicate abstraction.  These results show that predicate 
+abstraction is essential to solving complex real-world games.
+
+%One interesting question is whether we could solve our case 
+%studies using a simpler form of abstraction, e.g., variable 
+%abstraction, as described for example in~\cite{Alfaro_Roy_07}.
+%The two final rows of the table indirectly answer this question.  
+%They show the number of concrete variables involved in at least 
+%one of the predicates in the abstract game.  These variables are 
+%likely to be essential for solving the game and hence cannot be 
+%eliminated without introducing too much imprecision to the 
+%abstract model.  The large number of such essential variables 
+%indicates that variable abstraction is unlikely to be effective in 
+%these examples.  The effectiveness of the predicate-based 
+%abstraction method comes from the fact that in most cases only 
+%relations among variables are important, as opposed to their exact 
+%values.  Such relations can be compactly represented by boolean 
+%predicates.
