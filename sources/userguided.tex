@@ -512,29 +512,32 @@ A perfect synthesis tool, capable of generating a complete driver fully automati
 
 Based on our experience so far, automatic synthesis is most helpful in generating code that performs device configuration or starts a data transfer.  This code may involve a long sequence of commands to the device, which must be issued in the right order and with correct arguments.  The synthesis algorithm of \termite proved more effective at doing this than human developers, producing correct code that only requires minimal cosmetic changes in most cases.  For example, Figure~\ref{f:screenshot_write} shows a screenshot of \termite with a synthesized implementation of the IDE driver \src{write()} function, which starts a data transfer to the device.  The function writes request parameters into appropriate device data registers and sets bit fields in command registers to prepare the device for data transfer.  One deficiency in this auto-generated implementation is that it uses absolute values instead of symbolic constants for bit fields.
 
-As another example of suboptimal synthesized code, consider the following synthesized fragment
+As another example of suboptimal synthesized code, consider the following synthesized fragment:
 
-\begin{tsllisting}[frame=single]
+\vspace{5mm}
+\begin{tsllisting}
 void packet_received() {
-  if (((packet_data[9:9] == 1) && 
-       (packet_data[14:14] == 1))) {
-    os.ack_packet(1,1,packet_data[16:32]);
-  } else if ((dev.packet_data[9:9] == 1)) {
-    os.ack_packet(1,0,packet_data);
-  } else if ((dev.packet_data[14:14] == 1)) {
-    os.ack_packet(0,1,packet_data[16:32]);
-  } else {
-    os.ack_packet(0,0,packet_data[16:32]);
-  };
+    if (((packet_data[9:9] == 1) && (packet_data[14:14] == 1))) {
+        os.ack_packet(1,1,packet_data[16:32]);
+    } else if ((dev.packet_data[9:9] == 1)) {
+        os.ack_packet(1,0,packet_data);
+    } else if ((dev.packet_data[14:14] == 1)) {
+        os.ack_packet(0,1,packet_data[16:32]);
+    } else {
+        os.ack_packet(0,0,packet_data[16:32]);
+    };
 };
 \end{tsllisting}
+\vspace{3mm}
 
-which can be replaced by an equivalent one-liner
+which can be replaced by an equivalent one-liner:
 
-\begin{tsllisting}[frame=single]
+\vspace{5mm}
+\begin{tsllisting}
 os.ack_packet(packet_data[9:9],
     packet_data[14:14],packet_data[16:32]);
 \end{tsllisting}
+\vspace{5mm}
 
 \noindent While both issues can, and will, be addressed by an improved code generation algorithm, our experience shows that unaccounted corner cases will arise occasionally.  Therefore, the ability to manually modify synthesized code without sacrificing correctness is crucial for a practical synthesis tool.
 
