@@ -135,11 +135,11 @@ Transition systems are defined by giving the set of state variables, the set of 
 
 A core concept of Termite is the separation of device and operating system specifications. Games so far have been defined to have a single state machine that contains all of the states of the system as well as all of the actions. In Termite, we decouple the description of the operating system from the device to be controlled and then combine these to form a state machine before synthesis.
 
-Both the device and OS specifications are given as state machines. They are defined symbolically. Each specification has its own set of state variables that it must supply update functions for, however, one specification may refer to another's state variables in its state update functions. There is a global set of label variables which each specification may also refer to in its state update functions. An overview of a system consisting of a device and OS specification as well as their interconnections is given in figure \ref{fig:specs}.
+Both the device and OS specifications are given as state machines. They are defined symbolically. Each specification has its own set of state variables that it must supply update functions for, however, one specification may refer to another's state variables in its state update functions. There is also a global set of label variables which each specification may also refer to in its state update functions. An overview of a system consisting of a device and OS specification as well as their interconnections is given in figure~\ref{fig:specs}.
 
-As the figure shows, device and OS specifications are identical to modules in a hardware description language such as Verilog or VHDL. They consist of some private state, represented by D type flip-flops (though the variables are not restricted to single bits) that is updated solely by logic within that module. Other modules can read, but not write to, this private state. The label, that is chosen by one of the players, appears as input to both of the modules and they can use it in the update functions for their private state.
+As the figure shows, device and OS specifications are identical to modules in a hardware description language such as Verilog or VHDL\@. They consist of some private state, represented by D type flip-flops (though the variables are not restricted to single bits) that is updated solely by logic within that module. Other modules can read, but not write to, this private state. The label, that is chosen by one of the players, appears as input to both of the modules and they can use it in the update functions for their private state.
 
-To ensure reusability of specifications, specifications do not directly refer to each other's state variables. Instead, they access them through well defined interfaces and there is a device class mechanism to standardise the interfaces of both the device and operating system specification interfaces. We delay description of this mechanism until Chapter \ref{c:userguided}. For now we assume that specifications can access each other's state variables without restriction.
+To ensure reusability of specifications, specifications do not directly refer to each other's state variables. Instead, they access them through well defined interfaces and there is a device class mechanism to standardise the interfaces of both the device and operating system specification interfaces. We delay description of this mechanism until Chapter~\ref{c:userguided}. For now we assume that specifications can access each other's state variables without restriction.
 
 \section{An Example System Specification}
 
@@ -147,11 +147,11 @@ We give an example system specification to illustrate its decomposition into sep
 
 \subsection{State Machines}
 
-Figure \ref{fig:dev_spec} is an example specification. The labelled circles are states. Arrows represent transitions between states. Each transition is labelled by at least one event. Conceptually, these events trigger the transitions. All events for which there are no outgoing transitions do not change the state, i.e. they are self loops and are not shown in the interest of keeping the diagrams concise. The short arrow with no source state indicates the initial state.
+Figure~\ref{fig:dev_spec} is an example specification. The labelled circles are states. Arrows represent transitions between states. Each transition is labelled by at least one event. Conceptually, these events trigger the transitions. All events for which there are no outgoing transitions do not change the state, i.e.\ they are self loops and are not shown in the interest of keeping the diagrams concise. The short arrow with no source state indicates the initial state.
 
 \subsubsection{Device Specification}
 
-We start with the device specification given in Figure \ref{fig:dev_spec}. Our device is a hypothetical trivial UART-like device. Instead of sending bytes, it sends notifications, which carry no value. Its programming interface consists of an action, \code{devSendReq}, that requests that the device send a notification. This action only has an effect in the \code{devIdle} state and it causes the device to transition to the \code{devSending} state. From there, when the \code{classSent} event happens, which corresponds to the device actually sending the notification, the device transitions back to the \code{devIdle} state.
+We start with the device specification given in Figure~\ref{fig:dev_spec}. Our device is a hypothetical trivial UART-like device. Instead of sending bytes, it sends notifications, which carry no value. Its programming interface consists of an action, \code{devSendReq}, that requests that the device send a notification. This action only has an effect in the \code{devIdle} state and it causes the device to transition to the \code{devSending} state. From there, when the \code{classSent} event happens, which corresponds to the device actually sending the notification, the device transitions back to the \code{devIdle} state.
 
 \begin{figure}
 \centering
@@ -162,7 +162,7 @@ We start with the device specification given in Figure \ref{fig:dev_spec}. Our d
 
 \subsection{OS specification}
 
-The operating system specification, given in Figure \ref{fig:os_spec} is like a test harness for our driver. It specifies which requests the driver may receive (e.g. to send a notification) and how it must respond (e.g. by eventually sending the requested notification). It is simply another state machine, like the device specification, but it may also have goals.
+The operating system specification, given in Figure~\ref{fig:os_spec} is like a test harness for our driver. It specifies which requests the driver may receive (e.g.\ to send a notification) and how it must respond (e.g. by eventually sending the requested notification). It is simply another state machine, like the device specification, but it may also have goals.
 
 Our OS state machine starts off in the \code{osIdle} state. From there, if a \code{classSent} event happens then the device must have sent a notification without the OS ever having requested one. This is an error, so the OS state machine transitions to the \code{osError} state. There is no way that the OS could have known that this event happened, so the OS specification does not represent the way that the OS actually behaves. Responding to events in this way is how the OS spec guarantees correctness of the system. There is nothing special about the error state, however, we have constructed the state machine in such a way that the error state is a dead end and it is not possible to reach the goal from that state.
 
@@ -251,7 +251,7 @@ In the following sections, we attempt to formalise the driver synthesis problem 
 
 \subsection{Reachability}
 
-As a concrete example, we could create a crude formalism for driver synthesis using only a reachability game. Consider, for example, figure \ref{fig:reach}, which shows the state machine for a game to control a hypothetical network controller. Solid lines indicate controllable transitions and dashed lines indicate uncontrollable transitions. Execution begins in the leftmost state where the OS may initiate a network transfer by choosing the `send' label. The goal of the game is the rightmost state (labelled `G') as this is the point where player 1 has completed the request. So, to win, player 1 (who controls the transitions with solid lines) must ensure that execution of the state machine reaches the goal. 
+As a concrete example, we could create a crude formalism for driver synthesis using only a reachability game. Consider, for example, figure~\ref{fig:reach}, which shows the state machine for a game to control a hypothetical network controller. Solid lines indicate controllable transitions and dashed lines indicate uncontrollable transitions. Execution begins in the leftmost state where the OS may initiate a network transfer by choosing the `send' label. The goal of the game is the rightmost state (labelled `G') as this is the point where player 1 has completed the request. So, to win, player 1 (who controls the transitions with solid lines) must ensure that execution of the state machine reaches the goal. 
 
 \begin{figure}
 \centering
@@ -266,13 +266,13 @@ The correct sequence to win the game, therefore, is to write the data register a
 
 If the command register is written first and then the data register there is potential for the environment to play the `evt\_send' label before the data is written, potentially resulting in the wrong data being sent. This is the transition that terminates in the `E' state (for error). The `E' state is a dead end, so it is not possible to reach the goal. 
 
-So, if player 1 takes the top half of the diamond (ie. writes data before command) then it will be guaranteed to reach the goal and the reachability game is winning for player 1. The strategy to reach the goal tells us the sequence of labels the driver must play to get to the goal. In principle, this could be turned into a driver for our simple network device.
+So, if player 1 takes the top half of the diamond (i.e.\ writes data before command) then it will be guaranteed to reach the goal and the reachability game is winning for player 1. The strategy to reach the goal tells us the sequence of labels the driver must play to get to the goal. In principle, this could be turned into a driver for our simple network device.
 
 This simplistic formalism for driver synthesis has several shortcomings that we will deal with in the following sections.
 
 \subsection{\buchi}
 
-Consider a simplified network controller that does not have a command register. Instead, writing to the data register triggers transmission of the byte. However, there are two ways of writing to the data register. One is a standard register write. The other also performs the register write and then schedules a self destruct sequence to happen immediately after the byte is transmitted. The state machine for this device is shown in figure \ref{fig:buchi}. The goal, in this case, is the set ${S3, S5}$ corresponding to the state after completion of the send request. The problem is that, unless you only ever want to send one byte, this goal does not capture the required behavior. One could easily work around this problem by specifying only ${S3}$ as the goal, but this breaks the compositionality of the specifications.
+Consider a simplified network controller that does not have a command register. Instead, writing to the data register triggers transmission of the byte. However, there are two ways of writing to the data register. One is a standard register write. The other also performs the register write and then schedules a self destruct sequence to happen immediately after the byte is transmitted. The state machine for this device is shown in figure~\ref{fig:buchi}. The goal, in this case, is the set ${S3, S5}$ corresponding to the state after completion of the send request. The problem is that, unless you only ever want to send one byte, this goal does not capture the required behavior. One could easily work around this problem by specifying only ${S3}$ as the goal, but this breaks the compositionality of the specifications.
 
 The solution is to modify the objective of the game. Instead of being able to reach the goal once, we want to be able to reach the goal an infinite number of times. Or, equivalently, we want to always be able to reach the goal again. This kind of objective is called a Buchi objective and a game with a Buchi objective is called a Buchi game. 
 
@@ -285,7 +285,7 @@ The solution is to modify the objective of the game. Instead of being able to re
 
 \subsection{Fairness}
 
-Consider a modification of our simplified network device without a self destruct sequence, but with the ability to check that noone is using the communication medium prior to transmitting. The state machine of this device is given in figure \ref{fig:fair}. After the user requests data transmission by writing to the data register, it executes a loop that checks if the medium is free, and if so, it performs the transmission. 
+Consider a modification of our simplified network device without a self destruct sequence, but with the ability to check that noone is using the communication medium prior to transmitting. The state machine of this device is given in figure~\ref{fig:fair}. After the user requests data transmission by writing to the data register, it executes a loop that checks if the medium is free, and if so, it performs the transmission. 
 
 If we pose this as a reachability game with goal state $G$, then the game is not winnable. The device may stay in the loop forever as it is never guaranteed to exit. Such a behavior should not prevent a driver from being synthesized providing that we have good reason to believe that the loop will eventually exit. Looping forever can be seen as a invalid behavior and we want to synthesize a driver for this system providing the invalid behavior does not occur. 
 
