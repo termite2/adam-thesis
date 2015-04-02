@@ -14,6 +14,7 @@ To formalise the driver synthesis problem using games, the first thing we must d
 \todo{A pretty picture}
 
 \section{Concurrent Games}
+\label{sec:conc_games}
 
 Our game formalism for termite makes use of concurrent games. Concurrent games differ from simpler turn based games in that in each state both players get to pick a label and the next state that the game transitions to is some (possibly non-deterministic) function of both of those labels. Turn based games are a special case of concurrent games where in player~i states the next state is entirely determined by the label played by player~i and the other player's label is ignored. 
 
@@ -147,11 +148,19 @@ We give an example system specification to illustrate its decomposition into sep
 
 \subsection{State Machines}
 
-Figure~\ref{fig:dev_spec} is an example specification. The labelled circles are states. Arrows represent transitions between states. Each transition is labelled by at least one event. Conceptually, these events trigger the transitions. All events for which there are no outgoing transitions do not change the state, i.e.\ they are self loops and are not shown in the interest of keeping the diagrams concise. The short arrow with no source state indicates the initial state.
+Figure~\ref{fig:dev_spec} is our example device specification. The labelled circles are states. Arrows represent transitions between states. Solid arrows are controllable transitions whereas dashed arrows are uncontrollable, as described in Section~\ref{sec:conc_games}. Each transition is labelled by at least one event. Conceptually, these events trigger the transitions. All events for which there are no outgoing transitions do not change the state, i.e.\ they are self loops and are not shown in the interest of keeping the diagrams concise. The short arrow with no source state indicates the initial state. There may be more than one initial state, in which case the initial state is chosen non-deterministically.
 
-\subsubsection{Device Specification}
+\subsection{Device Specification}
 
-We start with the device specification given in Figure~\ref{fig:dev_spec}. Our device is a hypothetical trivial UART-like device. Instead of sending bytes, it sends notifications, which carry no value. Its programming interface consists of an action, \code{devSendReq}, that requests that the device send a notification. This action only has an effect in the \code{devIdle} state and it causes the device to transition to the \code{devSending} state. From there, when the \code{classSent} event happens, which corresponds to the device actually sending the notification, the device transitions back to the \code{devIdle} state.
+We start with the device specification given in Figure~\ref{fig:dev_spec}. Our device is a hypothetical trivial UART-like device. Instead of sending bytes, it sends notifications, which carry no value. Its programming interface consists of an action, \code{devSendReq}, that requests that the device send a notification. In a real system this could be a write to a particular bit in a control register that triggers the device action. This action only has an effect in the \code{devIdle} state and it causes the device to transition to the \code{devSending} state. From there, when the \code{devSent} event happens, which corresponds to the device actually sending the notification, the device transitions back to the \code{devIdle} state. Additionally, it emits the \code{classSent} event. We will respond to the \code{classSent} event in the OS specification in the next section. From here, another notification may be requested by performing the \code{devSendReq} action again.
+
+A fragment of the symbolic encoding of the device specification is given in Figure~\ref{fig:dev_spec_asl}. There is only one state variable, \code{devState}, that toggles between two values: \code{devIdle} and \code{devSending}. Additionally, there are three boolean label variabes: \code{controllable}, \code{devSendReq} and \code{devSent}. The \code{devSendReq} and \code{devSent} variables correspond to the actions in the provious paragraph. The \code{controllable} variable is an additional variable to distinguish between controllable and uncontrollable events. 
+
+The update function for the \code{devState} variable (the only variable in the device specification) consists of a single case statement. If the system is currently in the \code{devIdle} state and the \code{devSendReq} label variable is true, and, importantly, the \code{controllable} label variable is also true, then the system transitions to the \code{devSending} state. The \code{controllable} variable had to be true because this was a controllable transition. Additionally if the system is in the \code{devSending} state and the \code{devSent} variable is true and the transition is not controllable then the system transitions to the \code{devIdle} state. If neither of these conditions are met, the device remains in the same state. 
+
+On line~\ref{fig:dev_spec:l:output} we defined the \code{classSent} event to occur when the device is in state \code{devSending}, the \code{devSent} label is true and the transition is not controllable. This matches the state machine. The \code{define} statement is actually an m4~\cite{m4} macro that will be used to substitute the definition of \code{classSent} into the operating system specification later. This behaves much like a signal or continuous assignment in a hardware description language, but, to keep our specification language minimal we have not implemented signals.
+
+Lastly, this device model may be seen as a hardware block as shown in Figure~\ref{fig:dev_spec_block}. There is a single register for storing the current state and this state is updated on each transition using combinational logic which additionally takes the label variables as input. This combinational logic also produces the output boolean variable \code{classSent}.
 
 \begin{figure}
 \centering
@@ -160,9 +169,33 @@ We start with the device specification given in Figure~\ref{fig:dev_spec}. Our d
 \label{fig:dev_spec}
 \end{figure}
 
+\begin{figure}
+\centering
+\begin{asllisting}
+State
+devState : {devIdle, devSending};
+
+Label
+devSendReq : bool;
+devSent    : bool;
+
+Transitions
+devState := case {
+    devState == devIdle    && devSendReq : devSending;
+    devState == devSending && devSent    : devIdle;
+    true                                 : devState;
+}
+
+define(classSent, (devState == devSending && devSent && !controllable)) (*@\label{fig:dev_spec:l:output}@*)
+
+\end{asllisting}
+\caption{Symbolic device specification}
+\label{fig:dev_spec_asl}
+\end{figure}
+
 \subsection{OS specification}
 
-The operating system specification, given in Figure~\ref{fig:os_spec} is like a test harness for our driver. It specifies which requests the driver may receive (e.g.\ to send a notification) and how it must respond (e.g. by eventually sending the requested notification). It is simply another state machine, like the device specification, but it may also have goals.
+The operating system specification, given in Figure~\ref{fig:os_spec} is like a test harness for our driver. It specifies which requests the driver may receive (e.g.\ to send a notification) and how it must respond (e.g.\ by eventually sending the requested notification). It is simply another state machine, like the device specification, but it may also have goals.
 
 Our OS state machine starts off in the \code{osIdle} state. From there, if a \code{classSent} event happens then the device must have sent a notification without the OS ever having requested one. This is an error, so the OS state machine transitions to the \code{osError} state. There is no way that the OS could have known that this event happened, so the OS specification does not represent the way that the OS actually behaves. Responding to events in this way is how the OS spec guarantees correctness of the system. There is nothing special about the error state, however, we have constructed the state machine in such a way that the error state is a dead end and it is not possible to reach the goal from that state.
 
