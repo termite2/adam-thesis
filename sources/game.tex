@@ -197,11 +197,17 @@ define(classSent, (devState == devSending && devSent && !controllable)) (*@\labe
 
 The operating system specification, given in Figure~\ref{fig:os_spec} is like a test harness for our driver. It specifies which requests the driver may receive (e.g.\ to send a notification) and how it must respond (e.g.\ by eventually sending the requested notification). It is simply another state machine, like the device specification, but it may also have goals.
 
-Our OS state machine starts off in the \code{osIdle} state. From there, if a \code{classSent} event happens then the device must have sent a notification without the OS ever having requested one. This is an error, so the OS state machine transitions to the \code{osError} state. There is no way that the OS could have known that this event happened, so the OS specification does not represent the way that the OS actually behaves. Responding to events in this way is how the OS spec guarantees correctness of the system. There is nothing special about the error state, however, we have constructed the state machine in such a way that the error state is a dead end and it is not possible to reach the goal from that state.
+The goal state, state \code{O3}, is the state that a correct driver will eventually force the OS specification to be in. It is possible to specify multiple goal states, in which case the driver must force execution into any goal state.
+
+Our OS state machine starts off in the \code{osIdle} state. From there, if a \code{classSent} event is triggered by the device state machine, then the device must have sent a notification without the OS ever having requested one. This is an error, so the OS state machine transitions to the \code{osError} state. There is no way that the OS could have known that this event happened as it does not monitor the device notification output, so, the OS specification does not represent the way that the OS behaves in reality. These events that do not correspond to real interactions but are used to enforce correctness are called \emph{virtual events}. Responding to virtual events in this way is how the OS spec guarantees correctness of the system. 
+
+There is nothing special about the error state, however, we have constructed the state machine in such a way that the error state is a dead end and it is not possible to reach the goal from that state.
 
 If a \code{devSndReq} event happens, the OS transitions into the \code{devRequested} state. From there, when a \code{classSent} event happens, the OS specification transitions into the goal state as this time the \code{classSent} event was expected. 
 
-We can see from the OS specification that it is the job of the driver to ensure that any \code{devSendReq} events are eventually followed by \code{classSent} events, but a \code{classSent} event cannot happen without being requested first with a \code{devSendReq} event. The driver synthesis algorithm must, using the state machines, figure out how to cause the \code{classSent} event to happen when requested.
+We can see from the OS specification that it is the job of the driver to ensure that a \code{devSendReq} event is eventually followed by \code{classSent} event. However, a \code{classSent} event can only be issued by the device, not the driver. The driver can, however, force the device to issue a \code{classSent} event indirectly in response to a \code{devSendReq} event. 
+
+In general, it is the job of the driver synthesis algorithm to figure out how to force certain events to happen at the right time (as specified by the OS state machine) by using information from the device state machine. 
 
 \begin{figure}
 \centering
