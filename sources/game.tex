@@ -176,14 +176,18 @@ State
 devState : {devIdle, devSending};
 
 Label
-devSendReq : bool;
-devSent    : bool;
+devSendReq   : bool;
+devSent      : bool;
+controllable : bool;
+
+Init
+devState == devIdle
 
 Transitions
 devState := case {
-    devState == devIdle    && devSendReq : devSending;
-    devState == devSending && devSent    : devIdle;
-    true                                 : devState;
+    devState == devIdle && devSendReq && controllable  : devSending;
+    devState == devSending && devSent && !controllable : devIdle;
+    true                                               : devState;
 }
 
 define(classSent, (devState == devSending && devSent && !controllable)) (*@\label{fig:dev_spec:l:output}@*)
@@ -214,6 +218,42 @@ In general, it is the job of the driver synthesis algorithm to figure out how to
 \includegraphics[width=0.85\linewidth]{diagrams/exampleSpecOS.pdf}
 \caption{OS specification}
 \label{fig:os_spec}
+\end{figure}
+
+\begin{figure}
+\centering
+\begin{asllisting}
+
+State
+osState  : {osIdle, osRequested, osDone, osError};
+
+Label
+osReqSend    : bool;
+controllable : bool;
+
+Init
+osState == osIdle 
+
+Transitions
+osState := case {
+    osState == osIdle :
+        case {
+            classSent                 : osError;
+            osReqSend && controllable : osRequested;
+            true                      : osState;
+        };
+    osState == osRequested :
+        case {
+            classSent : osDone;
+            true      : osState;
+        };
+    osState == osDone  : osDone;
+    osState == osError : osError;
+};
+
+\end{asllisting}
+\caption{Symbolic OS specification}
+\label{fig:os_spec_asl}
 \end{figure}
 
 \subsection{Combined Specification}
