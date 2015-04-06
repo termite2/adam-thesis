@@ -262,7 +262,48 @@ osState := case {
 
 \subsection{Combined Specification}
 
-To combine the device and OS specifications we need to be precise about what it means to synchronize on events. We modify the specifications to remove all events and replace them with inputs and outputs.
+We combine the device and OS specifications by executing them concurrently. We do this by instantiating both Mealy machines in parallel and connecting the signals, as shown in Figure~\ref{fig:}. In ASL, this is as simple as placing both case statements in the \code{Transitions} section, combining the state and label declaration sections and combining the initial states. The result is given in Figure~\ref{fig:}.
+
+\begin{asllisting}
+State
+osState  : {osIdle, osRequested, osDone, osError};
+devState : {devIdle, devSending};
+
+Label
+osReqSend    : bool;
+classSent    : bool;
+devSendReq   : bool;
+controllable : bool;
+
+Init
+osState == osIdle && devState == devIdle
+
+Transitions
+devState := case {
+    devState == devIdle && devSendReq && controllable  : devSending;
+    devState == devSending && devSent && !controllable : devIdle;
+    true                                               : devState;
+}
+
+define(classSent, (devState == devSending && devSent && !controllable)) 
+
+osState := case {
+    osState == osIdle :
+        case {
+            classSent                 : osError;
+            osReqSend && controllable : osRequested;
+            true                      : osState;
+        };
+    osState == osRequested :
+        case {
+            classSent : osDone; 
+            true      : osState;
+        };
+    osState == osDone  : osDone;
+    osState == osError : osError;
+};
+ 
+\end{asllisting}
 
 \begin{figure}
 \centering
@@ -270,63 +311,6 @@ To combine the device and OS specifications we need to be precise about what it 
 \caption{Combined specification}
 \label{fig:combined_spec}
 \end{figure}
-
-\subsection{ASL}
-
-Below, we give the specification of a simple UART-like device that capable of sending a notification (which does not contain a value as a real UART would) through a communications channel. Both the OS and device specifications are combined. \todo{Should I show them separated first?}
-
-\begin{asllisting}
-State
-
-osState  : {osIdle, osRequested, osDone, osError};
-devState : {devIdle, devSending};
-
-Label
-
-osReqSend  : bool;
-classSent  : bool;
-devSendReq : bool;
-
-Init
-
-osState == osIdle && devState == devIdle
-
-Transitions
-
-devState := case {
-    devState == devIdle    && devSendReq : devSending;
-    devState == devSending && classSent  : devIdle;
-    true                                 : devState;
-}
-
-define(sentEvent, (devState == devSending && classSent))
- 
-osState := case {
-    osState == osIdle :
-        case {
-            classSent : osError;
-            osReqSend : osRequested;
-            true      : osState;
-        };
-    osState == osRequested :
-        case {
-            classSent : osDone;
-            true      : osState;
-        };
-    osState == osDone  : osDone;
-    osState == osError : osError;
-};
-\end{asllisting}
-
-This specification deserves some explanation. Initially, we declare two state variables \code{osState} and \code{devState} for the OS controlled and device controlled state respectively. Each is declared as an \code{enum} with several possible values. In the \code{Init} section they are initialised to their designated initial values.
-
-Additionally, we declare three label variables: \code{osReqSend}, \code{classSent} and \code{devSentReq} that are treated as input and are selected by the players.
-
-There are two update functions in the \code{Transitions} section; one for each state variable. The first, for \code{devState}, toggles the enumeration between one of two states: \code{devIdle} and \code{devSending}. Initially \code{devIdle}, the variable is updated to \code{devSending} when a player sets the label \code{devSendReq} to True. It is reset when a player sets \code{classSent} to true. In all other cases, its value remains the same as in the previous state.
-
-We additionally define the \code{sentEvent} event which evaluates to true whenever the device is in the \code{devSending} state and a player sets the \code{classSent} label to true.
-
-The state machine for the device is given in Figure x. \todo{Would it be better to give the device state machine with class event, then modify that so that the class event is an input, and then the specification?}
 
 \section{GR(1) based formalism}
 
