@@ -145,17 +145,23 @@ The update function for the \code{devState} variable (the only variable in the d
 
 On line~\ref{fig:dev_spec:l:output} we defined the \code{classSent} event to occur when the device is in state \code{devSending}, the \code{devSent} label is true and the transition is not controllable. This matches the state machine. The \code{define} statement is actually an m4~\cite{m4} macro that will be used to substitute the definition of \code{classSent} into the operating system specification later. This behaves much like a signal or continuous assignment in a hardware description language, but, to keep our specification language minimal we have not implemented signals.
 
-Lastly, this device model may be seen as a Mealy machine as shown in Figure~\ref{fig:dev_spec_block}. There is a single register for storing the current state and this state is updated on each transition using combinational logic which additionally takes the label variables as input. This combinational logic also produces the output boolean variable \code{classSent}.
+Lastly, this device model may be seen as a Mealy machine as shown in Figure~\ref{fig:dev_spec_mealy}. There is a single register for storing the current state and this state is updated on each transition using combinational logic which additionally takes the label variables as input. This combinational logic also produces the output boolean variable \code{classSent}.
 
 \begin{figure}
 \centering
-\includegraphics[width=0.45\linewidth]{diagrams/exampleSpecDevice.pdf}
+\begin{subfigure}[t]{0.47\textwidth}
+\includegraphics[width=\linewidth]{diagrams/exampleSpecDevice.pdf}
 \caption{Device specification}
 \label{fig:dev_spec}
-\end{figure}
-
-\begin{figure}
-\centering
+\end{subfigure}
+\hfill
+\begin{subfigure}[t]{0.47\textwidth}
+\includegraphics[width=\linewidth]{diagrams/devMealy.pdf}
+\caption{Device specification}
+\label{fig:dev_spec_mealy}
+\end{subfigure}
+\par\bigskip
+\begin{subfigure}[b]{\textwidth}
 \begin{asllisting}
 State
 devState : {devIdle, devSending};
@@ -176,17 +182,10 @@ devState := case {
 }
 
 define(classSent, (devState == devSending && devSent && !controllable)) (*@\label{fig:dev_spec:l:output}@*)
-
 \end{asllisting}
 \caption{Symbolic device specification}
 \label{fig:dev_spec_asl}
-\end{figure}
-
-\begin{figure}
-\centering
-\includegraphics[width=0.45\linewidth]{diagrams/devMealy.pdf}
-\caption{Device specification}
-\label{fig:dev_spec_mealy}
+\end{subfigure}
 \end{figure}
 
 \subsection{OS specification}
@@ -207,19 +206,26 @@ In general, it is the job of the driver synthesis algorithm to figure out how to
 
 The symbolic specification is given in Figure~\ref{fig:os_spec_asl}. After seeing the device specification, it is fairly self explanatory. Note that, on line~\ref{fig:os_spec_asl:l:class} the class event defined in Figure~\ref{fig:dev_spec_asl} is used.
 
-As with the device specification, the OS specification may be seen as a Mealy machine as shown in Figure~\ref{fig:}. Again, there is a single register for storing the current state and this state is updated on each transition using combinational logic. In addition to taking the label variables as input, it also takes the \code{classSent} boolean signal that was produced by the device Mealy machine as input. 
+As with the device specification, the OS specification may be seen as a Mealy machine as shown in Figure~\ref{fig:os_spec_mealy}. Again, there is a single register for storing the current state and this state is updated on each transition using combinational logic. In addition to taking the label variables as input, it also takes the \code{classSent} boolean signal that was produced by the device Mealy machine as input. 
 
 \begin{figure}
 \centering
-\includegraphics[width=0.85\linewidth]{diagrams/exampleSpecOS.pdf}
+\begin{subfigure}[t]{0.47\textwidth}
+\includegraphics[width=\linewidth]{diagrams/exampleSpecOS.pdf}
 \caption{OS specification}
 \label{fig:os_spec}
-\end{figure}
-
-\begin{figure}
+\end{subfigure}
+\hfill
+\begin{subfigure}[t]{0.47\textwidth}
+\centering
+\includegraphics[width=\linewidth]{diagrams/osMealy.pdf}
+\caption{OS specification}
+\label{fig:os_spec_mealy}
+\end{subfigure}
+\par\bigskip
+\begin{subfigure}[b]{\textwidth}
 \centering
 \begin{asllisting}
-
 State
 osState  : {osIdle, osRequested, osDone, osError};
 
@@ -246,17 +252,10 @@ osState := case {
     osState == osDone  : osDone;
     osState == osError : osError;
 };
-
 \end{asllisting}
 \caption{Symbolic OS specification}
 \label{fig:os_spec_asl}
-\end{figure}
-
-\begin{figure}
-\centering
-\includegraphics[width=0.45\linewidth]{diagrams/osMealy.pdf}
-\caption{OS specification}
-\label{fig:os_spec_mealy}
+\end{subfigure}
 \end{figure}
 
 \subsection{Combined Specification}
