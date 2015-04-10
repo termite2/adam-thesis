@@ -182,6 +182,13 @@ define(classSent, (devState == devSending && devSent && !controllable)) (*@\labe
 \label{fig:dev_spec_asl}
 \end{figure}
 
+\begin{figure}
+\centering
+\includegraphics[width=0.45\linewidth]{diagrams/devMealy.pdf}
+\caption{Device specification}
+\label{fig:dev_spec}
+\end{figure}
+
 \subsection{OS specification}
 
 The operating system specification, given in Figure~\ref{fig:os_spec} is like a test harness for our driver. It specifies which requests the driver may receive (e.g.\ to send a notification) and how it must respond (e.g.\ by eventually sending the requested notification). It is simply another state machine, like the device specification, but it may also have goals.
