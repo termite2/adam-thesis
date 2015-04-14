@@ -1,0 +1,46 @@
+\chapter{Conclusions}
+
+\section{OSDI}
+
+We presented the design and implementation of the Termite driver 
+synthesis tool.  Termite is the first tool to marry automatic 
+game-based synthesis with conventional manual development.  It is 
+also the first practical synthesis tool based on abstraction 
+refinement.  Finally, it is the first synthesis tool to support 
+automated debugging of input specifications. 
+
+Based on our experimental results, we consider Termite to 
+be an important step towards truly practical device driver 
+synthesis.  In particular, our synthesis algorithm is able to 
+efficiently handle real-world device specifications, while the 
+user-guided approach reliably leads to high-quality code.
+
+%Device driver synthesis is a high-risk/high-gain research topic, 
+%where the potential dramatic improvements in developers' 
+%productivity and driver reliability can only be achieved by 
+%solving a number of hard research challenges.  In this paper we 
+%address two of these challenges, namely code quality and 
+%synthesis scalability, leading to the first practical driver 
+%synthesis tool.
+
+Our ongoing research focuses on solving the key remaining problems 
+described in Section~\ref{s:limitations}, primarily the DMA 
+problem, which poses the main obstacle to synthesis of more 
+complex drivers, and the grey-box synthesis problem, which limits 
+the degree of automation achieved by Termite.  Next, we will 
+explore ways to improve the quality of automatically generated 
+code and thus further reduce the need for user involvement.  This 
+includes performance- and power-aware synthesis.  Finally, we plan 
+to investigate automatic synthesis of hardened device drivers, 
+i.e., drivers that gracefully handle misbehaving 
+devices~\cite{Kadav_RS_09}.
+
+\section{FMCAD}
+
+We presented and evaluated a practical predicate-based abstraction 
+refinement algorithm for solving games.  To the best of our 
+knowledge, this is the first such algorithm described in the 
+literature.  We addressed key performance bottlenecks involved in 
+applying predicate abstraction in game settings and demonstrated 
+that our algorithm performs well on real-world reactive synthesis 
+benchmarks. 
