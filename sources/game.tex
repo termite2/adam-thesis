@@ -11,8 +11,6 @@ To formalise the driver synthesis problem using games, the first thing we must d
     \item Player~2 is the environment, which consists of the device to be controlled as well as the operating system.
 \end{itemize}
 
-\todo{A pretty picture}
-
 \section{A specification Language for Symbolic Games}
 
 We describe a simple specification language for symbolic games. This language is used to illustrate, in the simplest possible way, how Termite's specifications work. Furthermore, I have created a compiler for this language as an alternate frontend for Termite and it is available as part of Termite. As a result, all of the examples given in this chapter will compile and synthesize with Termite.
@@ -260,7 +258,7 @@ osState := case {
 
 \subsection{Combined Specification}
 
-We combine the device and OS specifications by executing them concurrently. We do this by instantiating both Mealy machines in parallel and connecting the signals, as shown in Figure~\ref{fig:}. In ASL, this is as simple as placing both case statements in the \code{Transitions} section, combining the state and label declaration sections and combining the initial states. The result is given in Figure~\ref{fig:combined_spec_asl}.
+We combine the device and OS specifications by executing them concurrently. We do this by instantiating both Mealy machines in parallel and connecting the signals, as shown in Figure~\ref{fig:combined_spec_mealy}. In ASL, this is as simple as placing both case statements in the \code{Transitions} section, combining the state and label declaration sections and combining the initial states. The result is given in Figure~\ref{fig:combined_spec_asl}.
 
 \begin{figure}
 \centering
