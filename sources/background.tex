@@ -158,7 +158,7 @@ This is known as a \emph{counterexample strategy}. It is a strategy for player~2
 
 Again, in the case of generalised \buchi\ and GR(1) games, the counterexample strategy may depend on an additional finite state: $\pi_1 : \tau_2 \times \sigma \rightarrow L \times \sigma$.
 
-\subsection{Solving games}
+\section{Solving games}
 
 Given a game and an objective there are two questions we can ask:
 \begin{itemize}
@@ -168,7 +168,7 @@ Given a game and an objective there are two questions we can ask:
 
 We present algorithms to answer these questions in this section. We begin with the simplest game, the reachability game, and progress to GR(1) games as are used in Termite.
 
-\subsubsection{Controllable predecessor}
+\subsection{Controllable predecessor}
 
 All of the algorithms for games I will be describing use a function called the controllable predecessor (abbreviated \cpre). \cpre\ is a function from a target set of game states ($2^S$) called the \emph{target set} to another set of game states. Given a set $T$, $CPre(T)$ returns the set of states from which player 1 can force execution into $T$ in one step. 
 
@@ -182,7 +182,7 @@ CPre(X) = \tau_1 \cap \{x | \exists l. \langle x, l, x' \rangle \in \delta \righ
 
 The controllable predecessor for turn based games returns the subset of $\tau_1$ where there exists a label which player~1 can choose to take execution into $X$ together with the subset of $\tau_2$ where all labels which player~2 can choose take execution into $X$. 
 
-\subsubsection{Safety and reachability}
+\subsection{Safety and reachability}
 
 We will start with reachability as it is the most straightforward. We solve games by finding the set of states from which player~1 can win, called the \emph{winning region}. If the winning region contains the set of initial states, then we know that player~1 can win from any state in the initial set and thus can win the game.
 
@@ -244,7 +244,7 @@ Safety games are the dual of reachability games and are also solved by iterating
 \label{a:reach}
 \end{algorithm}
 
-\subsubsection{\buchi}
+\subsection{\buchi}
 
 To solve a \buchi\ game, we first find the set from which we can reach the goal once as we do for a reachability game. Then, we use this set to find the set from which we can reach the goal twice, three times, and so on until we get to another fixed point. 
 
@@ -257,7 +257,7 @@ This fixed point is the set of states from which we can reach the goal any numbe
 \label{eqn:mu_buchi}
 \end{equation}
 
-\subsubsection{Generalized \buchi}
+\subsection{Generalized \buchi}
 
 Solving a generalized \buchi\ game is similar to a \buchi\ game except that we find the set from which we can reach any goal once, then any goal twice, etc. The algorithm is a small modification to the \buchi\ algorithm and is given in Algorithm \ref{alg:gen_buchi}. The equivalent $\mu$-calculus formula is given in Equation \ref{eqn:mu_genbuchi}.
 
@@ -288,7 +288,7 @@ Solving a generalized \buchi\ game is similar to a \buchi\ game except that we f
 \label{eqn:mu_genbuchi}
 \end{equation}
 
-\subsubsection{GR(1)}
+\subsection{GR(1)}
 
 Next, we need to add fairness. Consider a fair reachability game. An unfair region is a region that we can assume execution will leave, regardless of the loops it contains. We modify the controllable predecessor to create a fair controllable predecessor that takes this into account. Intuitively, the algorithm considers a set of unfair states to be winning if the only way out leads to an already winning state. To achieve this, we play a variation of a safety game where we can win if we stay entirely within the unfair set or upon exiting the unfair set we are immediately in the target set $T$. The procedure for the fair controllable predecessor is given in Algorithm \ref{a:fair_cpre} and the equivalent $\mu$-calculus formula is given in Equation \ref{eqn:mu_fair}. Using $Fair\_CPre$ as the $CPre$ operator in the reachability algorithm (Algorithm \ref{a:reach}) yields the fair reachability algorithm. 
 
@@ -329,6 +329,8 @@ Finally, if we combine the \buchi\ game with the fair controllable predecessor w
     GR1(Goals, Fairs) = \nu X. \bigwedge_{G \in Goals} \mu Y. \bigvee_{F \in Fairs} \nu Z. CPre((\neg F \wedge Z) \vee (G \wedge X) \vee Y)
 \label{eqn:mu_gr1}
 \end{equation}
+
+\section{Strategies and Counterexamples}
 
 \subsection{Extracting strategies}
 
