@@ -48,7 +48,7 @@ It is straightforward to convert a $\mu$-calculus formula into an algorithm that
 
 Greatest and least fixed points are computed by iteration. To compute the greatest fixed point of a function $f(x)$ i.e. $\nu X. f(X)$ we iterate $f$ starting with the universal set. As $f$ is monotonic, the result is guaranteed to grow on each iteration \todo{why}. Furthermore, if the set of states, $S$ is finite, this iteration must eventually converge to some set as $S$ being finite prevents the result from growing forever. 
 
-We give the algorithm for computing the greatest fixpoint in Algorithm \ref{alg:mu_greatest_fixpoint}. It assumes the existence of an abstract set datatype that supports set union, complementation and equality checking.
+We give the algorithm for computing the greatest fixpoint in Algorithm~\ref{alg:mu_greatest_fixpoint}. It assumes the existence of an abstract set datatype that supports set union, complementation and equality checking.
 
 \begin{algorithm}
 \begin{algorithmic}
