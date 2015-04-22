@@ -101,42 +101,42 @@ The two simplest objectives are safety and reachability. A safety objective is d
 
 \begin{equation}
 \label{eqn:safeobj}
-\forall i. s_i \in \safeobj
+\forall i.\ s_i \in \safeobj
 \end{equation}
 
 The dual of a safety objective is a reachability objective. A reachability objective is defined by a set $\reachobj \subseteq S$ that player 1 must force the game to visit at least once, regardless of the labels that player 2 picks. Formally, a reachability run is winning if 
 
 \begin{equation}
 \label{eqn:reachobj}
-\exists i. s_i \in \reachobj
+\exists i.\ s_i \in \reachobj
 \end{equation}
 
 \paragraph{\buchi}
 A \buchi\ objective is defined by a set $\buchiobj \subseteq S$ that player~1 must always be able to force execution of the game into. This differs from a reachability game in that the region must always be reachable, not just once. When it has been reached once, it must be reachable again, and so on. So, it must be reachable infinitely many times. Formally, a run is \buchi\ winning if 
 
 \begin{equation}
-\forall i. \exists j>i. s_j \in \buchiobj
+\forall i.\ \exists j>i.\ s_j \in \buchiobj
 \end{equation}
 
 \paragraph{Generalized \buchi}
 A Generalized \buchi\ objective is defined by a set of sets $\genbuchiobj \subseteq 2^S$. Player~1 must always be able to force execution into each set $\buchiobj \in \genbuchiobj$. Formally, a run satisfies a generalized \buchi\ objective if 
 
 \begin{equation}
-\forall i. \forall \buchiobj \in \genbuchiobj. \exists j>i. s_j \in \buchiobj
+\forall i.\ \forall \buchiobj \in \genbuchiobj.\ \exists j>i.\ s_j \in \buchiobj
 \end{equation}
 
 \paragraph{Fairness}
 Sometimes it is necessary to rule out invalid plays that are not easily ruled out by changing the state machine. For this we use fairness conditions. A fairness condition is a set of states which we may assume that all valid runs of the game eventually leave. If a spoiling strategy exists that results in an unfair run, it does not count. Formally, a run satisfies a fair reachability objective if 
 
 \begin{equation}
-\forall i. \exists j>i. s_j \in \fairobj \rightarrow \exists i. s_i \in \reachobj
+\forall i.\ \exists j>i.\ s_j \in \fairobj \rightarrow \exists i.\ s_i \in \reachobj
 \end{equation}
 
 \paragraph{GR(1)}
 A Generalized Reactive 1, or GR(1) \cite{gr1} objective, is a generalized \buchi\ objective with multiple fairness conditions. In practice, this turns out to be a very useful type of objective. Formally, a run satisfies a GR(1) objective if 
 
 \begin{multline}
-\forall i. \forall \fairobj \in \genfairobj. \exists j>i. s_j \in \fairobj \rightarrow \\ \forall i. \forall \buchiobj \in \genbuchiobj. \exists j>i. s_j \in \buchiobj
+\forall i.\ \forall \fairobj \in \genfairobj.\ \exists j>i.\ s_j \in \fairobj \rightarrow \\ \forall i.\ \forall \buchiobj \in \genbuchiobj.\ \exists j>i.\ s_j \in \buchiobj
 \end{multline}
 
 \subsection{Perfect information games}
