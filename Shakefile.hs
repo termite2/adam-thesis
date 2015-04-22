@@ -1,10 +1,7 @@
 import System.Environment 
-import Control.Monad
 
 import Development.Shake
-import Development.Shake.Command
 import Development.Shake.FilePath
-import Development.Shake.Util
 
 buildDir = "build"
 
