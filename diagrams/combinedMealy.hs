@@ -1,11 +1,10 @@
+{-# LANGUAGE NoMonomorphismRestriction, FlexibleContexts, GADTs #-}
 
-{-# LANGUAGE NoMonomorphismRestriction #-}
-
-import Diagrams.Prelude
+import Diagrams.Prelude hiding (output)
 import Diagrams.Backend.Cairo.CmdLine
 
-fs = Local 2
-smallF = Local 1.5
+fs = local 2
+smallF = local 1.5
 
 reg' =  triangle 1.5 # rotate (1/12 @@ turn) 
                      # alignL 
@@ -44,5 +43,5 @@ diagd = combLogicd <> regd <> hrule 20 # alignL # moveTo (p2 (5, 3.5)) <> circle
 
 combined = (diagd === diag) <> text "classSent" # fontSize smallF # moveTo (p2 (3, -17)) <> vrule 24 # alignB # moveTo (p2 (-10, -30))
 
-main = mainWith (combined :: Diagram B R2)
+main = mainWith (combined :: Diagram B)
 

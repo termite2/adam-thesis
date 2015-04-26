@@ -1,9 +1,9 @@
-{-# LANGUAGE NoMonomorphismRestriction #-}
+{-# LANGUAGE NoMonomorphismRestriction, FlexibleContexts, GADTs #-}
 
 import Diagrams.Prelude
 import Diagrams.Backend.Cairo.CmdLine
 
-fs = Local 0.08
+fs = local 0.08
 
 state = circle 0.1
 
@@ -46,5 +46,5 @@ initArrow = arrowBetween (p2 (-0.3, 0)) (p2 (-0.1, 0))
 
 diag = (diag' <> labels <> initArrow) # pad 1.1
 
-main = mainWith (diag :: Diagram B R2)
+main = mainWith (diag :: Diagram B)
 

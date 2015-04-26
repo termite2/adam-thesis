@@ -1,9 +1,9 @@
-{-# LANGUAGE NoMonomorphismRestriction #-}
+{-# LANGUAGE NoMonomorphismRestriction, FlexibleContexts #-}
 
 import Diagrams.Prelude
 import Diagrams.Backend.Cairo.CmdLine
 
-fs = Local 2
+fs = local 2
 
 root = (text "x" # fontSize fs <> circle 5) # named "root"
 n1   = (text "y" # fontSize fs <> circle 5) # named "n1" # moveTo (p2 (-20, -20))
@@ -28,5 +28,5 @@ diag = states # connectOutside' elseStyle "root" "n1"
               # connectOutside "n1" "t1"
               # connectOutside' elseStyle "n1" "t2"
 
-main = mainWith (diag :: Diagram B R2)
+main = mainWith (diag :: Diagram B)
 

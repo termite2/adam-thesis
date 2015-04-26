@@ -1,10 +1,10 @@
-{-# LANGUAGE NoMonomorphismRestriction #-}
+{-# LANGUAGE NoMonomorphismRestriction, FlexibleContexts #-}
 
-import Diagrams.Prelude
+import Diagrams.Prelude hiding (output)
 import Diagrams.Backend.Cairo.CmdLine
 
-fs = Local 2
-smallF = Local 1.5
+fs = local 2
+smallF = local 1.5
 
 reg' =  triangle 1.5 # rotate (1/12 @@ turn) 
                      # alignL 
@@ -23,5 +23,5 @@ combLogic = (comb <> inputs <> output) # (withName "comb" $ \d -> moveOriginTo (
 
 diag = combLogic <> reg <> hrule 20 # alignL # moveTo (p2 (5, 3.5)) <> circle 0.5 # fc black # moveTo (p2 (25, 3.5)) <> fromVertices [p2 (35, 3.5), p2 (45, 3.5), p2 (45, 13.5), p2 (2, 13.5), p2 (2, 10)] <> circle 0.5 # fc black # moveTo (p2 (2, 10))
 
-main = mainWith (diag :: Diagram B R2)
+main = mainWith (diag :: Diagram B)
 

@@ -1,9 +1,9 @@
-{-# LANGUAGE NoMonomorphismRestriction #-}
+{-# LANGUAGE NoMonomorphismRestriction, FlexibleContexts, GADTs #-}
 
 import Diagrams.Prelude
 import Diagrams.Backend.Cairo.CmdLine
 
-fs = Local 0.08
+fs = local 0.08
 
 state = circle 0.1
 
@@ -23,7 +23,7 @@ arrowStyleUCont = (with & arrowHead  .~ spike
                         & headLength .~ large
                         & shaftStyle %~ dashingG [0.04, 0.02] 0)
 
-splineShaft = arcCW (1/8 @@ turn) (0 @@ turn)
+splineShaft = arcCW (angleDir (1/8 @@ turn)) (angleDir (0 @@ turn))
 
 arrowSplineCont = (with & arrowHead  .~ spike 
                     & headLength .~ large
@@ -62,5 +62,5 @@ initArrow = arrowBetween (p2 (-0.3, 1)) (p2 (-0.1, 1))
 
 diag = (diag' <> labels <> initArrow) # pad 1.6
 
-main = mainWith (diag :: Diagram B R2)
+main = mainWith (diag :: Diagram B)
 
