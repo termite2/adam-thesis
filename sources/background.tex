@@ -182,6 +182,7 @@ However, in the interest of aiding the reader's understanding, the controllable 
 
 \begin{multline}
 CPre(X) = \tau_1 \cap \{x | \exists l. \langle x, l, x' \rangle \in \delta \rightarrow x' \in X\} \\ \cup \tau_2 \cap \{x | \forall l. \langle x, l, x' \rangle \in \delta \rightarrow x' \in X \}
+\label{eqn:turn_cpre}
 \end{multline}
 
 The controllable predecessor for turn based games returns the subset of $\tau_1$ where there exists a label which player~1 can choose to take execution into $X$ together with the subset of $\tau_2$ where all labels which player~2 can choose take execution into $X$. 
@@ -197,7 +198,7 @@ This is illustrated in Figure~\ref{fig:turn_cpre}. The two dark states are winni
 
 \subsection{Safety and reachability}
 
-We will start with reachability as it is the most straightforward. We solve games by finding the set of states from which player~1 can win, called the \emph{winning region}. If the winning region contains the set of initial states, then we know that player~1 can win from any state in the initial set and thus can win the game.
+We will start with reachability as it is the most straightforward. We solve games by finding the set of states from which player~1 can win, called the \emph{winning region} and denoted \win. If the winning region contains the set of initial states, then we know that player~1 can win from any state in the initial set and thus can win the game.
 
 According to Equation~\ref{eqn:reachobj}, a state is winning in a reachability game if there is some finite $i$ such that we can guarantee that after $i$ rounds of the game, execution will have, at least once, entered a state in $\reachobj$. 
 
@@ -210,7 +211,7 @@ This suggests an algorithm to find the winning region. We start with $\reachobj$
     \item After termination, has the algorithm found all the winning states?
 \end{itemize}
 
-Observe that $W_{N+1} \supseteq W_N$. So, on each iteration, we either grow the winning set or it remains the same. Also observe that our set $S$ is finite, which means that $2^S$ is also finite. As set inclusion is a transitive relation, we cannot grow our winning set forever, so eventually we must reach a fixed point of the \cpre\ function. 
+We denote the set of states from which it is possible to reach \reach\ in $N$ or less steps $W_N$. Observe that $W_{N+1} \supseteq W_N$. So, on each iteration, we either grow the winning set or it remains the same. Also observe that our set $S$ is finite, which means that $2^S$ is also finite. As set inclusion is a transitive relation, we cannot grow our winning set forever, so eventually we must reach a fixed point of the \cpre\ function. 
 
 %TODO: $CPre$ isnt the order preserving function
 A more formal proof of termination is based in the Knaster-Tarski theorem \cite{knaster_tarski}. The power set of $S$ can be ordered by set inclusion to obtain a complete lattice with supremum $S$ and infimum $\emptyset$. \cpre\ is an order preserving function, so by the Knaster-Tarski theorem the set of fixed points of \cpre\ is also a complete lattice. Thus there exists a greatest and least fixed point (as the lattice is complete). The least fixed point of \cpre\ is clearly obtained by iteration starting from the least element of the lattice, ie. $\emptyset$. 
@@ -222,12 +223,12 @@ Finally, to answer the question of whether the game is winning for player~1, we 
 Safety games are the dual of reachability games and are also solved by iterating the controllable predecessor. The algorithm for solving safety games is also the dual of the algorithm for solving reachability games and will not be given here. However, we do give the $\mu$-calculus formula in Equation~\ref{eqn:mu_safe} and the algorithm can be deduced from this using Algorithm~\ref{a:mu_semantics}.
 
 \begin{equation}
-    \mathit{REACH}(T) = \mu X. CPre(X \vee T)
+    \mathit{\reachFun}(T) = \mu Y. CPre(Y \vee T)
 \label{eqn:mu_reach}
 \end{equation}
 
 \begin{equation}
-\mathit{SAFE}(T) = \nu X. CPre(X \wedge T)
+\mathit{\safeFun}(T) = \nu Y. CPre(Y \wedge T)
 \label{eqn:mu_safe}
 \end{equation}
 
@@ -235,9 +236,9 @@ Safety games are the dual of reachability games and are also solved by iterating
 \begin{algorithmic}
 
 \Require A set of target states $\reachobj \subseteq S$, an initial set of states $I$ and a monotonic controllable predecessor $CPre$.
-\Ensure  {\it Yes} if $I \subseteq REACH(T, Cpre)$ and {\it No} otherwise.
+\Ensure  {\it Yes} if $I \subseteq \mathit{\reachFun(T, Cpre)}$ and {\it No} otherwise.
 
-\Function{Reach}{$\reachobj, I, CPre$}
+\Function{\reachFun}{$\reachobj, I, CPre$}
     \State $Y \gets \varnothing$
     \Loop
         \State $Y' \gets CPre(Y \cup \reachobj)$
@@ -261,12 +262,12 @@ Safety games are the dual of reachability games and are also solved by iterating
 
 To solve a \buchi\ game, we first find the set from which we can reach the goal once as we do for a reachability game. Then, we use this set to find the set from which we can reach the goal twice, three times, and so on until we get to another fixed point. 
 
-Imagine we have solved the reachability game $R = \reachobj(T)$ where $T$ is the \buchi\ target set and $R$ is the winning region. Then $V = R \wedge T$ is a subset of the goal from which player~1 can reach the goal one more time. Computing $W = \reachobj(V)$ gets us the set of states from which we can reach the goal twice. Iterating this procedure will eventually lead to a fixed point as $\reachobj$ is a monotonic function.
+Imagine we have solved the reachability game $R = \reachFun(T)$ where $T$ is the \buchi\ target set and $R$ is the winning region. Then $V = R \wedge T$ is a subset of the goal from which player~1 can reach the goal one more time. Computing $W = \reachFun(V)$ gets us the set of states from which we can reach the goal twice. Iterating this procedure will eventually lead to a fixed point as $\reachFun$ is a monotonic function.
 
 This fixed point is the set of states from which we can reach the goal any number of times. Thus, it is the winning set of the \buchi\ game. The $\mu$-calculus formula is given in Equation~\ref{eqn:mu_buchi} and the algorithm to solve \buchi\ games can be deduced from this using Algorithm~\ref{a:mu_semantics}.
 
 \begin{equation}
-    \mathit{BUCHI}(T) = \nu X. \mu Y. CPre(Y \vee (X \wedge T))
+    \mathit{\buchiFun}(T) = \nu X. \mu Y. CPre(Y \vee (X \wedge T))
 \label{eqn:mu_buchi}
 \end{equation}
 
@@ -277,17 +278,17 @@ Solving a generalized \buchi\ game is similar to a \buchi\ game except that we f
 \begin{algorithm}[t]
 \begin{algorithmic}
 \Function{Generalized\_Buchi}{$T$, $CPre$}
-\State $Y \gets S$
+\State $X \gets S$
 \Loop
-\State $Y' \gets S$
+\State $X' \gets S$
 
 \For{\textbf{each} G in Goals}
-\State $Y' \gets Y' \cap \Call{Reach}{Y \cap G}$
+\State $X' \gets X' \cap \Call{\reachFun}{X \cap G}$
 \EndFor
 
-\If {$Y' = Y$} 
-\State\Return $Y$\EndIf
-\State $Y \gets Y'$
+\If {$X' = X$} 
+\State\Return $X$\EndIf
+\State $X \gets X'$
 
 \EndLoop
 \EndFunction
@@ -297,7 +298,7 @@ Solving a generalized \buchi\ game is similar to a \buchi\ game except that we f
 \end{algorithm}
 
 \begin{equation}
-    \mathit{GEN\_BUCHI}(T) = \nu X. \bigwedge_{G \in GOALS} \mu Y. CPre(Y \vee (X \wedge G))
+    \mathit{\genBuchiFun}(Goals) = \nu X. \bigwedge_{G \in Goals} \mu Y. CPre(Y \vee (X \wedge G))
 \label{eqn:mu_genbuchi}
 \end{equation}
 
@@ -307,13 +308,13 @@ Next, we need to add fairness. Consider a fair reachability game. An unfair regi
 
 \begin{algorithm}[t]
 \begin{algorithmic}
-\Function{Fair\_CPre}{$CPre$, $\phi$, $T$}
-\State $Y \gets S$
+\Function{\fairCpreFun}{$CPre$, $\phi$, $T$}
+\State $Z \gets S$
 \Loop
-\State $Y' \gets \Call{CPre}{Y \cap \phi \cup T}$
-\If {$Y' = Y$} 
-\State\Return $Y$\EndIf
-\State $Y \gets Y'$
+\State $Z' \gets \Call{CPre}{Z \cap \phi \cup T}$
+\If {$Z' = Z$} 
+\State\Return $Z$\EndIf
+\State $Z \gets Z'$
 \EndLoop
 \EndFunction
 \end{algorithmic}
@@ -322,16 +323,16 @@ Next, we need to add fairness. Consider a fair reachability game. An unfair regi
 \end{algorithm}
 
 \begin{equation}
-FairCPre(F, T) = \nu X. CPre((\neg F \wedge X) \vee T)
+    \mathit{\fairCpreFun}(F, T) = \nu Z. CPre((\neg F \wedge Z) \vee T)
 \label{eqn:mu_fair}
 \end{equation}
 
-Using $Fair\_CPre$ as the $CPre$ operator in the reachability algorithm (Algorithm~\ref{a:reach}) yields the fair reachability algorithm. Finally, if we combine the \buchi\ game with the fair controllable predecessor we get a GR(1) game. The procedure is given in Algorithm~\ref{a:gr1} and the equivalent $\mu$-calculus formula is given in Equation~\ref{eqn:mu_gr1}.
+Using $\mathit{\fairCpreFun}$ as the controllable predecessor operator in the reachability algorithm (Algorithm~\ref{a:reach}) yields the fair reachability algorithm. Finally, if we combine the \buchi\ game with the fair controllable predecessor we get a GR(1) game. The procedure is given in Algorithm~\ref{a:gr1} and the equivalent $\mu$-calculus formula is given in Equation~\ref{eqn:mu_gr1}.
 
 \begin{algorithm}[t]
 \begin{algorithmic}
-\Function{GR(1)}{$CPre$, $T$}
-\State\Return \Call{Buchi}{$T$, FairCPre(CPre)}
+\Function{\grWin}{$CPre$, $T$}
+\State\Return \Call{\buchiFun}{$T$, \fairCpreFun(CPre)}
 \EndFunction
 \end{algorithmic}
 \caption{GR(1) game}
@@ -339,7 +340,7 @@ Using $Fair\_CPre$ as the $CPre$ operator in the reachability algorithm (Algorit
 \end{algorithm}
 
 \begin{equation}
-    GR1(Goals, Fairs) = \nu X. \bigwedge_{G \in Goals} \mu Y. \bigvee_{F \in Fairs} \nu Z. CPre((\neg F \wedge Z) \vee (G \wedge X) \vee Y)
+    \grWin(Goals, Fairs) = \nu X. \bigwedge_{G \in Goals} \mu Y. \bigvee_{F \in Fairs} \nu Z. CPre((\neg F \wedge Z) \vee (G \wedge X) \vee Y)
 \label{eqn:mu_gr1}
 \end{equation}
 
@@ -355,7 +356,7 @@ When solving a reachability game, we discover the sets of states for which we ca
 
 The strategy relation is initialized to the empty set on line~\ref{l:rs:init}. Then, we perform an iteration of the controllable predecessor. This time we also use \textsc{CPre\_Strat} on line~\ref{l:rs:cs}, which computes a relation between the winning states discovered so far and the labels that take execution from these newly discovered states one step closer to the goal.
 
-On each iteration we combine this strategy for the newly discovered states with the strategy for the previously discovered states. We are careful on line~\ref{l:rs:as} not to add new labels for states that have already been discovered to ensure that the labels take us towards the goal. We iterate until our winning region reaches a fixed point as before. In the end, the strategy relates each state in the final winning region to a label that takes the game one step closer to the goal.
+On each iteration we combine this strategy for the newly discovered states with the strategy for the previously discovered states. We are careful on line~\ref{l:rs:as} not to add new labels for states that have already been discovered to ensure that the labels take us towards the goal. We iterate until our winning region reaches a fixed point as before. In the end, the strategy relates each state in the final winning region to a set of labels that take the game one step closer to the goal.
 
 \textsc{CPre\_Strat} is a parameter to the strategy extraction algorithm in the same way as \textsc{\cpre} is to the game solving algorithm. Its definition depends on the exact details of the game. For completeness, we give the definition of \textsc{CPre\_Strat} for turn based games. 
 
@@ -398,9 +399,9 @@ The algorithm for computing the strategy in a \buchi\ game is given in Algorithm
 \begin{algorithm}[t]
 \begin{algorithmic}[1]
 
-\Function{Buchi\_Strat}{$\buchiobj$}
+\Function{Buchi\_Strat}{$\buchiobj$, $\mathit{\cpre}$, $\mathit{\cpreStrat}$}
     \State $win \gets \Call{Buchi}{\buchiobj}$ \label{l:bs:rw}
-    \State \Return \Call{Reach\_Strat}{$win \cap \buchiobj$} \label{l:bs:rs}
+    \State \Return \Call{Reach\_Strat}{$win \cap \buchiobj$, $\mathit{\cpre}$, $\mathit{\cpreStrat}$} \label{l:bs:rs}
 \EndFunction
 
 \end{algorithmic}
@@ -412,7 +413,7 @@ The algorithm for computing the strategy in a \buchi\ game is given in Algorithm
 
 A generalized \buchi\ strategy must ensure that we can always get to any of the goals. If we compute, for each goal, the reachability strategy for the intersection of that goal and the generalised \buchi\ winning region, we get a strategy that takes us to that goal and, by keeping execution in the winning region, ensures that we can reach any of the other goals using their strategies. 
 
-Thus, a strategy for a generalised \buchi\ game is a set of strategies, one for each goal, that we must play in a round robin manner to ensure that each goal is eventually reached. The finite state required to ensure that the strategies are played in a round robin order is the finite state that the generalised \buchi\ strategy requires as discussed in Section~\ref{sec:strat_and_cex}.
+Thus, a strategy for a generalised \buchi\ game is a set of strategies, one for each goal, that we must play in a round robin manner to ensure that each goal is eventually reached. The finite state required to ensure that the strategies are played in a round robin order is the finite state that the generalised \buchi\ strategy requires as discussed in Section~\ref{sec:strat_and_cex}. This, for example, could be a counter that that loops through the goals and is incremented each time the current goal is reached.
 
 The algorithm for computing the strategy in a generalized \buchi\ game is given in Algorithm~\ref{alg:gen_buchi_strat}. It first computes the winning region of the generalised \buchi\ on line~\ref{l:gbs:wr} and then it computes a strategy to reach the intersection of this and each goal on line~\ref{l:gbs:rs}.
 
@@ -443,18 +444,18 @@ The algorithm for computing the strategy in a fair reachability game is given in
 \begin{algorithmic}[1]
 
 \Function{Fair\_CPre\_Strat}{$CPre, CPre\_Strat, \phi, T$}
-    \State $X \gets U$
+    \State $Z \gets U$
     \Loop
-        \State $X' \gets \Call{CPre}{X \wedge \neg\phi \vee T}$
-        \If {$X' = X$} 
-        \State\Return $\Call{CPre\_Strat}{X \wedge \neg\phi \vee T}$ \label{l:fcp:st}
+        \State $Z' \gets \Call{CPre}{Z \wedge \neg\phi \vee T}$
+        \If {$Z' = Z$} 
+        \State\Return $\Call{CPre\_Strat}{Z \wedge \neg\phi \vee T}$ \label{l:fcp:st}
         \EndIf
-        \State $X \gets X'$
+        \State $Z \gets Z'$
     \EndLoop
 \EndFunction
 
 \end{algorithmic}
-\caption{The fair controllable predecessor}
+\caption{Fair controllable predecessor strategy extraction}
 \label{alg:fair_cpre_strat}
 \end{algorithm}
 
@@ -471,18 +472,18 @@ Counterexamples are computed by solving the complement game and extracting the s
 The complement of a reachability game is a safety game with negated objective. This can be seen by complementing the $mu$-calculus formula for the winning region, repeated below for convenience.
 
 \begin{equation}
-    \mathit{REACH}(T) = \mu X. CPre_1(X \vee T)
+    \mathit{REACH}(T) = \mu Y. CPre_1(Y \vee T)
 \end{equation}
 
 \begin{equation}
-    \neg\mathit{REACH} = \neg\nu X. CPre_2(X \wedge \neg T) = \mathit{SAFE}(\neg T) 
+    \neg\mathit{REACH} = \neg\nu Y. CPre_2(Y \wedge \neg T) = \mathit{SAFE}(\neg T) 
 \end{equation}
 
 Thus, the counterexample strategy for a reachability game is the strategy for a safety game with complemented objective and the other player's controllable predecessor. \todo{We dont actually give an algorithm for safety game strategy, so this is a bit useless.}
 
 \subsubsection{GR(1)}
 
-The complement of a GR(1) game is a confusing beast and is given below.
+The complement of a GR(1) game is given below.
 
 \begin{equation}
     GR1(Goals, Fairs) = \nu X. \bigwedge_{G \in Goals} \mu Y. \bigvee_{F \in Fairs} \nu Z. CPre_1((\neg F \wedge Z) \vee (G \wedge X) \vee Y)
@@ -501,18 +502,18 @@ Identical problems are encountered in model checking. The breakthrough that revo
 
 \subsection{State variable encoding}
 
-Symbolic games are defined over a finite set of state variables, $X$, and a finite set of label variables $Y$. A \emph{valuation} for a set of variables $V$ is a function from each of those variables to an element of its domain. We redefine $S$, the set of states, to be the set of possible valuations of each state variable in $X$. That is, each state $s \in S$ is given by a valuation of all of the state variables in $X$. Similarly, we redefine $L$, the set of labels, to be the set of possible valuations of each label variable in $Y$.
+Symbolic games are defined over a finite set of state variables, $\symStateVars$, and a finite set of label variables $\symLabelVars$. A \emph{valuation} for a set of variables $V$ is a function from each of those variables to an element of its domain. We redefine $S$, the set of states, to be the set of possible valuations of each state variable in $\symStateVars$. That is, each state $s \in S$ is given by a valuation of all of the state variables in $\symStateVars$. Similarly, we redefine $L$, the set of labels, to be the set of possible valuations of each label variable in $\symLabelVars$.
 
-For a set $Z$ of variables, we denote by $\forms(Z)$ the set of propositional formulas constructed from the variables in $Z$. The characteristic formula of a set of states $T$ is a function $f \in \forms(X)$ that evaluates to true for the valuation corresponding to a state $s \in T$ and false otherwise. We use characteristic formulas to represent sets of states without explicitly listing each member of the set. This is called a symbolic representation.
+For a set $Z$ of variables, we denote by $\forms(Z)$ the set of propositional formulas constructed from the variables in $Z$. The characteristic formula of a set of states $T$ is a function $f \in \forms(\symStateVars)$ that evaluates to true for the valuation corresponding to a state $s \in T$ and false otherwise. We use characteristic formulas to represent sets of states without explicitly listing each member of the set. This is called a symbolic representation.
 
-Likewise, $\delta$ is specified by a formula in $\forms(X \bigcup Y \bigcup X')$, where $X' = \{x' \mid x \in X \}$ is the set of next state variables.
+Likewise, $\delta$ is specified by a formula in $\forms(\symStateVars \bigcup \symLabelVars \bigcup \symStateVars')$, where $\symStateVars' = \{\sigma' \mid \sigma \in \symStateVars \}$ is the set of next state variables.
 
 \subsection{Symbolic algorithms}
 
-We can redefine Algorithms 1-4 using characteristic functions instead of explicit sets. The algorithms are superficially similar except they use conjunction and disjunction to modify sets instead of explicit set intersection and union. As an example, we convert the turn based controllable predecessor to symbolic form in Equation~\ref{eqn:cpre_symb} and, we convert the simplest algorithm, determining the outcome of a reachability game to symbolic form, in Algorithm~\ref{a:symb_reach}.
+We can redefine our game solving algorithms to use characteristic functions instead of explicit sets. The algorithms are superficially similar except they use conjunction and disjunction to modify sets instead of explicit set intersection and union. As an example, we convert the turn based controllable predecessor (Equation~\ref{eqn:turn_cpre}) to symbolic form in Equation~\ref{eqn:cpre_symb} and, we convert the simplest algorithm, determining the outcome of a reachability game to symbolic form, in Algorithm~\ref{a:symb_reach}.
 
 \begin{equation}
-CPre(X) = \tau_1 \wedge \exists l. \forall n. \delta \rightarrow x' \vee \tau_2 \wedge \forall l. \forall n. \delta \rightarrow x' 
+CPre(X) = \tau_1 \wedge \exists \symLabelVars. \forall \symStateVars'. \delta \rightarrow X' \vee \tau_2 \wedge \forall \symLabelVars. \forall \symStateVars'. \delta \rightarrow X' 
 \label{eqn:cpre_symb}
 \end{equation}
 
