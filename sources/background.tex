@@ -46,7 +46,7 @@ Given a labelled transition system $(S, R, F)$ where
 
 It is straightforward to convert a $\mu$-calculus formula into an algorithm that returns the set of states for which the formula holds.
 
-Greatest and least fixed points are computed by iteration. To compute the greatest fixed point of a function $f(x)$ i.e. $\nu X. f(X)$ we iterate $f$ starting with the universal set. As $f$ is monotonic, the result is guaranteed to grow on each iteration \todo{why}. Furthermore, if the set of states, $S$ is finite, this iteration must eventually converge to some set as $S$ being finite prevents the result from growing forever. 
+Greatest and least fixed points are computed by iteration. To compute the greatest fixed point of a function $f(x)$ i.e. $\nu X. f(X)$ we iterate $f$ starting with the universal set. As $f$ is monotonic, the result is guaranteed to shrink or stay the same on each iteration. Furthermore, if the set of states, $S$ is finite, this iteration must eventually converge to some set as $S$ being finite prevents the result from shrinking forever. 
 
 We give the algorithm for computing the greatest fixpoint in Algorithm~\ref{alg:mu_greatest_fixpoint}. It assumes the existence of an abstract set datatype that supports set union, complementation and equality checking.
 
@@ -222,7 +222,7 @@ This suggests an algorithm to find the winning region. We start with $\reachobj$
 
 We denote the set of states from which it is possible to reach \reach\ in $N$ or less steps $W_N$. Observe that $W_{N+1} \supseteq W_N$. So, on each iteration, we either grow the winning set or it remains the same. Also observe that our set $S$ is finite, which means that $2^S$ is also finite. As set inclusion is a transitive relation, we cannot grow our winning set forever, so eventually we must reach a fixed point of the \cpre\ function. 
 
-%TODO: $CPre$ isnt the order preserving function
+\todo{$CPre$ isnt the order preserving function}
 A more formal proof of termination is based in the Knaster-Tarski theorem \cite{knaster_tarski}. The power set of $S$ can be ordered by set inclusion to obtain a complete lattice with supremum $S$ and infimum $\emptyset$. \cpre\ is an order preserving function, so by the Knaster-Tarski theorem the set of fixed points of \cpre\ is also a complete lattice. Thus there exists a greatest and least fixed point (as the lattice is complete). The least fixed point of \cpre\ is clearly obtained by iteration starting from the least element of the lattice, ie. $\emptyset$. 
 
 Thus, we will eventually reach a fixed point, and, this is when we should stop iterating as further iterations will not change the winning set. Furthermore, we know that after any finite number $N$ of iterations where $N$ is greater than the number of iterations required to reach the fixed point, the winning region will remain $WIN$. Thus $WIN_N = WIN$ and we have found all winning states.
@@ -348,10 +348,10 @@ Using $\mathit{\fairCpreFun}$ as the controllable predecessor operator in the re
 \label{a:gr1}
 \end{algorithm}
 
-\begin{equation}
-    \grWin(Goals, Fairs) = \nu X. \bigwedge_{G \in Goals} \mu Y. \bigvee_{F \in Fairs} \nu Z. CPre((\neg F \wedge Z) \vee (G \wedge X) \vee Y)
+\begin{multline}
+    \grWin(Goals, Fairs) = \\ \nu X. \bigwedge_{G \in Goals} \mu Y. \bigvee_{F \in Fairs} \nu Z. CPre((\neg F \wedge Z) \vee (G \wedge X) \vee Y)
 \label{eqn:mu_gr1}
-\end{equation}
+\end{multline}
 
 \section{Strategies and Counterexamples}
 
@@ -401,7 +401,7 @@ It returns a set of $\langle state, label \rangle$ pairs where the state belongs
 
 Like a reachability strategy, a strategy for a \buchi\ game must ensure that we eventually get to the goal. However, it must also ensure that once we get to the goal it is still possible to reach the goal again. 
 
-If we find a reachability strategy for the intersection of the goal set and the winning region, then when we follow this strategy, we are guaranteed to reach the goal once and then be able to reach it again by following the same strategy because we remain in the winning region. \todo{Do I need to explain why the intersection is not empty and why there exists a reachability strategy for it?} Thus, the algorithm for finding the strategy for a \buchi\ game is to find the winning region of the game and then compute the reachability strategy for the intersection of the goal and the winning region.
+If we find a reachability strategy for the intersection of the goal set and the winning region, then when we follow this strategy, we are guaranteed to reach the goal once and then be able to reach it again by following the same strategy because we remain in the winning region. Thus, the algorithm for finding the strategy for a \buchi\ game is to find the winning region of the game and then compute the reachability strategy for the intersection of the goal and the winning region.
 
 The algorithm for computing the strategy in a \buchi\ game is given in Algorithm~\ref{alg:buchi_strat}. It simply computes the \buchi\ winning region on line~\ref{l:bs:rw} and then computes the strategy to reach the intersection of the winning region and the goal set on line~\ref{l:bs:rs}.
 
