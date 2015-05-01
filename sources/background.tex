@@ -1,35 +1,33 @@
 \chapter{Background}
 
-\section{$\mu$-calculus}
+\section{Fixed points}
 
 \subsection{Syntax}
 
-\todo{Description of mu calculus includes the $[a]\phi$ bullshit that we dont need. It also doesnt have quantification. Perhaps we should not call it mu calculus and instead define a first order logic with fixpoints}
+We define a logic with fixed points capable of expressing greatest and least solutions of fixed point equations $X = f(X)$ where $f$ is a monotone function. The set of formulas in this logic is defined as follows:
 
-The $\mu$-calculus is a logic capable of expressing greatest and least solutions of fixed point equations $X = f(X)$ where $f$ is a monotone function. The set of formulas of $\mu$-calculus is defined as follows:
+Let $P$ be a set of propositions and $V$ be a set of variables. Then
 
-Let $P$ be a set of propositions, $A$ be a set of actions and $V$ be a set of variables. Then
 \begin{itemize}
-    \item each proposition $p$ and each variable is a formula
+    \item each proposition $p \in P$ is a formula
     \item if $\phi$ and $\psi$ are formulas then $\phi \wedge \psi$ is a formula
     \item if $\phi$ is a formula then $\neg \phi$ is a formula
-    \item if $\phi$ is a formula and $a$ is an action then $[a]\phi$ is a formula
     \item if $\phi$ is a formula and $Z$ a variable then $\nu Z.\phi$ is a formula provided that every free occurrence of $Z$ in $\phi$ occurs under an even number of negations
+    \item if $\phi$ is a formula and $Z$ is a variable then $\forall Z. \phi$ is a formula
 \end{itemize}
 
 \noindent Given these definitions, we also have:
 \begin{itemize}
     \item $\phi \vee \psi$ meaning $\neg (\phi \wedge \psi)$
-    \item $\langle a \rangle \phi$ meaning $\neg [a] \neg \phi$
-\item $\mu Z. \phi$ meaning $\neg \nu Z. \neg \phi [Z := \neg Z]$ where $\phi[Z := \neg Z]$ means substituting $\neg Z$ for all free occurrences of $Z$ in $\phi$
+    \item $\mu Z. \phi$ meaning $\neg \nu Z. \neg \phi [Z := \neg Z]$ where $\phi[Z := \neg Z]$ means substituting $\neg Z$ for all free occurrences of $Z$ in $\phi$
+    \item $\exists Z. \phi$ meaning $\neg \forall Z. \neg \phi$
 \end{itemize}
 
 \subsection{Semantics}
 
-Given a labelled transition system $(S, R, F)$ where
+Given the tuple $\langle S, F \rangle$ where
 \begin{itemize}
     \item S is the set of states
-    \item $R \subseteq S \times A \times S$ is the transition relation
     \item $F : P \rightarrow 2^S$ maps each proposition to the set of states where the proposition is true
 \end{itemize}
 
@@ -38,8 +36,8 @@ Given a labelled transition system $(S, R, F)$ where
     \item $p$ holds in the set of states $F(p)$
     \item $\phi \wedge \psi$ holds in the set of states where both $\phi$ and $\psi$ hold
     \item $\neg \phi$ holds in every state where $\phi$ does not hold 
-    \item $[a]\phi$ holds in a state $s$ if every $a$-transition leading out of $s$ leads to a state where $\phi$ holds
     \item $\nu Z. \phi$ holds in any set of states $T$ such that when the variable $Z$ is set to $T$ in $\phi$ then $\phi$ holds for all of $T$. It is the greatest fixpoint of $\phi$.
+    \item $\forall X. \phi$ holds when $\phi$ holds for all possible values of $X$.
 \end{itemize}
 
 \subsection{From $\mu$-calculus formulas to algorithms}
@@ -48,7 +46,7 @@ It is straightforward to convert a $\mu$-calculus formula into an algorithm that
 
 Greatest and least fixed points are computed by iteration. To compute the greatest fixed point of a function $f(x)$ i.e. $\nu X. f(X)$ we iterate $f$ starting with the universal set. As $f$ is monotonic, the result is guaranteed to shrink or stay the same on each iteration. Furthermore, if the set of states, $S$ is finite, this iteration must eventually converge to some set as $S$ being finite prevents the result from shrinking forever. 
 
-We give the algorithm for computing the greatest fixpoint in Algorithm~\ref{alg:mu_greatest_fixpoint}. It assumes the existence of an abstract set datatype that supports set union, complementation and equality checking.
+We give the algorithm for computing the set of states for which a $\mu$-calculus formula holds in Algorithm~\ref{a:mu_semantics}. It assumes the existence of an abstract set datatype that supports set union, complementation and equality checking.
 
 \begin{algorithm}
 \begin{algorithmic}
@@ -60,6 +58,8 @@ We give the algorithm for computing the greatest fixpoint in Algorithm~\ref{alg:
         \State\Return $\Call{MuSemantics}{\psi} \cup \Call{MuSemantics}{\rho}$
     \ElsIf {$\phi = \neg \psi$}
         \State\Return $S - \Call{MuSemantics}{\psi}$
+    \ElsIf {$\phi = \forall X. \psi$}
+        \State\Return $\Call{UniversallyQuantify}{X, \psi}$
     \ElsIf {$\phi = \nu X. \psi$}
         \State $Z \gets S$
         \Loop
