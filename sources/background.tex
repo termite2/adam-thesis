@@ -501,8 +501,10 @@ The formula for a GR(1) game and its complement are given below:
 \end{equation}
 
 \begin{equation}
-    \neg GR1(Goals, Fairs) = \mu X. \bigvee_{G \in Goals} \nu Y. \bigwedge_{F \in Fairs} \mu Z. CPre_2((F \vee Z) \wedge (G \vee X) \wedge Y)
+    \neg GR1(Goals, Fairs) = \mu X. \bigvee_{G \in Goals} \nu Y. \bigwedge_{F \in Fairs} \mu Z. CPre_2((F \vee Z) \wedge (\neg G \vee X) \wedge Y)
 \end{equation}
+
+The negation of a GR(1) objective is considerably more complex than a reachability objective. To ensure that player~1 cannot win a GR(1) game, player~2 must ensure that there is at least one goal that is only reached finitely many times, and each fairness condition is visited infinitely many times. 
 
 \section{Symbolic games}
 \label{sec:symbolic_games}
