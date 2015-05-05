@@ -218,47 +218,6 @@ Figure~\ref{fig:combined_spec} shows the state machine of the combined specifica
 \label{fig:combined_spec_mealy}
 \end{figure}
 
-\section{Concurrent Games}
-\label{sec:conc_games}
-
-You may have noticed that in Figure~\ref{fig:combined_spec} our game is not turn based. There are states in which both player~1 and player~2 have moves. This kind of game is called a \emph{concurrent game}.
-
-Concurrent games differ from simpler turn based games in that in each state both players get to pick a label and the next state that the game transitions to is some (possibly non-deterministic) function, $\lambda$, of both of those labels. Turn based games are a special case of concurrent games where in player~i states (a concept that does not generally exist in concurrent games) the next state is entirely determined by the label played by player~i and the other player's label is ignored. 
-
-In Termite, however, the concurrent game is almost as simple as a turn based game. Labels, not states, are classified as controllable or uncontrollable. $\lambda$ chooses the effective label non-deterministically. This means that while player~1 may choose a label in any state, there is no guarantee that it will be played. There is, however, a fairness guarantee that each player eventually gets a turn.
-
-We simulate this non-determinism with the input variable \code{controllable}. This variable is always chosen non-deterministically. Our (now deterministic) $\lambda$ function picks the player~1 chosen label if \code{controllable} is $True$ and it picks the player~2 chosen label otherwise.
-
-\subsection{Termite's controllable predecessor}
-
-In this section we develop the controllable predecessor for Termite's concurrent game. Disregarding fairness for now, given a target state $X$, we define a state $s$ to be winning if both:
-\begin{enumerate}
-    \item there exists a controllable label originating from $S$ such that all transitions with this label lead to $X$, and
-    \item all uncontrollable transitions with any label originating from $S$ lead to $X$
-\end{enumerate}
-\noindent are simultaneously true. 
-
-Condition~1 is captured by the function $CpreC$ given in Equation~\ref{eqn:termite_cpre_c}. It returns the set of states from which there exists a controllable label such that all transitions with this label lead to a state in the target set $X$.
-
-\begin{equation}
-    CpreC(X) =  \exists L. controllable \land \forall N. Trans(S, L, N) \rightarrow X(N)
-    \label{eqn:termite_cpre_c}
-\end{equation}
-
-Condition~2 is captured by the function $CpreU$ given in Equation~\ref{eqn:termite_cpre_u}. It returns the set of states from which all transitions with uncontrollable labels lead to a state in $X$.
-
-\begin{equation}
-    CpreU(X) =  \forall L. \neg controllable \rightarrow \forall N. Trans(S, L, N) \rightarrow X(N)
-    \label{eqn:termite_cpre_u}
-\end{equation}
-
-The final controllable predecessor, $Cpre$, given in Equation~\ref{eqn:termite_cpre} returns the set of states for which both conditions are satisfied.
-
-\begin{equation}
-    Cpre(X) =  CpreC(X) \land CpreU(X)
-    \label{eqn:termite_cpre}
-\end{equation}
-
 \section{GR(1) based formalism}
 
 In the following sections, we attempt to formalise the driver synthesis problem using the simplest game - the reachability game - and analyse its shortcomings. We show that extending our formalism to GR(1) objectives, as used in Termite, overcomes these shortcomings.
