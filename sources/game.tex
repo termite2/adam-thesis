@@ -2,48 +2,17 @@
 
 In this chapter we formalise the device driver synthesis problem using games. We show that GR(1) games are sufficient to capture the properties of the drivers that we require. We also develop the driver synthesis controllable predecessor.
 
-We formalize the driver synthesis problem as a \emph{two-player 
-game}~\cite{Thomas_95} between the driver and its environment.  
-The game is played over a finite automaton that represents all 
-possible states and behaviors of the system.  Transitions of the 
-automaton are classified into \emph{controllable} transitions 
-triggered by the driver and \emph{uncontrollable} transitions 
-triggered by the device or OS.  A winning strategy for the driver 
-in the game corresponds to a correct driver implementation. If, on 
-the other hand, a winning strategy does not exist, this means that 
-there exists no specification-conforming driver implementation.
+We formalize the driver synthesis problem as a \emph{two-player game}~\cite{Thomas_95} between the driver and its environment. The game is played over a finite automaton that represents all possible states and behaviors of the system. Transitions of the automaton are classified into \emph{controllable} transitions triggered by the driver and \emph{uncontrollable} transitions triggered by the device or OS. A winning strategy for the driver in the game corresponds to a correct driver implementation. If, on the other hand, a winning strategy does not exist, this means that there exists no specification-conforming driver implementation.
 
-Two-player games naturally capture the essence of the driver 
-synthesis problem: the driver must enforce a certain subset of 
-system behaviors while having only partial control over the 
-system.  
+Two-player games naturally capture the essence of the driver synthesis problem: the driver must enforce a certain subset of system behaviors while having only partial control over the system. The game-based approach leads to a precise mathematical formulation of the problem and enables us to apply theoretical results and algorithms from game theory to driver synthesis.
 
-%The game-based approach leads to a precise mathematical 
-%formulation of the problem and enables us to apply theoretical 
-%results and algorithms from game theory to driver synthesis.
-
-Figure~\ref{f:game} illustrates the concept using a trivial game 
-automaton that models the core of our running example.  
-Controllable and uncontrollable transitions of the automaton are 
-shown with solid and dashed arrows respectively.  The goal of the 
-driver in the game is to infinitely often visit the initial state, 
-labelled \src{G}, which represents the situation when the driver 
-does not have any outstanding requests.  After getting a 
-\src{send} request from the OS, the driver must write data and 
-command registers to start the data transfer.  Writing the command 
-register first may trigger a hardware send event before the driver 
-has a chance to write the data register.  As a result, wrong data 
-value gets sent, taking the game into an error state \src{E}.  
-Hence, state $s_4$ is losing for the driver.  To avoid this state, 
-the correct strategy for the driver is to play \src{write\_data} 
-in state $s_2$, followed by \src{write\_cmd}.  In $s_5$ the driver 
-must remain idle until the environment executes the 
-\src{evt\_send} transition.
+Figure~\ref{f:game} illustrates the concept using a trivial game automaton that models the core of our running example. Controllable and uncontrollable transitions of the automaton are shown with solid and dashed arrows respectively.  The goal of the driver in the game is to infinitely often visit the initial state, labelled \src{G}, which represents the situation when the driver does not have any outstanding requests.  After getting a \src{send} request from the OS, the driver must write data and command registers to start the data transfer.  Writing the command register first may trigger a hardware send event before the driver has a chance to write the data register.  As a result, wrong data value gets sent, taking the game into an error state \src{E}.  Hence, state $s_4$ is losing for the driver.  To avoid this state, the correct strategy for the driver is to play \src{write\_data} in state $s_2$, followed by \src{write\_cmd}.  In $s_5$ the driver must remain idle until the environment executes the \src{evt\_send} transition.
 
 \begin{figure}[t]
     \center
     \includegraphics[width=0.7\linewidth]{imgs/game.pdf}
-    \caption{\small A simple two-player game.}\label{f:game}
+    \caption{A simple two-player game.}
+    \label{f:game}
 \end{figure}
 
 \section{The Players}
