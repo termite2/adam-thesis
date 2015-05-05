@@ -205,30 +205,21 @@ The controllable predecessor for turn based games, given by Equation~\ref{eqn:tu
 \label{fig:turn_cpre}
 \end{figure}
 
-This is illustrated in Figure~\ref{fig:turn_cpre}. The two dark states are winning and they form the set $X$ passed to $CPre$. $CPre$ return state $s1$ in the winning set because it is a controllable state and there exists a transition into a winning state. State $s2$ is also winning because it is an uncontrollable state and all outgoing transitions go to winning states. Lastly, $s3$ is \emph{not} winning because it is uncontrollable and one of its outgoing transitions does not lead to a winning state.
+This is illustrated in Figure~\ref{fig:turn_cpre}. The two dark states are winning and they form the set $X$ passed to $CPre$. $CPre$ returns state $s1$ in the winning set because it is a controllable state and there exists a transition into a winning state. State $s2$ is also winning because it is an uncontrollable state and all outgoing transitions go to winning states. Lastly, $s3$ is \emph{not} winning because it is uncontrollable and one of its outgoing transitions does not lead to a winning state.
 
 \subsubsection{Termite's controllable predecessor}
 
-\begin{figure}[t]
-\centering
-\includegraphics[width=0.2\linewidth]{diagrams/concurrentCpre.pdf}
-\caption{Concurrent controllable predecessor}
-\label{fig:concurrent_cpre}
-\end{figure}
-
 \paragraph{Concurrent Games}
 
-You may have noticed that in Figure~\ref{fig:combined_spec} our game is not turn based. There are states in which both player~1 and player~2 have moves. This kind of game is called a \emph{concurrent game}.
-
-Concurrent games differ from simpler turn based games in that in each state both players get to pick a label and the next state that the game transitions to is some (possibly non-deterministic) function, $\lambda$, of both of those labels. Turn based games are a special case of concurrent games where in player~i states (a concept that does not generally exist in concurrent games) the next state is entirely determined by the label played by player~i and the other player's label is ignored. 
-
-In Termite, however, the concurrent game is almost as simple as a turn based game. Labels, not states, are classified as controllable or uncontrollable. $\lambda$ chooses the effective label non-deterministically. This means that while player~1 may choose a label in any state, there is no guarantee that it will be played. There is, however, a fairness guarantee that each player eventually gets a turn.
-
-We simulate this non-determinism with the input variable \code{controllable}. This variable is always chosen non-deterministically. Our (now deterministic) $\lambda$ function picks the player~1 chosen label if \code{controllable} is $True$ and it picks the player~2 chosen label otherwise.
+Games where there are states in which both player~1 and player~2 have moves are called \emph{concurrent games}. Concurrent games differ from simpler turn based games in that in each state both players get to pick a label and the next state that the game transitions to is some (possibly non-deterministic) function, $\lambda$, of both of those labels. Turn based games are a special case of concurrent games where in player~i states (a concept that does not generally exist in concurrent games) $\lambda$ only depends on the label played by player~i and the other player's label is ignored. 
 
 \paragraph{Termite's controllable predecessor}
 
-In this section we develop the controllable predecessor for Termite's concurrent game. Disregarding fairness for now, given a target state $X$, we define a state $s$ to be winning if both:
+In Termite, however, the concurrent game is almost as simple as a turn based game. Labels, not states, are classified as controllable or uncontrollable. $\lambda$ chooses the effective label non-deterministically. This means that while player~1 may choose a label in any state, there is no guarantee that it will be played. There is, however, a fairness guarantee that each player eventually gets a turn that will be dealt with later.
+
+We simulate this non-determinism with the input variable \code{controllable}. This variable is always chosen non-deterministically. Our (now deterministic) $\lambda$ function picks the player~1 chosen label if \code{controllable} is $True$ and it picks the player~2 chosen label otherwise.
+
+Disregarding fairness for now, given a target state $X$, we define a state $s$ to be winning if both:
 \begin{enumerate}
     \item there exists a controllable label originating from $S$ such that all transitions with this label lead to $X$, and
     \item all uncontrollable transitions with any label originating from $S$ lead to $X$
@@ -256,6 +247,14 @@ The final controllable predecessor, $Cpre$, given in Equation~\ref{eqn:termite_c
     \label{eqn:termite_cpre}
 \end{equation}
 
+\begin{figure}[t]
+\centering
+\includegraphics[width=0.4\linewidth]{diagrams/concurrentCpre.pdf}
+\caption{Concurrent controllable predecessor}
+\label{fig:concurrent_cpre}
+\end{figure}
+
+This is illustrated in Figure~\ref{fig:concurrent_cpre}. Again, the two dark states are winning and they form the set $X$ passed to $CPre$. $CPre$ returns state $s1$ in the winning set because there exists a controllable transition into the winning set and all uncontrollable transitions also lead to the winning set. State $s2$ is \emph{not} winning because it does not have a controllable transition into the winning set. Lastly, $s3$ is \emph{not} winning because there exists an uncontrollable transition to a non-winning state.
 
 \subsection{Safety and reachability}
 
