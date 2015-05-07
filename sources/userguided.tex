@@ -246,6 +246,74 @@ endtemplate
 
 Figure~\ref{f:ex_drv} shows the driver template for the running example consisting of a single \src{send} entry point invoked by the OS\@.  The ellipsis in line~\ref{f:ex_drv:l:magic} represent a location for inserting synthesized code and are part of \tsl syntax.  We refer to such locations as \emph{controllable placeholders}. 
 
+\section{\tsl compiler}
+
+In order to compute the most general driver strategy as a solution of a two-player game, we must first convert input \tsl specifications into a game automaton.  This conversion is performed by the \tsl compiler.
+
+Real driver specifications have large state spaces, which cannot be feasibly represented by explicitly enumerating states, as in Figure~\ref{f:actions}.  Therefore, in \termite we represent games symbolically (Section~\ref{sec:symbolic_games}).  The state space of the game is defined in terms of a finite set of state variables $X$, with each state $s\in S$ representing a valuation of variables in $X$.  The \tsl compiler introduces a state variable for each \tsl variable declared in one of the input templates.  In addition, auxiliary state variables are introduced to model the current control location of each \tsl process.
+        
+We model controllable and uncontrollable actions as valuations of action variables $Y_c$ and $Y_u$.  Transition relations $\delta_c$ and $\delta_u$ are represented symbolically as formulas over state variables $X$, action variables $Y_c$ and $Y_u$, and next-state variables $X'$.  
+
+The \tsl compiler splits the input specification into controllable and uncontrollable parts and translates them into controllable and uncontrollable transition relations respectively.  The controllable part is comprised of controllable methods that can be invoked by the driver.  The controllable transition relation $\delta_c$ is computed by rewriting controllable methods in the \emph{variable update form}.  Consider, for example, variable \src{reg\_dat} declared in line~2 in Figure~\ref{f:ex}.  This variable is only modified by the \src{write\_dat} method in line~4.  The corresponding fragment of the controllable transition relation in the variable update form is
+%$$
+%\mathtt{reg\_dat' := (tag=write\_dat)~?~v : reg\_dat}
+%$$
+$$
+\small
+\begin{aligned}
+    &reg\_dat' = \begin{cases}
+                     v       , & \text{if } tag=write\_dat \\
+                     reg\_dat, & \text{otherwise},
+                 \end{cases}\\
+\end{aligned}
+$$
+where $\mathtt{reg\_dat'}$ is the next-state variable representing the value of $\mathtt{reg\_dat}$ after the transition, and$\mathtt{tag}$ and $\mathtt{v}$ are controllable action variables, where $\mathtt{tag}$ models the method being invoked, and $\mathtt{v}$ is the argument of the method.
+        
+%    \item Controllable action variables $Y_c$ encode controllable 
+%        method invocations available to the driver.  A special        
+%        $tag$ variable is used to identify the method being 
+%        invoked.  For example, the specification in 
+%        Figure~\ref{f:ex} has four controllable methods, so $tag$ 
+%        can take one of the four values $\{write\_dat, 
+%        write\_cmd, read\_status, send\_ack\}$.  In addition, a 
+%        separate variable is introduced for each argument of 
+%        every controllable method.  
+%        
+%        i.e., when the driver calls the $write\_dat$ method, 
+%        $reg\_dat$ takes the value of argument $v$  and remains 
+%        unchanged otherwise.        
+
+The uncontrollable part of the specification is comprised of \tsl processes, which model device and OS behavior.  We syntactically decompose each process into atomic transitions.  Recall that a process executes atomically until reaching a \src{wait} statement or a controllable placeholder.  Consider the \src{ptx} process in line~13 in Figure~\ref{f:ex}.  The process is initially paused in the wait statement.  It is scheduled to run when the wait condition holds.  It executes the statements in lines~16--22 atomically and stops again in line~15.  As part of this atomic transition, the process sets the \src{reg\_cmd} variable to 0 (line~22).  This is the only uncontrollable transition that modifies this variable, hence the uncontrollable update function for this variable is defined as follows:
+%$$
+%\mathtt{reg\_cmd' := (reg\_cmd=1 \land pid=ptx)~?~0 : reg\_cmd}
+%$$,
+$$
+\begin{aligned}
+    &reg\_cmd' = \begin{cases}
+                    0       , & \text{if } reg\_cmd=1 \land pid=ptx\\
+                    reg\_cmd, & \text{otherwise},
+                 \end{cases}\\
+\end{aligned}
+$$
+where $\mathtt{pid}$ is an uncontrollable action variable that models the scheduler's choice of a process to run, and the $\mathtt{reg\_cmd=1}$ conjunct corresponds to the wait condition in line~15.
+  
+%Extracting atomic uncontrollable transitions is slightly more 
+%complicated.  In \tsl all uncontrollable transitions happen in 
+%the context of processes.  We decompose each process into atomic 
+%transition.  An atomic transition consists of all code statements 
+%between two \emph{pause locations}.  A pause location is a 
+%\src{wait} statement or a magic block.  Example (psend process).  
+%Thus, environment action is fully determined by the choice of one 
+%of the enabled processed to execute and any nondeterministic 
+%values that occur in the process.  So we introduce an 
+%uncontrollable action variable for pid and each nondet value.  
+%Once we've decomposed processes into atomic transitions, we can 
+%now define variable update functions. Example: var update for 
+
+Finally, we need to generate the game objective $\Phi$.  In a symbolic representation of the game, goal and fair sets are specified as conditions over state variables that hold for each state in the set.  The \tsl compiler outputs a goal set $B_i$ for each goal declared in the input specification and a fair set $F_i$ for each \src{wait} statement.  The latter guarantees that every runnable process gets scheduled eventually.
+        
+In addition to goal conditions, a \tsl specification also contains assertions, which must never be violated.  We model assertions using an auxiliary boolean state variable $\varepsilon$, which is set to true whenever an assertion is violated and remains true forever after.  We add an extra constraint $\varepsilon=false$ to each accepting set $B_i$.  An assertion violation permanently takes the game out of $B_i$, and therefore can not occur in any winning run of the game.
+
 \section{User-guided code generation}
 \label{s:user-guided}
 
