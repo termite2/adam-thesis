@@ -267,21 +267,7 @@ $$
                  \end{cases}\\
 \end{aligned}
 $$
-where $\mathtt{reg\_dat'}$ is the next-state variable representing the value of $\mathtt{reg\_dat}$ after the transition, and$\mathtt{tag}$ and $\mathtt{v}$ are controllable action variables, where $\mathtt{tag}$ models the method being invoked, and $\mathtt{v}$ is the argument of the method.
-        
-%    \item Controllable action variables $Y_c$ encode controllable 
-%        method invocations available to the driver.  A special        
-%        $tag$ variable is used to identify the method being 
-%        invoked.  For example, the specification in 
-%        Figure~\ref{f:ex} has four controllable methods, so $tag$ 
-%        can take one of the four values $\{write\_dat, 
-%        write\_cmd, read\_status, send\_ack\}$.  In addition, a 
-%        separate variable is introduced for each argument of 
-%        every controllable method.  
-%        
-%        i.e., when the driver calls the $write\_dat$ method, 
-%        $reg\_dat$ takes the value of argument $v$  and remains 
-%        unchanged otherwise.        
+where $\mathtt{reg\_dat'}$ is the next-state variable representing the value of $\mathtt{reg\_dat}$ after the transition. A special $tag$ variable is used to identify the method being invoked. For example, the specification in Figure~\ref{f:ex} has four controllable methods, so $tag$ can take one of the four values $write\_dat$, $write\_cmd$, $read\_status$ and $send\_ack$.  In addition, a separate variable is introduced for each argument of every controllable method ($v$ in this example). 
 
 The uncontrollable part of the specification is comprised of \tsl processes, which model device and OS behavior.  We syntactically decompose each process into atomic transitions.  Recall that a process executes atomically until reaching a \src{wait} statement or a controllable placeholder.  Consider the \src{ptx} process in line~13 in Figure~\ref{f:ex}.  The process is initially paused in the wait statement.  It is scheduled to run when the wait condition holds.  It executes the statements in lines~16--22 atomically and stops again in line~15.  As part of this atomic transition, the process sets the \src{reg\_cmd} variable to 0 (line~22).  This is the only uncontrollable transition that modifies this variable, hence the uncontrollable update function for this variable is defined as follows:
 %$$
@@ -297,19 +283,6 @@ $$
 $$
 where $\mathtt{pid}$ is an uncontrollable action variable that models the scheduler's choice of a process to run, and the $\mathtt{reg\_cmd=1}$ conjunct corresponds to the wait condition in line~15.
   
-%Extracting atomic uncontrollable transitions is slightly more 
-%complicated.  In \tsl all uncontrollable transitions happen in 
-%the context of processes.  We decompose each process into atomic 
-%transition.  An atomic transition consists of all code statements 
-%between two \emph{pause locations}.  A pause location is a 
-%\src{wait} statement or a magic block.  Example (psend process).  
-%Thus, environment action is fully determined by the choice of one 
-%of the enabled processed to execute and any nondeterministic 
-%values that occur in the process.  So we introduce an 
-%uncontrollable action variable for pid and each nondet value.  
-%Once we've decomposed processes into atomic transitions, we can 
-%now define variable update functions. Example: var update for 
-
 Finally, we need to generate the game objective $\Phi$.  In a symbolic representation of the game, goal and fair sets are specified as conditions over state variables that hold for each state in the set.  The \tsl compiler outputs a goal set $B_i$ for each goal declared in the input specification and a fair set $F_i$ for each \src{wait} statement.  The latter guarantees that every runnable process gets scheduled eventually.
         
 In addition to goal conditions, a \tsl specification also contains assertions, which must never be violated.  We model assertions using an auxiliary boolean state variable $\varepsilon$, which is set to true whenever an assertion is violated and remains true forever after.  We add an extra constraint $\varepsilon=false$ to each accepting set $B_i$.  An assertion violation permanently takes the game out of $B_i$, and therefore can not occur in any winning run of the game.
