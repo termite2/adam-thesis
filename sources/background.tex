@@ -1,5 +1,49 @@
 \chapter{Background}
 
+\section{Device Drivers}
+
+A device driver provides an interface for the operating system (OS) to use a hardware device that is attached to the computer. It translates requests between the OS and the hardware. It allows the operating system to use the device without knowing the exact details of the hardware. As an example, a network interface driver may provide functions to send and receive packets from the network. It performs the low level device register and memory writes necessary to perform these operations while presenting a high level interface to the OS.
+
+Writing a device driver requires in depth knowledge of both the device to be controlled and the interface to the OS. This makes writing a device driver a tedious and error prone process. Additionally, device drivers usually operate in a privileged part of the OS so that it can access the hardware. As a result, errors often lead to failures of the system.
+
+Device drivers are usually developed by the hardware vendor as they have the best access to information about the design of the hardware. This includes hardware documentation as well as the actual description of the hardware in a hardware description language. If is common for the documentation to never be released to the public.
+
+\subsection{Device driver functions}
+
+The key functions of a device driver are:
+\begin{itemize}
+    \item \emph{Abstraction.} As discussed, the driver abstracts away the low level details of the device and presents the functionality through a high level set of operations.
+    \item \emph{Unification.} The driver provides a unified interface to similar devices. For example, another network interface may have present a completely different hardware interface to the first but its driver presents the same send and receive functionality to the OS as before. 
+    \item \emph{Multiplexing.} The driver and OS cooperate to make sure that the services that the hardware provides are available to all users of the system with sufficient permissions to access the hardware.
+\end{itemize}
+
+\subsection{Device driver organisation}
+\subsubsection{I/O buses}
+
+Device drivers communicate with devices over an I/O bus such as the \emph{Peripheral Component Interconnect} (PCI) or \emph{Universal Serial Bus} (USB). Modern operating systems contain drivers that operate these buses and provide low level access to devices over them. In this thesis we assume that these bus level drivers already exist. 
+
+\subsubsection{Memory Mapped I/O}
+
+Device registers and data buffers are mapped into the system's memory space by the bus controller. When the CPU initiates a load or store transaction which falls in the range of memory mapped to the device the PCI controller translates this to a transaction with the device. This transaction reads and writes the device's internal registers.
+
+\subsubsection{Direct Memory Access}
+
+It is also possible for the device to initiate a transaction to transfer data to or from main memory. This is known as \emph{Direct Memory Access} or DMA. The CPU is not involved at all. DMA is necessary for efficient I/O with devices that transfer large amounts of data as otherwise the CPU would be required to copy all of the data to and from the device word by word.
+
+\subsubsection{Interrupts}
+
+\emph{Interrupts} are asynchronous transactions initiated by the device to signal to the CPU that an event has happened that requires the driver's attention. For example, a network interface may raise an interrupt when a packet has arrived or when a packet has been successfully been sent. Interrupts are also often raised on error conditions within the device.
+
+On a Linux system, when an interrupt is raised, the currently executing task is temporarily suspended and control is transferred to the kernel's interrupt handler routine. This determines which driver is responsible for handling the interrupt and invokes the driver's interrupt handler.
+
+\subsubsection{Concurrency}
+
+Most operating systems are multithreaded, including the device drivers. Driver entry points and interrupt handlers may be invoked concurrently and in a nested fashion. Careful use of synchronization primitives are required to avoid race conditions and deadlock. In this work, we assume that only one driver entry point is invoked at a time, removing all concurrency. This can be achieved by using an event based framework such as Dingo \ref{dingo}, writing a wrapper to translate the concurrent interface required by the operating system to the single threaded interface of the generated drivers, or by post processing the generated driver by a tool such as (something) \cite{concurrent_drivers}
+
+\subsubsection{Operating system services}
+
+In addition to bus level drivers, the OS provides various services to device drivers. These include memory management, timing and synchronization. Memory management includes allocating memory and support for memory mapped IO and DMA. Timer functionality includes both synchronous (thread delays) and asynchronous (callback) timers. Various synchronization primitives are also provided, but, given that Termite does not make any use of them, we do not discuss them further.
+
 \section{Fixed points}
 
 \subsection{Syntax}
