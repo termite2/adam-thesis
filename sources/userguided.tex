@@ -412,6 +412,120 @@ This example illustrates how \termite supports incremental changes to the driver
 \section{Heuristic code generation}
 \label{sec:heuristic_codegen}
 
+Termite acts as an advanced auto-complete by suggesting lines of code for the driver. These suggestions are obtained using the symbolic strategy generated in the synthesis phase. Termite keeps track of the possible set of states that the system may be in at each line of code in the graphical IDE and uses this along with the strategy to generate a suggestion. 
+
+Generating a winnng move from an individual state is straightforward. All one has to do is look up the state in the strategy relation and pick any winning label related to that state. Termite's code generator, however, deals in sets of states - the set of states which the system may be in at a particular line - which complicates matters considerably. For example, although every state in the set is winning (an invariant that the code generator enforces), there might not exist a single label that is winning for all of these states. In this case, the code generator uses smarter methods for picking labels or possibly falls back to spliting the current state set in two, as described in the following sections.
+
+\subsection{Straightford label picking}
+
+In the simplest case, there exists a winning action that is available from all states within the current line's state set (denoted $stateSet$). This action will cause all states in $stateSet$ to transition to a state closer to the goal, guaranteeing that if we keep choosing actions in this way we will eventually force execution into the goal. We compute the set of such winning actions using the formula in Equation~\ref{eqn:simple_strat}. 
+
+\begin{equation}
+\forall s. \: stateSet \rightarrow strategy
+\label{eqn:simple_strat}
+\end{equation}
+
+This returns the set of labels which are part of the strategy for all states in the current state set. If the set is not empty, the Termite IDE the picks one of these at random as the autocompletion suggestion. If it is empty, the Termite IDE falls back to the more computationally expensive heuristic described in the next section.
+
+\subsection{Smarter label picking}
+
+While the above heuristic is straightforward and cheap, is it often unsatisfactory in practice. As an example, consider a current state set containing two states: $s_1$ and $s_2$. Suppose there is no label which is in the winning strategy for both states, but there is a label in the winning strategy for $s_1$ and it does not take $s_2$ further away from the goal. Such an action is a good candidate for an auto completion, however it will not be found by the first heuristic.
+
+Our more general label picking algorithm works as follows: we find the greatest distance (N) of any state in $stateSet$ from the goal and then we look up two sets (which were computed and saved during synthesis).
+
+\begin{itemize}
+    \item the set of states at distance $N$, denoted $win_N$,
+    \item and, the set of states at distance $N-1$, denoted $win_{N-1}$.
+\end{itemize}
+
+We define three constraints on the label, all computable symbolically, and pick a label that satisfies all three constraints by taking their conjunction, also symbolically.
+
+When played, the label must:
+
+\begin{itemize}
+    \item keep execution in $win_{N-1}$ for states within $stateSet \cap win_{N-1}$, and
+    \item keep execution in $win_N$ for states within $stateSet \cap win_N$, and
+    \item take at least one state in $win_N$ into $win_{N-1}$.
+\end{itemize}
+
+These requirements ensure that each time a label is picked in this way, the number of states at the furthest distance to the goal decreases and eventually becomes zero as the number of abstract states in finite, in turn decreasing the maximum distance to the goal, $N$. Thus, repeatedly picking actions in this way ensures that we eventually get to the goal and is therefore a sound method of picking auto completions. Note that even though execution is guaranteed to reach the goal, the label picked may not be part of the strategy for all states in $stateSet$.
+
+%\begin{algorithm}
+%\begin{algorithmic}
+%
+%    (furthestSet, 1in) <- starting from goal, find first winning set that consumes stateSet and the set that is one step closer to the goal
+%
+%    stateLabelNotBack <- cpre(furthestSet) 
+%    labelsNotBack     <- forall stateUntrackedVars . state -> stateLabelNotBack
+%
+%    labelsNotBack is the set of labels that keep us in the furthest set. This does not guarantee any forward progress.
+%
+%    atMaxDist <- compute set of states at max distance ==  stateSet and  not nextFurthestSet
+%
+%    labelSomewhere <- exists currentVars. forall untrackedVars. strategy and atMaxDist
+%
+%\end{algorithmic}
+%\end{algorithn}
+
+\subsection{Splitting states}
+
+Lastly, suppose there is no action found by the first two heuristics. In this case we choose to split the current state into two such that there is an action available from both of the split states. This is accomplished in code with an \emph{if-statement}. We describe how the condtion for this if-statement is computed.
+
+There exists at least one winning label from each state in the current set, as it is winning. However, there does not exist a single label which is winning or all states in the current set. Our heuristic is as follows:
+
+\begin{itemize}
+    \item enumerate labels that are available in some state in $stateSet$
+    \item compute the set where each label is part of the strategy
+    \item compute a small condition over state variables that distinguishes this set from the rest of $stateSet$
+    \item choose the condition that is the simplest and return this and the corresponding lablel
+\end{itemize}
+
+In practice, the first step is infeasible, however. Games in Termite have labels over 100 bits in size. Many of these labels are equivalent as certain combinations of bits are dont-care. We use the $availableLabels$ algorithm (Algorithm~\ref{alg:}) to enumerate labels that are equivalent given the current set and transition relation.
+
+We compute a condition that distinguishes the states where the label is winning from the rest using the $liCompaction$ function. This function, provided by the CUDD library, minimises a BDD given a care set so that it returns the correct value within the care set and is undefined otherwise. Our case set is $currentState$ as, since we are applying the if condition in one of these states, this is the only set where it needs to be accurate. 
+
+We found that a good heuristic is to choose the label which results in the simplest if condition, where a simple condition has a small BDD representation. The size of a BDD can be conveniently calculated using the function $dagSize$ from CUDD. 
+
+\begin{algorithm}
+\begin{algorithmic}
+
+\Function{GenPair}{$x$, $y$, $rel$}
+    \State $xMinterm \gets \Call{extractMinterm}{\exists y. \: rel}$
+    \State $img      \gets \Call{substitute}{rel, xMinterm}$
+    \State $genX     \gets \forall y. \: reg \leftrightarrow img$
+    \State\Return $\langle genX, img \rangle$
+\EndFunction
+
+\end{algorithmic}
+\end{algorithm}
+
+\begin{algorithm}
+\begin{algorithmic}
+
+\Function{Enumerate}{$x$, $y$, $rel$}
+    \State $result = []$
+    \While{$rel \neq False$}
+        \State $\langle genX, img \rangle \gets \Call{genPair}{x, y, rel}$
+        \State $result \gets result \oplus \langle genX, img \rangle$
+        \State $rel \gets res \land \neg genX$
+    \EndWhile
+    \State\Return $result$
+\EndFunction
+
+\end{algorithmic}
+\end{algorithm}
+
+\begin{algorithm}
+\begin{algorithmic}
+
+\Function{availableLabels}{$s, u, l, s', strategy, stateSet$}
+    \State $winning \gets \exists \: s \: u \: s'. \: strategy \land stateSet$
+    \State\Return$\Call{enumerate}{l, s \cup s', \delta \land stateSet \land winning}$
+\EndFunction
+
+\end{algorithmic}
+\end{algorithm}
+
 \section{Counterexample guided debugging}
 \label{s:debug}
 
