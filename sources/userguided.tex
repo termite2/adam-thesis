@@ -450,41 +450,30 @@ When played, the label must:
 
 These requirements ensure that each time a label is picked in this way, the number of states at the furthest distance to the goal decreases and eventually becomes zero as the number of abstract states in finite, in turn decreasing the maximum distance to the goal, $N$. Thus, repeatedly picking actions in this way ensures that we eventually get to the goal and is therefore a sound method of picking auto completions. Note that even though execution is guaranteed to reach the goal, the label picked may not be part of the strategy for all states in $stateSet$.
 
-%\begin{algorithm}
-%\begin{algorithmic}
-%
-%    (furthestSet, 1in) <- starting from goal, find first winning set that consumes stateSet and the set that is one step closer to the goal
-%
-%    stateLabelNotBack <- cpre(furthestSet) 
-%    labelsNotBack     <- forall stateUntrackedVars . state -> stateLabelNotBack
-%
-%    labelsNotBack is the set of labels that keep us in the furthest set. This does not guarantee any forward progress.
-%
-%    atMaxDist <- compute set of states at max distance ==  stateSet and  not nextFurthestSet
-%
-%    labelSomewhere <- exists currentVars. forall untrackedVars. strategy and atMaxDist
-%
-%\end{algorithmic}
-%\end{algorithn}
-
 \subsection{Splitting states}
 
-Lastly, suppose there is no action found by the first two heuristics. In this case we choose to split the current state into two such that there is an action available from both of the split states. This is accomplished in code with an \emph{if-statement}. We describe how the condtion for this if-statement is computed.
+Lastly, suppose that there is no action found by the first two heuristics. In this case we recursively split $stateSet$ by finding a subset $a \subset stateSet$ from which there is a winning action for all of $a$ and splitting this out in C code using an \emph{if-statement}. What remains of $stateSet$ is recursively split enough times that there is a suitable label to play from each partition. This is guaranteed to eventually happen because $stateSet$ in finite. 
 
-There exists at least one winning label from each state in the current set, as it is winning. However, there does not exist a single label which is winning or all states in the current set. Our heuristic is as follows:
+We describe how the condtion for this if-statement is computed. There exists at least one winning label from each state in the current set, as they are all winning. However, there does not exist a single label which is winning for all states in the current set. Our heuristic to find a subset of $stateSet$ for which there does exist such a label is as follows:
 
-\begin{itemize}
-    \item enumerate labels that are available in some state in $stateSet$
-    \item compute the set where each label is part of the strategy
-    \item compute a small condition over state variables that distinguishes this set from the rest of $stateSet$
-    \item choose the condition that is the simplest and return this and the corresponding lablel
-\end{itemize}
+\begin{enumerate}
+    \item Enumerate labels that are winning in some state in $stateSet$.
+    \item Compute the set where each label is part of the strategy.
+    \item Compute a small condition over state variables that distinguishes this set from the rest of $stateSet$.
+    \item Choose the condition that is the simplest and return this and the corresponding lablel.
+\end{enumerate}
 
-In practice, the first step is infeasible, however. Games in Termite have labels over 100 bits in size. Many of these labels are equivalent as certain combinations of bits are dont-care. We use the $availableLabels$ algorithm (Algorithm~\ref{alg:}) to enumerate labels that are equivalent given the current set and transition relation.
+\subsubsection{Enumerating winning labels}
 
-We compute a condition that distinguishes the states where the label is winning from the rest using the $liCompaction$ function. This function, provided by the CUDD library, minimises a BDD given a care set so that it returns the correct value within the care set and is undefined otherwise. Our case set is $currentState$ as, since we are applying the if condition in one of these states, this is the only set where it needs to be accurate. 
+In practice, the first step is infeasible, however. Games in Termite have labels over 100 bits in size so this would require enumerating over $2^{100}$ labels. However, many of these labels are equivalent as certain combinations of bits are dont-care. We use the $availableLabels$ algorithm (Algorithm~\ref{alg:available_labels}) to enumerate labels that are equivalent given the current set and transition relation.
 
-We found that a good heuristic is to choose the label which results in the simplest if condition, where a simple condition has a small BDD representation. The size of a BDD can be conveniently calculated using the function $dagSize$ from CUDD. 
+This algorithm invokes two other algorithms: $genPair$ (Algorithm~\ref{alg:gen_pair}) and $enumerate$ (Algorithm~\ref{alg:enumerate}), both of which deserve some explanation. 
+
+$genPair$, given two sets of variables ($X$ and $Y$) and a relation, extracts a single valuation of $X$ from the relation, determines the set of valuations of $Y$ that are related to and then determines the set of valuations of $X$ that relate to exactly this set. 
+
+$enumerate$, given two sets of variables ($X$ and $Y$) and a relation repeatedly extracts pairs from the relation using $genPair$, erasing the $X$ valuations from the relation each time so that they are not chosen again. It computes a set of pairs of sets of $X$ and $Y$ valuations that are related to exactly the other element of the pair.
+
+Finally, $availableLabels$ uses $enumerate$ to enumerate labels with different behaviours in the current $stateSet$. It does this by restricting the transition relation to transitions that originate from states in $stateSet$ and treating this as a relation between $\langle s, s' \rangle$ and $l$. This works because equivalent labels will result in the same $\langle s, s' \rangle$ relation, i.e.\ the same state transition, thus calling $enumerate$ with this relation and these variables will enumerate equivalent labels.
 
 \begin{algorithm}
 \begin{algorithmic}
@@ -497,6 +486,7 @@ We found that a good heuristic is to choose the label which results in the simpl
 \EndFunction
 
 \end{algorithmic}
+\label{alg:gen_pair}
 \end{algorithm}
 
 \begin{algorithm}
@@ -516,6 +506,7 @@ We found that a good heuristic is to choose the label which results in the simpl
 \end{algorithm}
 
 \begin{algorithm}
+\label{alg:enumerate}
 \begin{algorithmic}
 
 \Function{availableLabels}{$s, u, l, s', strategy, stateSet$}
@@ -524,7 +515,14 @@ We found that a good heuristic is to choose the label which results in the simpl
 \EndFunction
 
 \end{algorithmic}
+\label{alg:available_labels}
 \end{algorithm}
+
+\subsubsection{Computing the condition}
+
+We compute a condition over state variables that distinguishes the states where the label is winning from the rest using the $liCompaction$ function. This function, provided by the CUDD library, minimises a condition BDD given a care set so that it returns the correct value within the care set and is undefined otherwise. Our condition BDD is the set of states from the winning label is available and our care set is $currentState$. Since we are only applying the if condition in one of the states in $currentState$, this is the only set where it needs to be accurate. 
+
+We found that a good heuristic is to choose the label which results in the simplest if condition, where a simple condition has a small BDD representation. The size of a BDD can be conveniently calculated using the function $dagSize$ from the CUDD library. 
 
 \section{Counterexample guided debugging}
 \label{s:debug}
