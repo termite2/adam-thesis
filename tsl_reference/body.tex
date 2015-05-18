@@ -28,14 +28,14 @@ accessed via a reference to a template \emph{instance}.
 
 The following template declares type \src{word} (static object) 
 and variable \src{x} (runtime object):
-\begin{tsllisting}
+\begin{tsllisting2}
 template A
   // type declaration
   typedef uint<16> word;
   // variable declaration
   export word x;
 endtemplate
-\end{tsllisting}
+\end{tsllisting2}
 The \src{word} type is globally visible via the \src{::}-notation 
 as \src{A::word}.  It can be used even if template \src{A} is 
 never instantiated.  In contrast, variable \src{x} can only be 
@@ -49,7 +49,7 @@ specification must contain a template called \src{main}.
 In the following example, the \src{main} template creates an 
 instance of \src{A}, making its variables accessible from 
 \src{main} via instance name:
-\begin{tsllisting}
+\begin{tsllisting2}
 template main
   instance A a;
 
@@ -58,7 +58,7 @@ template main
     a.x = 16'd0;
   }
 endtemplate
-\end{tsllisting}
+\end{tsllisting2}
 
 The template instantiation mechanism gives rise to an 
 \emph{instance tree} with the \src{main} template as its root.  
@@ -75,7 +75,7 @@ declares port \src{aa} of type \src{A}, which makes runtime
 objects in the scope of \src{A} visible from \src{B}.  Both 
 templates are then instantiated in the \src{main} template, with 
 the instance of \src{A} connected to port \src{aa} of \src{B}.
-\begin{tsllisting}
+\begin{tsllisting2}
 // template B with port aa of type A
 template B(A aa)
   process proc {
@@ -89,7 +89,7 @@ template main
   instance A a;
   instance B b(a);
 endtemplate
-\end{tsllisting}
+\end{tsllisting2}
 
 The following diagram illustrates the resulting instance tree and 
 the link between different branches of the tree via port \src{aa}.
@@ -112,7 +112,7 @@ details.  For example, the following template models common
 device-class callbacks that must be implemented by any OS 
 specification for the IDE device class.  Note that callbacks are 
 defined without bodies, as the exact behaviour is OS-specific.
-\begin{tsllisting}
+\begin{tsllisting2}
 template ide_os
   procedure void write_sectors(uint<48> lba, 
     uint<16> sectors, uint<32> buf, bool xfer_error);
@@ -121,10 +121,10 @@ template ide_os
   procedure void reset();
   ...
 endtemplate
-\end{tsllisting}
+\end{tsllisting2}
 This template is specialised by the \src{l4\_ide\_os} template,
 that describes the IDE driver interface defined by the seL4 OS.
-\begin{tsllisting}
+\begin{tsllisting2}
 template l4_ide_os(l4_ide_drv drv)
   // the derive statement is used to establish the 
   // inheritance relation
@@ -142,7 +142,7 @@ template l4_ide_os(l4_ide_drv drv)
     assert (lba == r_lba);
     ...
   }
-\end{tsllisting}
+\end{tsllisting2}
 
 A template that has part of its functionality, namely method body 
 or wire assignment, underspecified is called \emph{pure template}.  
@@ -195,7 +195,7 @@ time.
 In the following example, template \src{A} contains a single 
 static process \src{psndrcv}, which spawns two subprocesses 
 \src{psend} and \src{preceive}.
-\begin{tsllisting}
+\begin{tsllisting2}
 template A
 
 process psndrcv {
@@ -208,7 +208,7 @@ process psndrcv {
 ...
 
 endtemplate
-\end{tsllisting}
+\end{tsllisting2}
 
 %In addition to statically and dynamically created processes, every 
 %\tsl specification contains an implicit \emph{idle} 
@@ -260,7 +260,7 @@ Controllable and uncontrollable task invocations introduce
 implicit pause locations on entry and return from the task.  In 
 the following example execution of process \src{p1} will consist 
 of three transitions.
-\begin{tsllisting}
+\begin{tsllisting2}
 template A
   uint<16> x;
 
@@ -271,7 +271,7 @@ template A
 
   task uncontrollable void t1(uint<16> arg) {};
 endtemplate
-\end{tsllisting}
+\end{tsllisting2}
 The first transition assigns global variable \src{x} and sets the 
 argument of task \src{t1} to be equal to \src{x}.   An implicit 
 pause location is inserted at this point.  The second transition 
@@ -307,12 +307,12 @@ transition and are updated at the end of the transition.  Initial
 value of a wire is computed based on initial values of global 
 variables.
 
-\begin{tsllisting}
+\begin{tsllisting2}
 template A
   uint<16> x = 0;
   wire uint<16> w = x + 1;
 endtemplate
-\end{tsllisting}
+\end{tsllisting2}
 
 
 \subsection{Correctness specifications}\label{s:o:correctness}
@@ -350,7 +350,7 @@ returning from the magic block.
 %satisfy all correctness conditions described in the following 
 %section, and not just magic block postconditions.
 
-\begin{tsllisting}
+\begin{tsllisting2}
 template main
   task uncontrollable bool probe() {
     // Magic block with postcondition
@@ -363,7 +363,7 @@ template main
     };
 };
 endtemplate
-\end{tsllisting}
+\end{tsllisting2}
 
 The second type of magic blocks are magic blocks with 
 \emph{goals}.  These are needed because not all correctness 
@@ -372,8 +372,7 @@ For correctness conditions specified using goals (see
 Section~\ref{s:o:correctness}), the synthesis algorithm computes a 
 strategy for each goal; however the scheduling of strategies is 
 left to the user, i.e., the user decides when to execute each 
-strategy by assigning goals to magic blocks. \todo{TODO: I 
-still have not figured out the exact meaning of this construct.}
+strategy by assigning goals to magic blocks. 
 
 %\section{Constraints on the environment}
 
@@ -400,7 +399,7 @@ integer literal.
 \end{bnflisting}
 
 Examples of integer literals:
-\begin{tsllisting}
+\begin{tsllisting2}
 uint<8> x;
 sint<8> y;
 
@@ -411,7 +410,7 @@ x = 8'b1;
 
 y = 8'sb11111111;
 y = 8'sd-6;
-\end{tsllisting}
+\end{tsllisting2}
 
 In case literal width is not specified explicitly, the compiler 
 assumes width sufficient to encode the given integer value, for 
@@ -421,12 +420,12 @@ does not perform automatic truncation or extension of integers.
 For example, the following assignment statement is invalid, as the 
 left and the right-hand sides of assignment have different width:
 
-\begin{tsllisting}
+\begin{tsllisting2}
 uint<8> x = 0; // error: x has width 8, while
                // literal 0 has widt 1
 
 uint<8> y = 8'd0; // ok
-\end{tsllisting}
+\end{tsllisting2}
 
 
 \subsection{Identifiers}\label{s:r:identifiers}
@@ -468,7 +467,7 @@ tree (Section~\ref{s:o:templates}) via port and instance names:
 The following example illustrates the use of different types of 
 identifiers.
 
-\begin{tsllisting}
+\begin{tsllisting2}
 template A
   typedef uint<16> word;
   export word x;
@@ -495,7 +494,7 @@ template main
   instance A a;
   instance B b(a);
 endtemplate
-\end{tsllisting}
+\end{tsllisting2}
 
 
 \subsection{Types}
@@ -547,7 +546,7 @@ Type expressions are subject to the following constraints:
 
 Examples of type expressions:
 
-\begin{tsllisting}
+\begin{tsllisting2}
 typedef uint<16> t1;
 typedef sint<13> t2;
 typedef enum {e1, e2, e3} t3;
@@ -555,7 +554,7 @@ typedef struct {t1 f1; t2 f2;} t4;
 const t1 c1 = 16'd5;
 typedef t4[c1] arrtype;
 typedef struct {bool f1; uint<16>[10] f2;} * structptr;
-\end{tsllisting}
+\end{tsllisting2}
 
 \subsection{Expressions}
 
@@ -618,7 +617,7 @@ In addition, \tsl supports three kinds of conditional expressions:
 
 \begin{bnflisting}
 <ternExp> := "if" <expr> <expr> "else" <expr>
-<caseExp> := "case" "(" <expr> ")" "{" (<expr> ":" <expr> ";")* 
+<caseExp> := "case" "(" <expr> ")" "{" (<expr>":"<expr>";")* 
                  (<expr> ":" <expr> ";")* 
                  ["default" ":" <expr> ";"]
             "}"
@@ -675,16 +674,16 @@ following type and memory safety rules:
 Special expression \src{*} is used to generate non-deterministic 
 values of arbitrary type.  The exact type is derived from the 
 context, as illustrated in this example:
-\begin{tsllisting}
+\begin{tsllisting2}
 x = *;  // Generate random value of the same type as x.
 f(*,*); // Generate random values that match argument 
         // types of f.
-\end{tsllisting}
+\end{tsllisting2}
 Note that \src{*} cannot be used as an atom in a bigger expression,
 for example, the following is not valid:
-\begin{tsllisting}
+\begin{tsllisting2}
 x = * + 2; // Invalid use of *
-\end{tsllisting}
+\end{tsllisting2}
 
 \subsubsection{L-expressions}\label{s:r:lexpr}
 
@@ -711,9 +710,7 @@ rules:
 
 Expression evaluation order matters in cases when expression 
 operands contain method calls, which may have side effects.  
-\todo{The following description reflects how the compiler works 
-at the moment; however this behaviour is counter-intuitive and 
-should be fixed to be more C-like}.  All expression operands are 
+ All expression operands are 
 evaluated before the expression itself is evaluated.  In 
 particular, if the expression contains method calls, then all of 
 these calls are performed before the expression is evaluated.
@@ -796,7 +793,7 @@ its last instruction) or a \src{stop} statement
 
 In the following example two dynamically spawned processes send 
 and receive data in an infinite loop.
-\begin{tsllisting}
+\begin{tsllisting2}
 process psndrcv {
   fork {
     psend:    forever {
@@ -810,7 +807,7 @@ process psndrcv {
   };
   shutdown();
 };
-\end{tsllisting}
+\end{tsllisting2}
 At each iteration of the loop, they go through final states by 
 \src{stop}.  When both processes are in their respective final 
 states, the entire \src{fork} block \emph{may} terminate, with the 
@@ -821,7 +818,7 @@ performed nondeterministically by the environment.  In contrast,
 in the following example, once both processes reach their final 
 control locations, the fork block terminates instantaneously, as 
 neither process can execute any more transitions:
-\begin{tsllisting}
+\begin{tsllisting2}
 process psndrcv {
   fork {
     psend:    send();
@@ -829,7 +826,7 @@ process psndrcv {
   };
   shutdown();
 };
-\end{tsllisting}
+\end{tsllisting2}
 
 \subsubsection{Loops}  
 
@@ -855,7 +852,7 @@ continues until reaching a pause location inside the loop.  For
 example, in the following example, process \src{foo} executes two 
 transitions: (1) \src{x=16'd0; (x<1) == true; x=x+16'd1}, and 
 (2) \src{(x<1) == false; y=16'd0}.
-\begin{tsllisting}
+\begin{tsllisting2}
 process foo {
     x = 16'd0;
     while (x < 1) {
@@ -864,7 +861,7 @@ process foo {
     };
     y = 16'd0;
 };
-\end{tsllisting}
+\end{tsllisting2}
 
 The \src{break} statement can be used anywhere inside a loop to 
 transfer control to the first instruction following the body of 
@@ -929,7 +926,7 @@ assumption.
 Assumptions are particularly useful in imposing restrictions on 
 randomly generated values, as illustrated by the following 
 example.
-\begin{tsllisting}
+\begin{tsllisting2}
 // assign random values for stopbits and data vars
 stopbits  = *;
 data      = *;
@@ -944,7 +941,7 @@ case (data) {
     4'd8:       data_bits = CUART_DATA8;
     default: assume(false); // other values are not allowed
 };
-\end{tsllisting}
+\end{tsllisting2}
 
 \subsubsection{Conditional statements}\label{s:r:coniditional}
 
@@ -1041,11 +1038,11 @@ single specification.  They are only allowed in the top-level
 syntactic scope, i.e., they are illegal inside template of type 
 declarations.  An import statement consists of the \src{import} 
 keyword followed by file path in angle brackets:
-\begin{tsllisting}
+\begin{tsllisting2}
 import<ide_dev.tsl>
 import<os/ide_tsl2/l4_ide.tsl>
 import<../../os/ide_tsl2/ide_class.tsl>
-\end{tsllisting}
+\end{tsllisting2}
 The \tsl compiler appends this path to each import directory, 
 specified via the \src{-I} command line switch, in order, until a  
 file with this name is found.
@@ -1071,13 +1068,13 @@ be evaluated at compile time.
 
 Examples:
 
-\begin{tsllisting}
+\begin{tsllisting2}
 typedef struct {bool f1; uint<16> f2;} stype;
 
 const bool     b = true;
 const uint<16> u = 16'd5;
 const stype    s = stype {.f1 = b, .f2 = u};
-\end{tsllisting}
+\end{tsllisting2}
 
 
 \subsection{Templates}
@@ -1143,44 +1140,44 @@ variables exported from other templates.
 
 The following example constrains initial values of 
 \src{config\_in\_progress} and \src{sendq\_head} variables:
-\begin{tsllisting}
+\begin{tsllisting2}
 template linux_uart_drv(uart_dev dev)
     bool config_in_progress;
     uint<16> sendq_head;
     init (config_in_progress == true) &&
          (sendq_head == 16'd0);
 endtemplate
-\end{tsllisting}
+\end{tsllisting2}
 Note that the same result can be achieved using initial variable 
 assignments:
-\begin{tsllisting}
+\begin{tsllisting2}
 template linux_uart_drv(uart_dev dev)
     bool config_in_progress = true;
     uint<16> sendq_head = 16'd0;
 endtemplate
-\end{tsllisting}
+\end{tsllisting2}
 In general, however, \src{init} blocks are a more general 
 mechanism for constraining initial state, for example the 
 following condition cannot be captures using initial variable 
 assignments:
-\begin{tsllisting}
+\begin{tsllisting2}
 template linux_uart_drv(uart_dev dev)
     init (config_in_progress == true) ||
          (sendq_head == 16'd0);
 endtemplate
-\end{tsllisting}
+\end{tsllisting2}
 
 A template can contain multiple \src{init} blocks.  In using 
 \src{init} blocks, one must make sure that different \src{init} 
 blocks do not contradict each other and initial variable 
 assignments, leading to an empty initial set, as in the following 
 example:
-\begin{tsllisting}
+\begin{tsllisting2}
 template linux_uart_drv(uart_dev dev)
     bool config_in_progress = true;
     init config_in_progress == false;
 endtemplate
-\end{tsllisting}
+\end{tsllisting2}
 
 \subsubsection{Always blocks}\label{s:r:always}
 
@@ -1257,11 +1254,6 @@ statement (Section~\ref{s:r:return}).
 
 \paragraph{Method body}
 
-\todo{The method overriding mechanism described in this section 
-is probably too complex and not very useful in practice.  We will 
-most likely simplify it by getting rid of \src{before} and \src{after}
-constructs.}
-
 Method body declaration can be written in the \emph{complete} or 
 \emph{partial} form.  A complete declaration is simply a \tsl 
 statement.  A partial declaration consists of an optional preamble 
@@ -1312,7 +1304,7 @@ Algorithm~\ref{a:method}.  The following examples illustrate the algorithm.
     \caption{}\label{a:method}
 \end{algorithm}
 
-\begin{tsllisting}
+\begin{tsllisting2}
 // global variable
 bool x;
 
@@ -1338,9 +1330,9 @@ procedure void p(uint<16> arg)
     x = (arg > 5);
     assert(x);
 };
-\end{tsllisting}
+\end{tsllisting2}
 
-\begin{tsllisting}
+\begin{tsllisting2}
 // parent declaration
 procedure void p(uint<16> arg)
 before{ 
@@ -1365,7 +1357,7 @@ before{
 after{
     assert(x);
 };
-\end{tsllisting}
+\end{tsllisting2}
 
 
 \subsubsection{Goals}
