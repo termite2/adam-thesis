@@ -76,7 +76,7 @@ Given the tuple $\langle S, F \rangle$ where
     \item $F : P \rightarrow 2^S$ maps each proposition to the set of states where the proposition is true
 \end{itemize}
 
-\noindent A $\mu$-calculus formula is interpreted as follows:
+\noindent A \mucalc formula is interpreted as follows:
 \begin{itemize}
     \item $p$ holds in the set of states $F(p)$
     \item $\phi \wedge \psi$ holds in the set of states where both $\phi$ and $\psi$ hold
@@ -85,13 +85,13 @@ Given the tuple $\langle S, F \rangle$ where
     \item $\forall X. \phi$ holds when $\phi$ holds for all possible values of $X$.
 \end{itemize}
 
-\subsection{From $\mu$-calculus formulas to algorithms}
+\subsection{From \mucalc formulas to algorithms}
 
-It is straightforward to convert a $\mu$-calculus formula into an algorithm that returns the set of states for which the formula holds.
+It is straightforward to convert a \mucalc formula into an algorithm that returns the set of states for which the formula holds.
 
 Greatest and least fixed points are computed by iteration. To compute the greatest fixed point of a function $f(x)$ i.e. $\nu X. f(X)$ we iterate $f$ starting with the universal set. As $f$ is monotonic, the result is guaranteed to shrink or stay the same on each iteration. Furthermore, if the set of states, $S$ is finite, this iteration must eventually converge to some set as $S$ being finite prevents the result from shrinking forever. 
 
-We give the algorithm for computing the set of states for which a $\mu$-calculus formula holds in Algorithm~\ref{a:mu_semantics}. It assumes the existence of an abstract set datatype that supports set union, complementation and equality checking.
+We give the algorithm for computing the set of states for which a \mucalc formula holds in Algorithm~\ref{a:mu_semantics}. It assumes the existence of an abstract set datatype that supports set union, complementation and equality checking.
 
 \begin{algorithm}
 \begin{algorithmic}
@@ -118,7 +118,7 @@ We give the algorithm for computing the set of states for which a $\mu$-calculus
 \EndFunction
 
 \end{algorithmic}
-\caption{MuSemantics, given a $\mu$-calculus formula, returns the set of states that satisfy the formula.}
+\caption{MuSemantics, given a \mucalc formula, returns the set of states that satisfy the formula.}
 \label{a:mu_semantics}
 \end{algorithm}
 
@@ -309,7 +309,7 @@ According to Equation~\ref{eqn:reachobj}, a state is winning in a reachability g
 
 We can define the winning region inductively. It is obviously possible to reach the set $\reachobj$ from $\reachobj$ in 0 steps as we are already there. This is the base case. It is also possible to reach $\reachobj$ from $x \in S$ in $N + 1$ steps or fewer iff there exists $Y\subseteq 2^S$ such that it is possible to reach $\reachobj$ from all of $Y \subseteq 2^S$ in $N$ steps or fewer and $x \in CPre(Y)$.
 
-This suggests an algorithm to find the winning region. We start with $\reachobj$, apply \cpre\ to get the states winning in 1 step, combine with $\reachobj$ again to get the states reachable in 1 step or less, and then repeat. After $N$ iterations, we find the states winning in $N$ or less steps. The algorithm is given in Algorithm~\ref{a:reach} and the equivalent $\mu$-calculus formula is given in Equation~\ref{eqn:mu_reach}. Two questions remain: 
+This suggests an algorithm to find the winning region. We start with $\reachobj$, apply \cpre\ to get the states winning in 1 step, combine with $\reachobj$ again to get the states reachable in 1 step or less, and then repeat. After $N$ iterations, we find the states winning in $N$ or less steps. The algorithm is given in Algorithm~\ref{a:reach} and the equivalent \mucalc formula is given in Equation~\ref{eqn:mu_reach}. Two questions remain: 
 
 \begin{itemize}
     \item An algorithm must terminate, so, when should we stop iterating?
@@ -325,7 +325,7 @@ Thus, we will eventually reach a fixed point, and, this is when we should stop i
 
 Finally, to answer the question of whether the game is winning for player~1, we check if the winning region contains the initial state set. If it does, we return Yes; otherwise, we return No.
 
-Safety games are the dual of reachability games and are also solved by iterating the controllable predecessor. The algorithm for solving safety games is also the dual of the algorithm for solving reachability games and will not be given here. However, we do give the $\mu$-calculus formula in Equation~\ref{eqn:mu_safe} and the algorithm can be deduced from this using Algorithm~\ref{a:mu_semantics}.
+Safety games are the dual of reachability games and are also solved by iterating the controllable predecessor. The algorithm for solving safety games is also the dual of the algorithm for solving reachability games and will not be given here. However, we do give the \mucalc formula in Equation~\ref{eqn:mu_safe} and the algorithm can be deduced from this using Algorithm~\ref{a:mu_semantics}.
 
 \begin{equation}
     \mathit{\reachFun}(T) = \mu Y. CPre(Y \vee T)
@@ -369,7 +369,7 @@ To solve a \buchi\ game, we first find the set from which we can reach the goal 
 
 Imagine we have solved the reachability game $R = \reachFun(T)$ where $T$ is the \buchi\ target set and $R$ is the winning region. Then $V = R \wedge T$ is a subset of the goal from which player~1 can reach the goal one more time. Computing $W = \reachFun(V)$ gets us the set of states from which we can reach the goal twice. Iterating this procedure will eventually lead to a fixed point as $\reachFun$ is a monotonic function.
 
-This fixed point is the set of states from which we can reach the goal any number of times. Thus, it is the winning set of the \buchi\ game. The $\mu$-calculus formula is given in Equation~\ref{eqn:mu_buchi} and the algorithm to solve \buchi\ games can be deduced from this using Algorithm~\ref{a:mu_semantics}.
+This fixed point is the set of states from which we can reach the goal any number of times. Thus, it is the winning set of the \buchi\ game. The \mucalc formula is given in Equation~\ref{eqn:mu_buchi} and the algorithm to solve \buchi\ games can be deduced from this using Algorithm~\ref{a:mu_semantics}.
 
 \begin{equation}
     \mathit{\buchiFun}(T) = \nu X. \mu Y. CPre(Y \vee (X \wedge T))
@@ -378,7 +378,7 @@ This fixed point is the set of states from which we can reach the goal any numbe
 
 \subsection{Generalized \buchi}
 
-Solving a generalized \buchi\ game is similar to a \buchi\ game except that we find the set from which we can reach any goal once, then any goal twice, etc. The algorithm is a small modification to the \buchi\ algorithm and is given in Algorithm~\ref{alg:gen_buchi}. The equivalent $\mu$-calculus formula is given in Equation~\ref{eqn:mu_genbuchi}.
+Solving a generalized \buchi\ game is similar to a \buchi\ game except that we find the set from which we can reach any goal once, then any goal twice, etc. The algorithm is a small modification to the \buchi\ algorithm and is given in Algorithm~\ref{alg:gen_buchi}. The equivalent \mucalc formula is given in Equation~\ref{eqn:mu_genbuchi}.
 
 \begin{algorithm}[t]
 \begin{algorithmic}
@@ -409,7 +409,7 @@ Solving a generalized \buchi\ game is similar to a \buchi\ game except that we f
 
 \subsection{GR(1)}
 
-Next, we need to add fairness. Consider a fair reachability game. An unfair region is a region that we can assume execution will leave, regardless of the loops it contains. We modify the controllable predecessor to create a fair controllable predecessor that takes this into account. Intuitively, the algorithm considers a set of unfair states to be winning if the only way out leads to an already winning state. To achieve this, we play a variation of a safety game where we can win if we stay indefinitely within the unfair set or upon exiting the unfair set we are immediately in the target set $T$. The procedure for the fair controllable predecessor is given in Algorithm~\ref{a:fair_cpre} and the equivalent $\mu$-calculus formula is given in Equation~\ref{eqn:mu_fair}. 
+Next, we need to add fairness. Consider a fair reachability game. An unfair region is a region that we can assume execution will leave, regardless of the loops it contains. We modify the controllable predecessor to create a fair controllable predecessor that takes this into account. Intuitively, the algorithm considers a set of unfair states to be winning if the only way out leads to an already winning state. To achieve this, we play a variation of a safety game where we can win if we stay indefinitely within the unfair set or upon exiting the unfair set we are immediately in the target set $T$. The procedure for the fair controllable predecessor is given in Algorithm~\ref{a:fair_cpre} and the equivalent \mucalc formula is given in Equation~\ref{eqn:mu_fair}. 
 
 \begin{algorithm}[t]
 \begin{algorithmic}
@@ -432,7 +432,7 @@ Next, we need to add fairness. Consider a fair reachability game. An unfair regi
 \label{eqn:mu_fair}
 \end{equation}
 
-Using $\mathit{\fairCpreFun}$ as the controllable predecessor operator in the reachability algorithm (Algorithm~\ref{a:reach}) yields the fair reachability algorithm. Finally, if we combine the \buchi\ game with the fair controllable predecessor we get a GR(1) game. The procedure is given in Algorithm~\ref{a:gr1} and the equivalent $\mu$-calculus formula is given in Equation~\ref{eqn:mu_gr1}.
+Using $\mathit{\fairCpreFun}$ as the controllable predecessor operator in the reachability algorithm (Algorithm~\ref{a:reach}) yields the fair reachability algorithm. Finally, if we combine the \buchi\ game with the fair controllable predecessor we get a GR(1) game. The procedure is given in Algorithm~\ref{a:gr1} and the equivalent \mucalc formula is given in Equation~\ref{eqn:mu_gr1}.
 
 \begin{algorithm}[t]
 \begin{algorithmic}
