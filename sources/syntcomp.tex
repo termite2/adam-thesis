@@ -1,26 +1,23 @@
 \subsection{Overview}
-Our tool, Simple BDD Solver, is a substantial simplification of the solver that was developed for the Termite project adapted to safety games given in the AIGER format. 
-It performs realizability checking and does not synthesize a strategy.
-
-It uses the standard backwards symbolic algorithm to compute the winning set of states as a greatest fixed point. Binary decision diagrams (BDDs) are used to symbolically represent sets and relations. In particular, it computes:
+Simple BDD Solver is a substantial simplification of the solver that was developed for the Termite adapted to safety games given in the AIGER format. It performs realizability checking and does not synthesize a strategy. It uses the standard backwards symbolic algorithm to compute the winning set of states as a greatest fixed point. Binary decision diagrams (BDDs) are used to symbolically represent sets and relations. In particular, it computes:
 
 \begin{equation}
 \label{eqn:mu}
-\nu X. \forall U. \exists C. \forall S'. ((TRANS(S, U, C, S') \rightarrow X') \wedge SAFE(S, U, C))
+\nu X. \forall U. \exists C. \forall S'. ((\delta(S, U, C, S') \rightarrow X') \wedge \sigma(S, U, C))
 \end{equation}
 
-\noindent where $U$ is the set of valuations of uncontrollable inputs, $C$ is the set of valuations of controllable inputs, and $S$ and $S'$ are the sets of valuations of state and next state variables, respectively. $SAFE$ is the safety condition, $TRANS$ is the transition relation, and $X'$ is $X$ where the state variables are renamed to next state variables.
+\noindent where $U$ is the set of valuations of uncontrollable inputs, $C$ is the set of valuations of controllable inputs, and $S$ is the set of valuations of state variables. Given a set $X$, $X'$ denotes the next state copy of $X$. $\sigma$ is the safety condition and $\delta$ is the transition relation.
 
 \subsection{Implementation}
-The solver is written in the Haskell functional programming language. It uses the CUDD \cite{cudd} package for binary decision diagram manipulation and the Attoparsec \cite{attoparsec} Haskell package for fast parsing. Altogether, the solver, AIGER parser, compiler and command line argument parser are just over 300 lines of code. The code is available online at: \path{https://github.com/adamwalker/syntcomp}.
+The solver is written in the Haskell functional programming language. It uses the CUDD \cite{cudd} package for binary decision diagram manipulation and the Attoparsec Haskell package for fast parsing. Altogether, the solver, AIGER parser, compiler and command line argument parser are just over 300 lines of code. The code is available online at: \path{https://github.com/adamwalker/syntcomp}.
 
 \subsection{Optimizations}
 \label{sec:syntcomp_optimisations}
 
 The optimizations that we have used, in approximate order of importance, are:
 \begin{itemize}
-    \item dynamic variable reordering using the sifting algorithm \cite{sifting}
-    \item partitioned transition relations \cite{partitioned}
+    \item dynamic variable reordering using the sifting algorithm \cite{Rudell_1993}
+    \item partitioned transition relations \cite{Burch_91}
     \item direct substitution with \textsc{Cudd\_VectorCompose}
     \item dereference unused BDDs as soon as possible
     \item rearrange the computed formula to avoid creating large BDDs
@@ -37,8 +34,8 @@ The optimizations that we have used, in approximate order of importance, are:
 
 \Function{CPre}{$target$}
 
-    \State $substituted \gets \Call{Cudd\_VectorCompose}{target, trel}$
-    \State $safeSub     \gets \Call{Cudd\_bddAndAbstract}{C, SAFE, substituted}$
+    \State $substituted \gets \Call{Cudd\_VectorCompose}{target, \delta}$
+    \State $safeSub     \gets \Call{Cudd\_bddAndAbstract}{C, \sigma, substituted}$
     \State $winning     \gets \Call{Cudd\_bddUnivAbstract}{U, safeSub}$
     \State \Return $winning$
 
@@ -53,7 +50,7 @@ The optimizations that we have used, in approximate order of importance, are:
 
 \begin{algorithmic}
 
-\Function{Solve}{$safe, init, trel, C, U$}
+\Function{Solve}{$\sigma, init, \delta, C, U$}
 
     \State $win \gets \Call{Cudd\_ReadLogicOne}{}$
     \Loop
@@ -79,7 +76,7 @@ We do not compute the transition relation as a monolithic BDD defined over curre
 
 Furthermore, the next state value of any state variable is deterministic. This means that we can represent it directly as a function of the current state and input variables. We use a BDD defined over current state and input variables to represent this function. Our transition relation becomes a list of BDDs, one for each state variable, each of which only depends on current state and input variables. 
 
-To compute the implication, $\forall S'. (TRANS(S, U, C, S') \rightarrow X')$, we use the CUDD function \textsc{Cudd\_VectorCompose} as shown in algorithm \ref{alg:syntcomp_cpre} on line 1 to substitute each update function into X. This avoids building the monolithic transition relation and, importantly, it avoids having to ever declare a next state copy of each state variable in the BDD manager. 
+To compute the implication, $\forall S'. (\delta(S, U, C, S') \rightarrow X')$, we use the CUDD function \textsc{Cudd\_VectorCompose} as shown in algorithm \ref{alg:syntcomp_cpre} on line 1 to substitute each update function into X. This avoids building the monolithic transition relation and, importantly, it avoids having to ever declare a next state copy of each state variable in the BDD manager. 
 
 \subsubsection{Dereferencing dead BDDs}
 We dereference BDDs that are no longer needed as soon as possible. Each live BDD node is processed during reordering and counted when the algorithm checks to see if the total BDD size in the manager is reduced. These unused BDDs should not count toward the total node count that is used to evaluate an ordering, and, the time that is spent reordering them and counting them is wasted. In the interest of clarity, BDD dereferencing is not shown in algorithms \ref{alg:syntcomp_cpre} and \ref{alg:syntcomp}.
@@ -87,7 +84,7 @@ We dereference BDDs that are no longer needed as soon as possible. Each live BDD
 \subsubsection{Rearranging the formula}
 \begin{equation}
 \label{eqn:mu2}
-\nu X. \forall U. \exists C. (\forall S'. (TRANS(S, U, C, S') \rightarrow X') \wedge SAFE(S, U, C))
+\nu X. \forall U. \exists C. (\forall S'. (\delta(S, U, C, S') \rightarrow X') \wedge \sigma(S, U, C))
 \end{equation}
 
 We can arrange equation \ref{eqn:mu} to move the conjunction with the safety condition outside of the innermost universal quantification, as shown in equation \ref{eqn:mu2}, as the safety condition does not depend on the next state variables. This avoids building the potentially large BDD of the conjunction.

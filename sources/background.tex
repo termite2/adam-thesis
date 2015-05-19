@@ -612,9 +612,11 @@ Identical problems are encountered in model checking. The breakthrough that revo
 
 Symbolic games are defined over a finite set of state variables, $\symStateVars$, and a finite set of label variables $\symLabelVars$. A \emph{valuation} for a set of variables $V$ is a function from each of those variables to an element of its domain. We redefine $S$, the set of states, to be the set of possible valuations of each state variable in $\symStateVars$. That is, each state $s \in S$ is given by a valuation of all of the state variables in $\symStateVars$. Similarly, we redefine $L$, the set of labels, to be the set of possible valuations of each label variable in $\symLabelVars$.
 
-For a set $Z$ of variables, we denote by $\forms(Z)$ the set of propositional formulas constructed from the variables in $Z$. The characteristic formula of a set of states $T$ is a function $f \in \forms(\symStateVars)$ that evaluates to true for the valuation corresponding to a state $s \in T$ and false otherwise. We use characteristic formulas to represent sets of states without explicitly listing each member of the set. This is called a symbolic representation.
+For a set $Z$ of variables, we denote by $\forms(Z)$ the set of propositional formulas constructed from the variables in $Z$. The characteristic formula of a set of states $T$ is a function $f \in \forms(\symStateVars)$ that evaluates to true for the valuation corresponding to a state $s \in T$ and false otherwise. We use characteristic formulas to represent sets of states without explicitly listing each member of the set. This is called a symbolic representation. 
 
 Likewise, $\delta$ is specified by a formula in $\forms(\symStateVars \bigcup \symLabelVars \bigcup \symStateVars')$, where $\symStateVars' = \{\sigma' \mid \sigma \in \symStateVars \}$ is the set of next state variables.
+
+Sometimes, we make the variables that a characteristic formula depends on explicit. For example, we may write the transition relation as $\delta(\Sigma, \Lambda, \Sigma')$.
 
 \subsection{Symbolic algorithms}
 

@@ -5,7 +5,7 @@ We have a formalism for the driver synthesis problem as a game. A practical driv
 
 The straightforward symbolic solver that uses BDDs as the symbolic data structure is remarkably efficient. In fact, it is the current state of the art in reactive synthesis. I will use this as the starting point for my description of Termite's game solver.
 
-I begin by describing my entry to the reactive synthesis competition in 2014, appropriately named "Simple BDD Solver". The solver won the sequential realizability category, the only category in which it was entered.  
+I begin by describing my entry to the reactive synthesis competition in 2014, appropriately named "Simple BDD Solver". This solver won the sequential realizability category.
 
 Next, I introduce abstraction, a technique to increase the scalability of the basic symbolic algorithm by reducing the effective size of the state space that the algorithm must operate on. The cost of reducing the size of the state space is that the abstracted game is represented with less precision and is often not precise enough to solve the original game. To counter this, the abstraction needs to be \emph{refined}, i.e. the precision of the abstraction needs to be increased. This is performed in an \emph{abstraction-refinement loop}. Ideally, this loop results in an abstraction just precise enough to solve the game, but coarse enough that solving it is tractable.
 
@@ -26,8 +26,6 @@ The tools were required to solve safety games given in an extension of the AIGER
 Entrants in the synthesis categories were required to produce an implementation of a controller that enforced the safety condition, also given in extended AIGER format. Entrants in the realizability category were only required to determine if the safety game was winnable.
 
 The Synthesis Competition was run as a satellite event to the CAV conference and Kurt Godel medals in silver were awarded to the winners of each category.
-
-In the following sections I will describe my tool "Simple BDD Solver" which won the sequential realizability track.
 
 \input{syntcomp}
 
