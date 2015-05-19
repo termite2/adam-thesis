@@ -104,7 +104,7 @@ We give the algorithm for computing the set of states for which a \mucalc formul
     \ElsIf {$\phi = \neg \psi$}
         \State\Return $S - \Call{MuSemantics}{\psi}$
     \ElsIf {$\phi = \forall X. \psi$}
-        \State\Return $\Call{UniversallyQuantify}{X, \psi}$
+    \State\Return $\{ s \in S \; | \; \forall x. \; s \in \Call{MuSemantics}{\psi[X:=x]} \}$
     \ElsIf {$\phi = \nu X. \psi$}
         \State $Z \gets S$
         \Loop
@@ -127,7 +127,7 @@ We give the algorithm for computing the set of states for which a \mucalc formul
 The $\omega$-regular languages generalise the regular languages. An $\omega$-regular language is a set of sequences of symbols of infinite length. An $\omega$-regular language has the form:
 \begin{itemize}
     \item $A^\omega$ where $A$ is a nonempty regular language not containing the empty string.
-    \item $AB$, the concatenation of a regular language $A$ and an $\omega$-regular language $B$.
+    \item $AB$, the concatenation of a regular language $A$ and an $\omega$-regular language $B$. Note that $B$ must not be a regular language as this would imply that the sequence is finite.
     \item $A \cup B$ where $A$ and $B$ are $\omega$-regular languages.
 \end{itemize}
 
@@ -189,7 +189,7 @@ Sometimes it is necessary to rule out invalid plays that are not easily ruled ou
 \end{equation}
 
 \paragraph{GR(1)}
-A Generalized Reactive 1, or GR(1) \cite{gr1} objective, is a generalized \buchi\ objective with multiple fairness conditions. In practice, this turns out to be a very useful type of objective. Formally, given a set $FAIRS$ of fair sets of states, a run satisfies a GR(1) objective if 
+A Generalized Reactive 1, or GR(1) \cite{Piterman_PS_06} objective, is a generalized \buchi\ objective with multiple fairness conditions. In practice, this turns out to be a very useful type of objective. Formally, given a set $FAIRS$ of fair sets of states, a run satisfies a GR(1) objective if 
 
 \begin{multline}
 \forall i.\ \forall \fairobj \in \genfairobj.\ \exists j>i.\ s_j \in \fairobj \rightarrow \\ \forall i.\ \forall \buchiobj \in \genbuchiobj.\ \exists j>i.\ s_j \in \buchiobj
