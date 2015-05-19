@@ -318,12 +318,11 @@ This suggests an algorithm to find the winning region. We start with $\reachobj$
 
 We denote the set of states from which it is possible to reach \reach\ in $N$ or less steps $W_N$. Observe that $W_{N+1} \supseteq W_N$. So, on each iteration, we either grow the winning set or it remains the same. Also observe that our set $S$ is finite, which means that $2^S$ is also finite. As set inclusion is a transitive relation, we cannot grow our winning set forever, so eventually we must reach a fixed point of the \cpre\ function. 
 
-\todo{$CPre$ isnt the order preserving function}
-A more formal proof of termination is based in the Knaster-Tarski theorem \cite{knaster_tarski}. The power set of $S$ can be ordered by set inclusion to obtain a complete lattice with supremum $S$ and infimum $\emptyset$. \cpre\ is an order preserving function, so by the Knaster-Tarski theorem the set of fixed points of \cpre\ is also a complete lattice. Thus there exists a greatest and least fixed point (as the lattice is complete). The least fixed point of \cpre\ is clearly obtained by iteration starting from the least element of the lattice, ie. $\emptyset$. 
+A more formal proof of termination is based in the Knaster-Tarski theorem \cite{tarski1955}. The power set of $S$ can be ordered by set inclusion to obtain a complete lattice with supremum $S$ and infimum $\emptyset$. $f(X) = \cpre\ (X \cup REACH)$ is an order preserving function, so by the Knaster-Tarski theorem the set of fixed points of $f$ is also a complete lattice. Thus there exists a greatest and least fixed point (as the lattice is complete). The least fixed point of $f$ is clearly obtained by iteration starting from the least element of the lattice, ie. $\emptyset$. 
 
 Thus, we will eventually reach a fixed point, and, this is when we should stop iterating as further iterations will not change the winning set. Furthermore, we know that after any finite number $N$ of iterations where $N$ is greater than the number of iterations required to reach the fixed point, the winning region will remain $WIN$. Thus $WIN_N = WIN$ and we have found all winning states.
 
-Finally, to answer the question of whether the game is winning for player~1, we check if the winning region contains the initial state set. If it does, we return Yes; otherwise, we return No.
+Finally, to answer the question of whether the game is winning for player~1, we check if the winning region contains the initial state set. If it does, we return \emph{Yes}; otherwise, we return \emph{No}.
 
 Safety games are the dual of reachability games and are also solved by iterating the controllable predecessor. The algorithm for solving safety games is also the dual of the algorithm for solving reachability games and will not be given here. However, we do give the \mucalc formula in Equation~\ref{eqn:mu_safe} and the algorithm can be deduced from this using Algorithm~\ref{a:mu_semantics}.
 
@@ -720,7 +719,7 @@ Additionally, it can be shown that, if only the else arcs of internal nodes are 
 
 BDDs are not usually built as decision trees and then reduced. Instead, they are built from the bottom up, starting with the terminal and variable nodes and combining these using conjunction, disjunction and negation.
 
-Conjunction and disjunction are computed using a straightforward recursive algorithm that will not be given here, but if the reader is interested, more information can be found in \cite{somenzi_bdd}. An important result is that, in the worst case, the procedure runs in time proportional to the product of the sizes of the two input BDDs. Furthermore, the size of the resulting BDD may be equal to the product of the sizes of the two input BDDs in the worst case. A strength of BDDs, however, is that this worst case rarely happens in practice. 
+Conjunction and disjunction are computed using a straightforward recursive algorithm that will not be given here, but if the reader is interested, more information can be found in \cite{Bryant_86}. An important result is that, in the worst case, the procedure runs in time proportional to the product of the sizes of the two input BDDs. Furthermore, the size of the resulting BDD may be equal to the product of the sizes of the two input BDDs in the worst case. A strength of BDDs, however, is that this worst case rarely happens in practice. 
 
 \subsubsection{Function composition and quantification}
 
@@ -734,7 +733,7 @@ Quantifications of the same type commute, so quantification with respect to a se
 
 The number of nodes in a BDD depends drastically on the ordering chosen for the variables. Therefore, the space occupied by the BDDs and the time spent performing operations on them also depends on the variable ordering. This directly affects the performance of game solving algorithms that use BDDs as the symbolic data structure. 
 
-Optimal variable orderings may be found using exact algorithms, but these are prohibitively expensive for BDDs with more than a few nodes. In practice heuristics are used which produce good, but not optimal orderings. One such heuristic is Ruddell's sifting algorithm \cite{sifting}.
+Optimal variable orderings may be found using exact algorithms, but these are prohibitively expensive for BDDs with more than a few nodes. In practice heuristics are used which produce good, but not optimal orderings. One such heuristic is Ruddell's sifting algorithm \cite{Rudell_1993}.
 
 The CUDD BDD package performs \emph{dynamic variable ordering}, which means that once the number of BDD nodes the package knows about grows past a certain threshold, the package automatically performs the requested reordering algorithm on all BDDs that exist in the manager. Dynamic variable ordering is critical to the performance of game solving algorithms that utilise BDDs and therefore we always enable it.
 
