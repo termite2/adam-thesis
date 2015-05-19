@@ -95,16 +95,6 @@ We perform simultaneous conjunction and quantification wherever possible. The ex
 \subsubsection{Early termination}
 We terminate early when possible. As we are computing a greatest fixed point, we start with the universal set and progressively shrink it to find the winning region. Each time we shrink the winning region, we check that is it still a superset of the initial set. If it is not, we know there is no way we can win as the winning set only shrinks as the algorithm progresses. We use the function \textsc{Cudd\_bddLeq} on line 4 of algorithm \ref{alg:syntcomp} for this purpose as it allows us to efficiently check that one BDD implies another without constructing the BDD of the implication.
 
-\subsubsection{Abstraction-Refinement}
-
-We created a second version of our tool that, in addition to the optimisations above, implements an abstraction refinement loop inspired by \cite{dealfaro}. 
-
-An initial abstract transition relation is built that only contains next state functions for state variables that occur in the safety condition. Additional state variables that do not appear in the safety condition may be required to precisely specify the next state functions of those that do. These are treated as input variables controlled by the player and are referred to as `untracked' variables. If the game is lost, even with these untracked variables controlled by the player, then the player certainly cannot win and we terminate. If the player wins this abstracted game, it may not win the concrete game and we need to refine.
-
-To check if the player really can win the concrete game, the controllable predecessor is iterated one more time. This time, the untracked variables are not picked by the player. We efficiently find a state and a valuation of a small subset of the untracked variables for which the game is losing in this state using CUDD's functions to find a large prime implicant. If no such valuation exists, the game is winning. Otherwise, the untracked variables that appear in this valuation are changed from input variables to state variables and their update functions are computed, possibly resulting in new untracked variables. We refer to this as untracked variable promotion. The game is then solved again. On each iteration the winning set can only shrink. We therefore reuse the winning set as the starting point of the next iteration.
-
-This optimisation degraded performance of the tool overall, but it did improve performance in some of the unsatisfiable benchmarks as, for unknown reasons, these benchmarks could be solved by only considering a subset of the state variables.
-
 \subsection{Evaluation}
 Simple BDD solver failed when the BDDs representing the winning sets, or the intermediate BDDs in the controllable predecessor computation grew too large. Additionally, it failed when a large number of iterations was required to determine the outcome, such as the benchmarks with a large counter.
 
