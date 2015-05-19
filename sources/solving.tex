@@ -39,11 +39,11 @@ Finding an abstraction that is simultaneously small and useful for making progre
 \subsection{Three valued abstraction refinement}
 \label{sec:three_val_abs_ref}
 
-The idea is that given an abstraction, we classify states into one of three categories: winning, losing, and unknown. If we discover that the entire initial set is winning, we know that the original game is winning and we can terminate. Dually, if we discover any initial state that is losing, we know that the entire initial set can never be winning, hence the game is losing and we can terminate. 
+The idea is that, given an abstraction, we classify states into one of three categories: winning, losing, and unknown. If we discover that the entire initial set is winning, we know that the original game is winning and we can terminate. Dually, if we discover any initial state that is losing, we know that the entire initial set can never be winning, hence the game is losing and we can terminate. 
 
 At termination, either 
 \begin{itemize}
-\item all of the initial states are classified as winning (but the other states need not be classified), or
+\item all of the initial states are classified as winning (and the other states need not be classified), or
 \item one of the initial states is classified as losing (again, no other states need to be classified)
 \end{itemize}
 
@@ -133,7 +133,7 @@ We denote $\reach(\abstractM{T}, Cpre_i^M)$ as $W^M$ and refer to it as the \emp
 
 Figure~\ref{fig:three_val_overview} illustrates the main idea of three valued abstraction refinement, which is presented in algorithm~\ref{alg:generic}. The winning region, in grey, is overapproximated by the may-winning set in white and underapproximated by the must-winning set in dark grey. The abstraction-refinement loop progressively brings $W^m$ and $W^M$ closer together until the game outcome can be determined.
 
-At every iteration, the algorithm computes the must-winning set $W^M$ that underapproximates, and the may-winning set $W^m$ that overapproximates the true winning set (lines~2--3).  The algorithm terminates if the must-winning set contains the entire initial set or the may-winning set has shrunk beyond the initial set (lines~4--5).  Otherwise, the algorithm attempts to refine the abstraction in a way that the must-winning set will be expanded in the next iteration when the game is re-solved.
+At every iteration, the algorithm computes the must-winning set $W^M$ that underapproximates, and the may-winning set $W^m$ that overapproximates the true winning set (lines~\ref{a:generic:l:M}--\ref{a:generic:l:m}). The algorithm terminates if the must-winning set contains the entire initial set or the may-winning set has shrunk beyond the initial set (lines~\ref{a:generic:l:yes}--\ref{a:generic:l:no}).  Otherwise, the algorithm attempts to refine the abstraction in a way that the must-winning set will be expanded in the next iteration when the game is re-solved.
 
 \begin{algorithm}
 \caption{Three-valued abstraction refinement for games.}
@@ -147,12 +147,12 @@ At every iteration, the algorithm computes the must-winning set $W^M$ that under
 
 \Function{Solve}{$transitionRelation$, $goal$}
     \Loop
-        \State $W^M \gets \reach(\abstractM{T}, Cpre_1^M)$
-        \State $W^m \gets \reach(\abstractm{T}, Cpre_1^m)$
+        \State $W^M \gets \reach(\abstractM{T}, Cpre_1^M)$ \label{a:generic:l:M}
+        \State $W^m \gets \reach(\abstractm{T}, Cpre_1^m)$ \label{a:generic:l:m}
         \If{$\abstractM{I} \subseteq W^M$} \label{alg:tvg:tc1}
-            \State\Return Yes
+            \State\Return Yes \label{a:generic:l:yes}
         \ElsIf{$\abstractM{I} \nsubseteq W^m$} \label{alg:tvg:tc2}
-            \State\Return No
+            \State\Return No \label{a:generic:l:no}
         \Else       
             \State$\Call{refineAbstraction}{W^M}$
         \EndIf
@@ -182,7 +182,7 @@ If we find an abstract state within this set for which from a subset of concrete
 
 The former partition, $p$, consists entirely of winning concrete states. Furthermore, it is on the boundary of the must-winning set so it will become part of $W^M$ when the game is solved again with the refined abstraction.
 
-Each time a refinement is made, $\concrete{W^M}$ grows. If the concrete state space is finite $\concrete{W^M}$ can only grow so much so it must reach a fixed point (that may contain the entire concrete state space). When $W^M$ can no longer grow it is because there are no winning states at the boundary. Thus there are no winning states that are not part of $W^M$ and $W^M$ must be the exact winning set. Furthermore, $W^m$ must be equal to $W^M$ \todo{why}. Therefore one of the two termination conditions (lines~\ref{alg:tvg:tc1} and~\ref{alg:tvg:tc2}) must have already happened. Therefore the algorithm terminates.
+Each time a refinement is made, $\concrete{W^M}$ grows. If the concrete state space is finite $\concrete{W^M}$ can only grow so much so it must reach a fixed point (that may contain the entire concrete state space). When $W^M$ can no longer grow it is because there are no winning states at the boundary. Thus there are no winning states that are not part of $W^M$ and $W^M$ must be the exact winning set. Furthermore, $W^m$ must be equal to $W^M$ as if there are and any potential winning states that are not in $W^M$ then there must be some at the boundary and we know that there are none of those. Therefore one of the two termination conditions (lines~\ref{alg:tvg:tc1} and~\ref{alg:tvg:tc2}) must have already happened. Therefore the algorithm terminates.
 
 \section{Variable Abstraction}
 \label{sec:variable_abstraction}
@@ -225,7 +225,7 @@ Given the set $V_{\alpha}$, the corresponding abstraction (see Section~\ref{sec:
     \item $\concrete{a}$ is the set of concrete states for which the variables in $V_{\alpha}$ take the same values in both the concrete state and $a$ and all other variables are free to take any value.
 \end{itemize}
 
-This abstraction satisfies our two requirements for a valid abstraction. \todo{do i need to prove this?}
+This abstraction satisfies our two requirements for a valid abstraction (Section~\ref{sec:abstraction_def}). 
 
 \subsection{Initial abstraction}
 

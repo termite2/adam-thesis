@@ -20,6 +20,6 @@ varNames =  text "X" # fontSize (local 10) # moveTo (p2 (20, 50))
          <> text "V" # fontSize (local 6) # moveTo (p2 (70, 0))
 stateLab =  text "x" # fontSize (local 6) # moveTo (p2 (50, 10))
 concState = square 20 # fc gray # moveTo (p2 (50, 10)) # lw none
-diag     = stateLab <> concState <> concrete <> abstract <> labels <> varNames
+diag     = (stateLab <> concState <> concrete <> abstract <> labels <> varNames) # centerXY # pad 1.1
 
 main = mainWith (diag :: Diagram B)
