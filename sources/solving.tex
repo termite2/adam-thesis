@@ -229,9 +229,9 @@ This abstraction satisfies our two requirements for a valid abstraction (Section
 
 \subsection{Initial abstraction}
 
-The initial abstraction, $V_{\alpha}$, for a boolean reachability game is created from only the variables that are mentioned in the goal. This ensures that the initial abstraction is \emph{precise} for the goal set.
+The initial abstraction, $V_{init}$, for a boolean reachability game is created from only the variables that are mentioned in the goal. This ensures that the initial abstraction is \emph{precise} for the goal set.
 
-The initial abstraction of our running example is illustrated in figure~\ref{fig:abs_state_sp}. The abstract states are illustrated by the solid squares. There is one state for each valuation of $X$ and $Y$, the variables that occur in the goal in our example. Each abstract state contains four concrete states, one for each valuation of the concrete variables that were dropped from the abstraction, $U$ and $V$. $\concrete{}$ is a function from valuations of $U$ and $V$ to the powerset of the set of valuations of all state variables. For example:
+The initial abstraction of our running example is illustrated in figure~\ref{fig:abs_state_sp}. $V_{init} = \{X, Y\}$. The abstract states are illustrated by the solid squares. There is one state for each valuation of $X$ and $Y$, the variables that occur in the goal in our example. Each abstract state contains four concrete states, one for each valuation of the concrete variables that were dropped from the abstraction, $U$ and $V$. $\concrete{}$ is a function from valuations of $U$ and $V$ to the powerset of the set of valuations of all state variables. For example:
 
 \begin{equation}
     \concrete{\langle T, T \rangle} = \{ \langle T, T, F, F \rangle, \langle T, T, F, T \rangle, \langle T, T, T, F \rangle, \langle T, T, T, T \rangle \}
@@ -250,13 +250,13 @@ It is clear from the figure that the abstraction forms a partition of the concre
 
 \subsection{Controllable predecessor}
 
-The controllable predecessor is constructed using the transition relation. For efficiency, the transition relation will be constructed incrementally. As the state variables in our initial abstraction are only the variables in $G$, these are the only ones we need to compute the transition relation for.
+The controllable predecessor is constructed using the transition relation. For efficiency, the transition relation will be constructed incrementally. As the state variables in our initial abstraction are only the variables in $G$, these are the only ones we need to compute the transition relation for initially.
 
 Assuming that the transition relation for the concrete system is given as update functions, one for each concrete variable, then computation of the abstract transition relation is straightforward. We just compile the update functions for only those variables that appear in $G$.
 
 However, there is the complication that these update functions may depend on additional variables that are not in $G$. Consider the update function for $Y$ in the running example. The next state value of $Y$ depends on $U$ which is not part of the abstract state space.
 
-To handle this, we introduce an additional set of variables, denoted $F$ (for free, for reasons that will become apparent) for variables that are needed when computing the update functions but are not part of the abstract state space.
+To handle this, we introduce an additional set of variables, denoted $F$ (for \emph{free}, for reasons that will become apparent) for variables that are needed when computing the update functions but are not part of the abstract state space. In our running example, at this stage, $F=\{U\}$.
 
 We define the two controllable predecessors:
 
@@ -272,26 +272,26 @@ We define the two controllable predecessors:
 
 Though the $F$ variables are really part of the state, we treat them as free input variables. Intuitively, their values are chosen by player~2 when computing $Cpre_1^M$ and by player~1 when computing $Cpre_1^m$. This makes it more difficult, and respectively, easier for player~1 to control execution into the target set.
 
-\begin{figure}
-\centering
-\includegraphics[width=0.5\linewidth]{diagrams/statespace.pdf}
-\caption{Partitioning induced by $F$}
-\label{fig:f_partitioning}
-\end{figure}
-
 Given a valuation of a subset of the concrete state variables $V \subseteq C$ we say that the valuation \emph{agrees} with a concrete state $c$ if the value assigned to each of the variables in $V$ equals the value assigned to the same variable by $c$. A subset of concrete state variables defines a partitioning of the concrete state space: 
 
 \begin{equation}
     \{ s \in 2^C | \exists v \in Valuations(V). \forall c \in s. \text{ $c$ agrees with $v$} \}
 \end{equation}
 
-We refer to each set of states in the partitioning as a \emph{sub-state}. Figure~\ref{fig:f_partitioning} shows the partitioning induced by $F \cup V$.
+\begin{figure}
+\centering
+\includegraphics[width=0.5\linewidth]{diagrams/partitioning.pdf}
+\caption{Partitioning induced by $F$}
+\label{fig:f_partitioning}
+\end{figure}
+
+We refer to each set of states in the partitioning as a \emph{sub-state}. Figure~\ref{fig:f_partitioning} shows the partitioning induced by $F=\{U\} \cup V_{init}=\{X, Y\}$ in our running example.
 
 $Cpre_1^M$, by Equation~\ref{eqn:symb_cpre_M}, is the set of abstract states from which we can force execution into the target set from all sub-states induced by $F$. Since no variables in $C \setminus (V \cup F)$ can influence the next state of variables in $V$ \emph{we can ignore them} and conclude that $Cpre_1^M$ computes the set of abstract states such that for all concrete states within the abstract state, player~1 can force execution into the concretisation of the target set. This agrees with the definition of the abstract must controllable predecessor in Equation~\ref{eqn:def_cpre_M}.
 
 Dually, $Cpre_1^m$ computes the set of abstract states such that for some concrete state within the abstract state, player~1 can force execution into the concretisation of the target set. This agrees with the definition of the abstract may controllable predecessor in Equation~\ref{eqn:def_cpre_m}.
 
-\todo{running example}
+In our running example our goal is $\langle X=True \land Y=True \rangle$. Consider the state $s = \langle X=True, Y=False \rangle$. $Y$ may be set to the value of $U$ by action $a_2$. As $U \in F$, it may be chosen by player~1 when computing $Cpre_1^m$. Player~1 may choose it to be $True$ and thus $s \in Cpre_1^m(goal)$. However, when computing $Cpre_1^M$, the environment gets to choose $U$ and it may choose $U=False$, and thus $s \notin Cpre_1^M(goal)$.
 
 \subsection{Solving the game}
 
@@ -300,8 +300,6 @@ Now that we have an abstraction and a definition of the controllable predecessor
 Since $W^M$ is a subset of the true winning region, if $I \rightarrow W^M$ then we may terminate as the game is surely winnable. As $W^m$ is a superset of the true winning region, if $I \centernot\rightarrow W^m$ then we may terminate as the game is surely not winnable.
 
 If none of the above termination conditions held then it is because our abstraction is not precise enough and must be refined.
-
-\todo{running example}
 
 \subsection{Refinement}
 
