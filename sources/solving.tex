@@ -414,15 +414,16 @@ that is precise for $T$, $I$, and $\tau_i$.
 \end{algorithm}
 
 \subsection{Summary}
+
+In summary, the abstraction-refinement algorithm described in this section is very efficient because:
 \begin{itemize}
-    \item The algorithm categorizes as many states as it can while the abstraction is still simple.
-    \item The transition relation is compiled incrementally on demand.
-    \item The algorithm reuses earlier work by reusing the winning set.
+    \item The algorithm reuses the winning sets computed earlier when the abstraction was simpler. This allows it to avoid the costly re-classification of these states again when the game is solved with a more complex abstraction.
+    \item The transition relation is compiled incrementally on demand and kept partitioned. 
 \end{itemize}
 
 \subsection{Safety games}
 
-Safety games are solved dually to reachability games. The algorithm with the optimisation where the computed winning set is reused is given in algorithm~\ref{alg:three_val_safe}.
+Safety games are solved dually to reachability games and are given here for completeness. The algorithm is given in algorithm~\ref{alg:three_val_safe}. Note that \textsc{refineAbstraction} (Algorithm~\ref{alg:refineAbstractionSafe}) differs from the reachability game version as for safety games it is necessary to refine at the may-lose boundary (\cite{Alfaro_Roy_07}).
 
 \begin{algorithm}
 \caption{Three-valued abstraction refinement for safety games.}
@@ -484,7 +485,7 @@ or
 \mu X. \nu Y. \ldots \phi(X, Y, \ldots)
 \end{equation}
 
-\noindent where the fixed point quantifiers strictly alternate.
+\noindent where the fixed point quantifiers strictly alternate. The algorithm is given in Algorithm~\ref{alg:generic_mu_calc}.
 
 \begin{algorithm}
 \caption{Three-valued abstraction refinement for $\mu$-calculus games}
@@ -605,7 +606,7 @@ The argument of the write is modelled by the $val$ label variable. When the $wri
 
 The winning strategy for player~1 in this example is to write the value of $req$ in the first transition (by setting $val=req$), thus forcing the device to copy this value to memory at the second transition.
 
-Figure~\ref{f:ex_game_specification} specifies the transition relation $\delta$ of the game in the form of variable update functions $x' = t_x(X,Y)$, one for each variable $x\in X$.  Consider the update function for $bsy$ as an example.  The variable switches to $true$ if the device is not currently busy and the driver requests a write by setting $write\_en$. It switches back to $false$ on the next transition when the memory write operation completes.
+Figure~\ref{fig:ex_game_specification} specifies the transition relation $\delta$ of the game in the form of variable update functions $x' = t_x(X,Y)$, one for each variable $x\in X$.  Consider the update function for $bsy$ as an example.  The variable switches to $true$ if the device is not currently busy and the driver requests a write by setting $write\_en$. It switches back to $false$ on the next transition when the memory write operation completes.
 
 \begin{figure}
     \centering
@@ -733,7 +734,7 @@ This is just one of the potential pitfalls of handling predicate abstraction in 
 
 \subsection{Algorithm}
 
-Following \cite{three_val_abs_ref}, we modify the algorithm to work on approximate versions of the controllable predecessor operators, $\cpremp$ and $\cpreMm :: 2^V \rightarrow 2^V$. In the following sections we will show how to efficiently compute these operators using techniques similar to variable abstraction. 
+Following \cite{Alfaro_Roy_07}, we modify the general three valued abstraction-refinement algorithm to work on approximate versions of the controllable predecessor operators, $\cpremp$ and $\cpreMm :: 2^V \rightarrow 2^V$. In the following sections we will show how to efficiently compute these operators using techniques similar to variable abstraction. 
 
 We lose precision when approximating the controllable predecessors, just as we do when approximating the state space with standard three valued abstraction-refinement. Thus, we need to introduce another form of refinement. This form of refinement refines the controllable predecessor operators themselves. This process is shown graphically in Figure~\ref{fig:approx_three_val_overview}. Conceptually, refining the controllable predecessors shrinks the gap between $\cpreM$ and $\cpreMm$ or the gap between $\cprem$ and $\cpremp$. We also perform refinement of the abstraction as before.
 
@@ -759,7 +760,7 @@ We require that, for all $U \subseteq V$ we have:
 \cpreMm \subseteq \cpreM
 \end{equation}
 
-With these operators we create a new approximate abstraction-refinement scheme given in Algorithm~\ref{alg:approx_three_val}. 
+With these operators we create a new approximate abstraction-refinement scheme given in Algorithm~\ref{alg:approx_three_val}. Note that the algorithm relies on \textsc{refineCpre} and \textsc{refineAbstraction} which we will define for predicate abstraction in the following sections.
 
 \begin{algorithm}
 \caption{Approximate three-valued abstraction-refinement}
