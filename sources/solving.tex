@@ -734,7 +734,7 @@ This is just one of the potential pitfalls of handling predicate abstraction in 
 
 \subsection{Algorithm}
 
-Following \cite{Alfaro_Roy_07}, we modify the general three valued abstraction-refinement algorithm to work on approximate versions of the controllable predecessor operators, $\cpremp$ and $\cpreMm :: 2^V \rightarrow 2^V$. In the following sections we will show how to efficiently compute these operators using techniques similar to variable abstraction. 
+Following \cite{Alfaro_Roy_07}, we modify the general three valued abstraction-refinement algorithm to work on approximate versions of the controllable predecessor operators, $\cpremp$ and $\cpreMm :: 2^V \rightarrow 2^V$. In the following sections we will show how to efficiently compute these operators for predicate abstractions using techniques similar to variable abstraction. 
 
 We lose precision when approximating the controllable predecessors, just as we do when approximating the state space with standard three valued abstraction-refinement. Thus, we need to introduce another form of refinement. This form of refinement refines the controllable predecessor operators themselves. This process is shown graphically in Figure~\ref{fig:approx_three_val_overview}. Conceptually, refining the controllable predecessors shrinks the gap between $\cpreM$ and $\cpreMm$ or the gap between $\cprem$ and $\cpremp$. We also perform refinement of the abstraction as before.
 
@@ -804,7 +804,7 @@ We construct the abstract transition relation via efficient syntactic analysis o
 For each state predicate in $\Sigma$, we compute the update function by replacing concrete variables in the predicate with their corresponding update functions. We then transform the resulting formula into a boolean combination of atomic predicates over concrete state and label variables.
 
 \begin{ex}
-    Let us compute the update function for abstract variable $\sigma_1$ (Figure~\ref{f:ex}d).  Using update functions for $req$ and $dat$ variables (Figure~\ref{f:ex}c), we obtain: 
+    Let us compute the update function for abstract variable $\sigma_1$ (Figure~\ref{fig:ex_game_abstraction}).  Using update functions for $req$ and $dat$ variables (Figure~\ref{fig:ex_game_variables}b), we obtain: 
     
     \begin{multline}
     \sigma_1' = (req' = dat') = \neg(bsy = false) \land (req=dat) \\ \lor (bsy=false) \land (val=req)
@@ -817,7 +817,7 @@ For each state predicate in $\Sigma$, we compute the update function by replacin
     \qed
 \end{ex}
 
-In the general case, the syntactically computed update function for a predicate may depend on existing state predicates in $\Sigma$ as well as new predicates that are not yet part of the abstraction.  The new predicates are partitioned into \emph{untracked predicates} defined over concrete state variables (e.g., $\mathtt{bsy=false}$ in the above example) and \emph{label predicates} that involve at least one concrete label variable (e.g., $\mathtt{val=req}$).  The term ``untracked predicate'' indicates that these predicates are not part of the abstract state space of the game.  Untracked predicates can be seen as partitioning abstract states in $V$ into smaller \emph{untracked sub-states}, as illustrated in Figure~\ref{f:predicates}.
+In the general case, the syntactically computed update function for a predicate may depend on existing state predicates in $\Sigma$ as well as new predicates that are not yet part of the abstraction.  The new predicates are partitioned into \emph{untracked predicates} defined over concrete state variables (e.g., $\mathtt{bsy=false}$ in the above example) and \emph{label predicates} that involve at least one concrete label variable (e.g., $\mathtt{val=req}$).  The term ``untracked predicate'' indicates that these predicates are not part of the abstract state space of the game.  Untracked predicates can be seen as partitioning abstract states in $V$ into smaller \emph{untracked sub-states}, as illustrated in Figure~\ref{f:crefinement}.
 
 By substituting untracked and label predicates with fresh boolean variables, $\vect{\omega}$ and $\vect{\lambda}$ respectively, we obtain the abstract transition relation $\Delta$ in the form:
 
@@ -1023,7 +1023,7 @@ The consistency refinement algorithm proceeds in one of three ways:
     \item Finally, it may determine that abstract transition $\langle v, u_3, l_3\rangle$ is available in some, but not all, concrete states in $u_3$, i.e., $\langle v, u_3, l_3\rangle\in C^m\setminus C^M$.  It then partitions $u_3$ into two or more subsets, exactly one of which has a $C^{M-}$-consistent transition to $W^M$, by introducing new untracked predicates (Figure~\ref{f:crefinement}d).  
 \end{itemize}
 
-In all three cases, further refinement via untracked predicate promotion becomes possible.  Such refinement is performed by the \textsc{refineAbstraction} function described in Section~\ref{s:refineAbstraction}.
+In all three cases, further refinement via untracked predicate promotion becomes possible.  Such refinement is performed by the \textsc{refineAbstraction} function described in Section~\ref{sec:refineAbstraction}.
 
 \begin{figure}[t]
     \label{f:crefinement}
@@ -1032,7 +1032,7 @@ In all three cases, further refinement via untracked predicate promotion becomes
     \caption{Different types of consistency refinements.  White, grey, and black background is used to mark respectively must-losing, may-winning, and must-winning untracked substates.  Dashed and solid arrows show $C^{m+}$ and $C^{M-}$-consistent abstract transitions.}
 \end{figure}
 
-Note that in the special case when, after performing consistency refinement, all untracked substates of $v$ become must-winning or must-losing, the entire state $v$ can be removed from the boundary region without performing predicate promotion.  This corresponds to the two types of refinement labelled as \textsc{refineCpre} in Figure~\ref{f:reach}.  
+Note that in the special case when, after performing consistency refinement, all untracked substates of $v$ become must-winning or must-losing, the entire state $v$ can be removed from the boundary region without performing predicate promotion. 
 
 For this reason, Algorithm~\ref{alg:generic} recomputes $W^M$ and $W^m$ after each successful consistency refinement, and only calls \textsc{refineAbstraction} once no more consistency refinements are possible.
 
@@ -1040,7 +1040,7 @@ For this reason, Algorithm~\ref{alg:generic} recomputes $W^M$ and $W^m$ after ea
 
 Algorithm~\ref{alg:refineCpre} shows the pseudocode of \textsc{refineCpre}.  Lines~3--6 compute the set of candidate tuples $\langle v, u, l\rangle\in C^m\setminus C^M$.  Note that for player~$i$ states we consider may-consistent transition to $W^M$, whereas for player~$\overline{i}$ states we consider spoiling transitions to $V\setminus W^M$.
 
-Line~9 picks a single refinement candidate $\langle v,u,l \rangle$ from the set.  By construction we know that $\langle v,u,l\rangle\in C^{m+}$.  Since $C^{m+}$ is an overapproximation of $C^m$, we check whether $\langle v,u,l\rangle\in C^m$, i.e., whether $v$, $u$, and $l$ satisfy Equation~\ref{e:Cm}.  To this end, in line~11 we invoke a decision procedure for the underlying theory to check satisfiability of the formula:$(\|\vect{\sigma}\|=v \land \|\vect{\omega}\|=u \land \|\vect{\lambda}\|=l)$.If the formula is unsatisfiable, then $\langle v,u,l\rangle$ is a spurious transition that must be eliminated from $C^{m+}$.  Furthermore, by extracting an unsatisfiable core of the formula,we obtain an inconsistent subset of its conjuncts $(\bigwedge\|\alpha_i\|=c_i)$, $\alpha_i\in\vect{\sigma}\cup\vect{\omega}\cup\vect{\lambda}$,which represents a potentially large set of similar spurioustransitions.  We eliminate all of these transitions from $C^{m+}$ inline~16.
+Line~9 picks a single refinement candidate $\langle v,u,l \rangle$ from the set.  By construction we know that $\langle v,u,l\rangle\in C^{m+}$.  Since $C^{m+}$ is an overapproximation of $C^m$, we check whether $\langle v,u,l\rangle\in C^m$, i.e., whether $v$, $u$, and $l$ satisfy Equation~\ref{eqn:cm}.  To this end, in line~11 we invoke a decision procedure for the underlying theory to check satisfiability of the formula:$(\|\vect{\sigma}\|=v \land \|\vect{\omega}\|=u \land \|\vect{\lambda}\|=l)$.If the formula is unsatisfiable, then $\langle v,u,l\rangle$ is a spurious transition that must be eliminated from $C^{m+}$.  Furthermore, by extracting an unsatisfiable core of the formula,we obtain an inconsistent subset of its conjuncts $(\bigwedge\|\alpha_i\|=c_i)$, $\alpha_i\in\vect{\sigma}\cup\vect{\omega}\cup\vect{\lambda}$,which represents a potentially large set of similar spurioustransitions.  We eliminate all of these transitions from $C^{m+}$ inline~16.
 
 \begin{algorithm}[t]
 
@@ -1321,7 +1321,7 @@ $$
 where $j_1\ldots j_p$ are indices of variables assigned by $l$.  The above statement refines $C^{M-}$ by allowing the player to assign a subset of label variables in accordance with $l$ and disabling other label variables not constrained by $l$.  The environment will non-deterministically pick arbitrary values for these variables.  In this way we precisely capture what we currently know about consistent predicate assignments in a symbolic form, at the cost of introducing extra variables $\varepsilon_i$.
 
 \section{Implementation}
-We implemented this abstraction refinement algorithm as part of Termite. Termite currently supports specifications in its own domain-specific Termite Specification Language (TSL), which will be described in Chapter~\ref{c:userguided}.
+We implemented this abstraction refinement algorithm as part of Termite. Termite currently supports specifications in its own domain-specific Termite Specification Language (TSL), which is described in Appendix~\ref{ch:tsl_ref}.
 
 We extended our abstraction-refinement algorithm to handle GR(1) games as outlined in Section \ref{sec:omega_reg}.
 
@@ -1331,7 +1331,7 @@ In addition to the techniques described for variable and predicate abstraction i
 
 We also implemented an optimised version of the original algorithm by de~Alfaro and Roy, as described in Section~\ref{sec:variable_abstraction}, which enables a direct comparison of the two techniques.
 
-The core abstraction-refinement algorithm consists of 1800 lines of Haskell code took approximately 10 person-years to develop.
+The core abstraction-refinement algorithm consists of 1800 lines of Haskell code.
 
 \section{Evaluation}
 \begin{table*}
@@ -1364,7 +1364,7 @@ The core abstraction-refinement algorithm consists of 1800 lines of Haskell code
 \label{t:exp}
 \end{table*}
 
-We evaluate our synthesis algorithm by synthesising drivers for several real-world I/O devices, including an IDE hard disk, a real-time clock, two UART serial controllers, two I2C bus controllers, an SPI bus controller, and a UVC webcam.  We developed corresponding device and OS models using the Termite Specification Language (TSL) by following the common methodology used by hardware developers in building high-level device models.  We refer the reader to Chapter~\ref{c:userguided} for a description of the TSL language and the modelling methodology.  The source code of the case studies is available as part of the Termite distribution~\cite{termite}.
+We evaluate our synthesis algorithm by synthesising drivers for several real-world I/O devices, including an IDE hard disk, a real-time clock, two UART serial controllers, two I2C bus controllers, an SPI bus controller, and a UVC webcam.  We developed corresponding device and OS models using the Termite Specification Language (TSL) by following the common methodology used by hardware developers in building high-level device models.  We refer the reader to Appendix~\ref{ch:tsl_ref} for a description of the TSL language and the modelling methodology.  The source code of the case studies is available as part of the Termite distribution~\cite{termite}.
 
 Table~\ref{t:exp} summarises our experiments.  The first two rows characterise the complexity of the input models in terms of the number of variables and the total number of bits used in the concrete specification of the game.  Concrete state variables model internal device state, as well as the state of the driver-OS interface; label variables model commands and responses exchanged by the driver, the device, and the OS.  
 
