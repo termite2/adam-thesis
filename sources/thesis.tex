@@ -189,7 +189,8 @@
 }}{\vspace{3mm}}
 
 \lstnewenvironment{tsllisting}[1][]
-{\lstset{
+{   \vspace{4mm}
+    \lstset{
     escapeinside={(*@}{@*)},
     basicstyle=\footnotesize\ttfamily,
     keywordstyle=\bfseries,
@@ -209,7 +210,7 @@
     aboveskip=0pt,
     frame=tb,
     #1
-}}{}
+}}{\vspace{4mm}}
 
 \usepackage{color}
 \definecolor{lgray}{gray}{0.9}
