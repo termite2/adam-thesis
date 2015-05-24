@@ -365,6 +365,39 @@ Returning to our example, one implicant of Equation~\ref{eqn:edge} is $\{X=1, Y=
 \label{fig:var_refinement}
 \end{figure}
 
+\subsection{Putting it together}
+The three valued variable abstraction refinement algorithm is given in Algorithm~\ref{alg:three_val_abs_ref}.
+
+\begin{algorithm}
+\caption{Three-valued abstraction refinement algorithm}
+\label{alg:three_val_abs_ref}
+
+\begin{algorithmic}[1]
+
+\Require A game structure $G = \langle S, L, I, \tau_1, \tau_2, \delta \rangle$, a set 
+of target states $T\subseteq S$, and an initial abstraction $\alpha=\langle V, \concrete{} \rangle$
+that is precise for $T$, $I$, and $\tau_i$.
+
+\Ensure {\it Yes} if $I \subseteq \reach(T, Cpre_1)$, and {\it No} otherwise.
+
+\Function{Solve}{$transitionRelation$, $goal$}
+
+    \Loop
+        \State $W^M \gets \reach(\abstractM{T}, Cpre_1^M)$
+        \State $W^m \gets \reach(\abstractm{T}, Cpre_1^m)$
+        \If{$\abstractM{I} \subseteq W^M$} 
+            \State\Return Yes
+        \ElsIf{$\abstractM{I} \nsubseteq W^m$} 
+            \State\Return No
+        \Else       
+            \State$\Call{refineAbstraction}{W^M}$
+        \EndIf
+    \EndLoop
+\EndFunction
+
+\end{algorithmic}
+\end{algorithm}
+
 \subsection{Optimisation}
 
 There are two straightforward optimisations we can perform to speed up the abstraction refinement loop. The first is critical in practice as it drastically improves the performance of the algorithm.
