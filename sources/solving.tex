@@ -326,7 +326,7 @@ After solving, the initial state is not classified as either losing or must winn
 \Function{refineAbstraction}{$W^M$}
     \State $U^M \gets CpreU_1^M(W^M) \land \overline{W^M}$
     \State $toPromote \gets \vec{\omega}~\cap~$\Call{support}{\textsc{shortPrime}($U^M$)} \label{a:ra:extract_prime}
-    \State $\Call{promote}{toPromote}$
+    \State $\Call{promote}{toPromote}$ \label{a:ra:promote}
 \EndFunction
 \end{algorithmic}
 \end{algorithm}
@@ -354,7 +354,7 @@ $Cpre_1^F(W^M)$ for our running example is illustrated as the dark states in Fig
 
 We extract a large prime implicant from this characteristic function in line~\ref{a:ra:extract_prime}, an efficient operation with BDDs. We also extract the variables that occur in this prime that are not in $V_\alpha$ and call them $V_{pi} \subseteq F$. 
 
-Notice that if we add the variables in $V_{pi}$ to $V_\alpha$, the abstraction induced by $V_\alpha$ is now precise enough to exactly represent the states in the implicant. These states are winning. This means that if we iterate the controllable predecessor one more time, we will at least discover that this implicant is winning, in addition to $W^M$. Thus, our refinement has grown the must winning set. In practice, refining the abstraction in this way usually discovers many more winning states than just the implicant.
+Notice that if we add the variables in $V_{pi}$ to $V_\alpha$, the abstraction induced by $V_\alpha$ is now precise enough to exactly represent the states in the implicant. These states are winning. This means that if we iterate the controllable predecessor one more time, we will at least discover that this implicant is winning, in addition to $W^M$. Thus, our refinement has grown the must winning set. In practice, refining the abstraction in this way usually discovers many more winning states than just the implicant. We call adding a variable to $V_\alpha$ \emph{promoting} the variable. We promote each variable in $V_{pi}$ on line~\ref{a:ra:promote}.
 
 Returning to our example, one implicant of Equation~\ref{eqn:edge} is $\{X=1, Y=0, U=1\}$. $V_{pi}$ for this implicant is $\{U\}$. If we add $U$ to $V_\alpha$ we arrive at an abstraction that allows us to classify the initial state as must winning next time the game is solved. Thus, the game is winning. Notice that this algorithm allowed us to determine the game outcome without adding the variable $V$ to the abstraction. 
 
