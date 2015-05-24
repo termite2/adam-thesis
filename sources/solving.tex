@@ -284,7 +284,7 @@ Given a valuation of a subset of the concrete state variables $V \subseteq C$ we
 \begin{figure}
 \centering
 \includegraphics[width=0.5\linewidth]{diagrams/partitioning.pdf}
-\caption{Partitioning induced by $F$}
+\caption{Partitioning induced by $\{U, X, Y\}$}
 \label{fig:f_partitioning}
 \end{figure}
 
@@ -304,12 +304,23 @@ Since $W^M$ is a subset of the true winning region, if $I \rightarrow W^M$ then 
 
 If none of the above termination conditions held then it is because our abstraction is not precise enough and must be refined.
 
+The may (light gray) and must (dark gray) winning regions of our example system are given in figure~\ref{fig:may_must_win}. All states are may winning, but the top states are not must winning. These are the states where $Y$ is not $True$, as prescribed by the goal expression. Intuitively, this is because $U$ is not part of the abstraction. The solving algorithm is aware that the value of $Y$ can be set to the value of $U$ but it is not aware that $U$ can be set to $True$ by action $a2$.
+
+After solving, the initial state is not classified as either losing or must winning. In the next section, we attempt to refine the abstraction to remove the imprecision that prevented us from definitively classifying the initial state. 
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=0.5\linewidth]{diagrams/solved.pdf}
+\caption{May and must winning regions}
+\label{fig:may_must_win}
+\end{figure}
+
 \subsection{Refinement}
 
 \begin{algorithm}
 
 \caption{Pseudocode of \textsc{refineAbstraction}}
-\label{alg:refineAbstraction}
+\label{alg:refineAbstractionVar}
 
 \begin{algorithmic}[1]
 \Function{refineAbstraction}{$W^M$}
@@ -320,27 +331,39 @@ If none of the above termination conditions held then it is because our abstract
 \end{algorithmic}
 \end{algorithm}
 
-As explained in Section~\ref{sec:threeval_generic}, when refining the abstraction of a reachability game, we can limit our search for states to split to the \emph{may-must boundary}. We split an abstract state in two such that from one of the new states $a$ it is possible to force execution into $W^M$ from every state in $\concrete{a}$. Instead of searching each state at the boundary in turn for a candidate state to split as was implied in section~\ref{sec:threeval_generic}, we find a candidate state using an efficient symbolic calculation.
-
-Moreover, this symbolic calculation finds a state to split that is heuristically good.
+The algorithm for refining the abstraction is given in Algorithm~\ref{alg:refineAbstractionVar}. As explained in Section~\ref{sec:threeval_generic}, when refining the abstraction of a reachability game, we can limit our search for states to split to the \emph{may-must boundary}. We split an abstract state in two such that from one of the new states $a$ it is possible to force execution into $W^M$ from every state in $\concrete{a}$. Instead of searching each state at the boundary in turn for a candidate state to split as was implied in section~\ref{sec:threeval_generic}, we find a candidate state using an efficient symbolic calculation.
 
 We define the function $Cpre_1^F$ that returns the set of sub-states in the partition induced by the variables in $V_{\alpha} \cup F$ that are winning:
 
 \begin{equation}
-    Cpre_1^F(X) = \exists L. \forall N. TRANS \rightarrow X
+    Cpre_1^F(X) = \exists L. \forall N. TRANS \rightarrow X'
 \end{equation}
 
-Note that this differs from Equations~\ref{eqn:symb_cpre_M} and~\ref{eqn:symb_cpre_m} in that is never quantifies out $F$. Thus, it returns the set of $\langle S, F \rangle$ tuples that are winning.
+Note that this differs from Equations~\ref{eqn:symb_cpre_M} and~\ref{eqn:symb_cpre_m} in that it never quantifies out $F$. 
 
 We compute:
 
 \begin{equation}
     CPre_1^F(W^M) \wedge \neg W^M
+    \label{eqn:edge}
 \end{equation}
 
-\noindent to find the $\langle S, F \rangle$ tuples that are not must winning but have a transition to the must winning set. This is the characteristic formula of the states on the may-must boundary and are thus candidates for splitting.
+\noindent to find the sub-states that are not must winning but have a transition to the must winning set. This is the characteristic formula of the sub-states on the may-must boundary that are winning and are thus are part of a candidate state for splitting.
 
-We extract a large prime implicant from this characteristic function in line~\ref{a:ra:extract_prime}, an efficient operation with BDDs. We also extract the variables that occur in this prime and call them $V_{pi}$. $V_{pi} \cap V_{\alpha}$ defines a set of abstract states, all of which contain both winning and non-winning concrete states and are this refinement candidates. Furthermore, $V_{pi} \cap V_F$ ???.
+$Cpre_1^F(W^M)$ for our running example is illustrated as the dark states in Figure~\ref{fig:var_refinement}. The sub-states in the top half satisfy Equation~\ref{eqn:edge}.
+
+We extract a large prime implicant from this characteristic function in line~\ref{a:ra:extract_prime}, an efficient operation with BDDs. We also extract the variables that occur in this prime that are not in $V_\alpha$ and call them $V_{pi} \subseteq F$. 
+
+Notice that if we add the variables in $V_{pi}$ to $V_\alpha$, the abstraction induced by $V_\alpha$ is now precise enough to exactly represent the states in the implicant. These states are winning. This means that if we iterate the controllable predecessor one more time, we will at least discover that this implicant is winning, in addition to $W^M$. Thus, our refinement has grown the must winning set. In practice, refining the abstraction in this way usually discovers many more winning states than just the implicant.
+
+Returning to our example, one implicant of Equation~\ref{eqn:edge} is $\{X=1, Y=0, U=1\}$. $V_{pi}$ for this implicant is $\{U\}$. If we add $U$ to $V_\alpha$ we arrive at an abstraction that allows us to classify the initial state as must winning next time the game is solved. Thus, the game is winning. Notice that this algorithm allowed us to determine the game outcome without adding the variable $V$ to the abstraction. 
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=0.5\linewidth]{diagrams/refinement.pdf}
+\caption{Refinement for variable abstraction}
+\label{fig:var_refinement}
+\end{figure}
 
 \subsection{Optimisation}
 
