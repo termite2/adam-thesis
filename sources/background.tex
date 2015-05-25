@@ -585,7 +585,7 @@ The complement of a reachability game is a safety game with negated objective. T
     \neg\mathit{REACH} = \neg\nu Y. CPre_2(Y \wedge \neg T) = \mathit{SAFE}(\neg T) 
 \end{equation}
 
-Thus, the counterexample strategy for a reachability game is the strategy for a safety game with complemented objective and the other player's controllable predecessor. \todo{We dont actually give an algorithm for safety game strategy, so this is a bit useless.}
+Thus, the counterexample strategy for a reachability game is the strategy for a safety game with complemented objective and the other player's controllable predecessor. \todo{We dont actually give an algorithm for safety game strategy, so this is a bit useless, should I?.}
 
 \subsubsection{GR(1)}
 
@@ -672,7 +672,7 @@ A binary decision diagram is an efficient data structure for manipulating large 
 
 Figure~\ref{fig:decis_tree} shows a decision tree for the disjunction of two variables. The root node represents the disjunction function. The child nodes, or internal nodes, represent variables and the leaf nodes, or terminal nodes represent the outcome of the function. Terminal nodes are labelled either True or False. Given a valuation of X and Y, we can evaluate the function by starting at the root and taking the solid edge if the variable represented by the node is assigned to True in the valuation and taking the dashed edge if the value is assigned to False. 
 
-For example, in Figure~\ref{fig:decis_tree}, for the valuation $x=True$ and $y=False$, we start at the root node which is labelled x as x is this node's decision variable. Variable $X$ is assigned to True so we follow the solid edge to the next decision node which is labelled y. Y is assigned to false so we take the dashed edge and arrive at a terminal node whose value is 1, meaning that the function evaluates to 1 for this variable valuation.
+For example, in Figure~\ref{fig:decis_tree}, for the valuation $x=True$ and $y=False$, we start at the root node which is labelled x as x is this node's decision variable. Variable $X$ is assigned to True so we follow the solid edge to the next decision node which is labelled $Y$. $Y$ is assigned to false so we take the dashed edge and arrive at a terminal node whose value is 1, meaning that the function evaluates to 1 for this variable valuation.
 
 \subsubsection{Ordered binary decision trees}
 
