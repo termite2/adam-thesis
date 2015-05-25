@@ -1393,9 +1393,9 @@ We also implemented an optimised version of the original algorithm by de~Alfaro 
 The core abstraction-refinement algorithm consists of 1800 lines of Haskell code.
 
 \section{Evaluation}
-\begin{table*}
+\begin{sidewaystable}
+    \small
     \center
-    \scriptsize
 \begin{tabular} {| l | l | r | r | r | r | r | r | r | r | r | r |}
     \hline
     \multirow{2}{*}{} & \multirow{2}{*}{Statistic} & \multicolumn{10} {|c|} {Case study} \\ \cline{3-12} & & \multicolumn{1}{c}{IDE} & \multicolumn{1}{c}{RTC} & \multicolumn{1}{c}{UART-1} & \multicolumn{1}{c}{UART-2} & \multicolumn{1}{c}{I2C-1} & \multicolumn{1}{c}{I2C-2} & \multicolumn{1}{c}{SPI} & \multicolumn{1}{c|}{UVC} & \multicolumn{1}{c|}{simple SPI} & \multicolumn{1}{c|}{simple I2C} \\
@@ -1421,7 +1421,7 @@ The core abstraction-refinement algorithm consists of 1800 lines of Haskell code
 \end{tabular}
 \caption{Summary of experimental case studies.}
 \label{t:exp}
-\end{table*}
+\end{sidewaystable}
 
 We evaluate our synthesis algorithm by synthesising drivers for several real-world I/O devices, including an IDE hard disk, a real-time clock, two UART serial controllers, two I2C bus controllers, an SPI bus controller, and a UVC webcam.  We developed corresponding device and OS models using the Termite Specification Language (TSL) by following the common methodology used by hardware developers in building high-level device models.  We refer the reader to Appendix~\ref{ch:tsl_ref} for a description of the TSL language and the modelling methodology.  The source code of the case studies is available as part of the Termite distribution~\cite{termite}.
 
