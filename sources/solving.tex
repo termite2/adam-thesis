@@ -669,8 +669,8 @@ Figure~\ref{fig:ex_game_specification} specifies the transition relation $\delta
 
 \begin{figure}
     \centering
-    \label{fig:ex_game_variables}
     \caption{Game variables}
+    \label{fig:ex_game_variables}
     \begin{tabular}{|p{0.13\linewidth}p{0.22\linewidth}p{0.45\linewidth}|}
         \hline
         {\bf Var} & {\bf Type} & {\bf Description} \\
@@ -692,8 +692,8 @@ Figure~\ref{fig:ex_game_specification} specifies the transition relation $\delta
 
 \begin{figure}
     \centering
-    \label{fig:ex_game_specification}
     \caption{Game specification}
+    \label{fig:ex_game_specification}
     \begin{subfigure}{\linewidth}
     \caption{Turn functions, initial and target sets}
     $\tau_1=(bsy=false)~~\tau_2=(bsy=true)~~I=\top~~T=(req=mem)$
@@ -747,8 +747,8 @@ The state space $V$ of the abstract game is defined as $V = \mathbb{B}^n$, where
 
 \begin{figure}
     \centering
-    \label{fig:ex_game_abstraction}
     \caption{Abstract variables and corresponding predicates}
+    \label{fig:ex_game_abstraction}
     \begin{tabular}{|p{0.14\linewidth}|p{0.5\linewidth}|}
         \hline
         {\bf a.var} & {\bf predicate} \\
@@ -888,7 +888,7 @@ This syntactically computed transition relation contains two sources of imprecis
 
 \begin{itemize}
     \item First, untracked variables $\vect{\omega}$ are not part of the abstract state space $\Sigma$ and are therefore treated as external inputs.  
-    \item Second, not all abstract labels  are available in all abstract states and hence not all transitions in $\Delta$ correspond to a feasible concrete transition.  For example, given the set of predicates shown in Figure~\ref{f:ex}d, the abstract label $\lambda_1 = true, \lambda_2 = true$ is only available in concrete states that satisfy the condition $req=5$.  In general, given a state-untracked-label tuple $\langle v,u,l\rangle$, the abstract label $l$ may be available in all, some, or none of the concrete states consistent with $v$ and $u$.  
+    \item Second, not all abstract labels  are available in all abstract states and hence not all transitions in $\Delta$ correspond to a feasible concrete transition.  For example, given the set of predicates shown in Figure~\ref{fig:ex_game_abstraction}, the abstract label $\lambda_1 = true, \lambda_2 = true$ is only available in concrete states that satisfy the condition $req=5$.  In general, given a state-untracked-label tuple $\langle v,u,l\rangle$, the abstract label $l$ may be available in all, some, or none of the concrete states consistent with $v$ and $u$.  
 \end{itemize}
 
 \subsection{Consistency Relations}
@@ -948,7 +948,7 @@ We compute over- and under-approximations of the controllable predecessor operat
 \end{aligned}
 \end{equation}
 
-This formula has a similar structure to the definition of the concrete controllable predecessor operator (Equation~\ref{e:cpre}).  It replaces the concrete transition relation $\delta$ with the abstract transition relation $\Delta$ restricted with consistency relations ($C^{m+}$ and $C^{M-}$).  In addition, it existentially quantifies untracked variables $\vect{\omega}$, i.e., an abstract state $v$ is a may-predecessor of $\phi$ if at least one of its untracked sub-states is a may-predecessor of $\phi$.
+This formula has a similar structure to the definition of the variable abstraction controllable predecessor operator (Equation~\ref{eqn:symb_cpre_m}).  It replaces the concrete transition relation $\delta$ with the abstract transition relation $\Delta$ restricted with consistency relations ($C^{m+}$ and $C^{M-}$).  In addition, it existentially quantifies untracked variables $\vect{\omega}$, i.e., an abstract state $v$ is a may-predecessor of $\phi$ if at least one of its untracked sub-states is a may-predecessor of $\phi$.
 
 Dually, we compute $Cpre_i^{M-}$ by (1) allowing the opponent player $\overline{i}$ to pick values of untracked predicates, (2) under-approximating labels available to $i$ and (3) over-approximating labels available to $\overline{i}$:
 
@@ -1085,10 +1085,10 @@ The consistency refinement algorithm proceeds in one of three ways:
 In all three cases, further refinement via untracked predicate promotion becomes possible.  Such refinement is performed by the \textsc{refineAbstraction} function described in Section~\ref{sec:refineAbstraction}.
 
 \begin{figure}[t]
-    \label{f:crefinement}
     \center
     \includegraphics[width=\linewidth]{imgs/crefinement}
     \caption{Different types of consistency refinements.  White, grey, and black background is used to mark respectively must-losing, may-winning, and must-winning untracked substates.  Dashed and solid arrows show $C^{m+}$ and $C^{M-}$-consistent abstract transitions.}
+    \label{f:crefinement}
 \end{figure}
 
 Note that in the special case when, after performing consistency refinement, all untracked substates of $v$ become must-winning or must-losing, the entire state $v$ can be removed from the boundary region without performing predicate promotion. 

@@ -50,7 +50,7 @@ Input to \termite consists of the three specifications, which model the complete
     \includegraphics[width=0.85\linewidth]{imgs/actions.pdf}
     \caption{Input specifications for driver synthesis.  
     Labels in italics show interfaces from the running example
-    (Figure~\ref{f:ex}).}\label{f:actions}
+(Figure~\ref{f:ex_dev} and Figure~\ref{f:ex_os}).}\label{f:actions}
 \end{figure}
 
 The virtual interface between the device and the OS, shown with the dashed arrow in Figure~\ref{f:actions}, is used by the device model to notify the OS model about important hardware events, such as completion of I/O transactions and error conditions.  Methods of the virtual interface do not represent real runtime interactions between the device and the OS, but are used by the OS model to specify correctness constraints for the driver (see Section~\ref{s:virt}).
@@ -486,6 +486,7 @@ Finally, $availableLabels$ uses $enumerate$ to enumerate labels with different b
 \EndFunction
 
 \end{algorithmic}
+\caption{The \textsc{GenPair} function}
 \label{alg:gen_pair}
 \end{algorithm}
 
@@ -503,10 +504,11 @@ Finally, $availableLabels$ uses $enumerate$ to enumerate labels with different b
 \EndFunction
 
 \end{algorithmic}
+\caption{The \textsc{Enumerate} function}
+\label{alg:enumerate}
 \end{algorithm}
 
 \begin{algorithm}
-\label{alg:enumerate}
 \begin{algorithmic}
 
 \Function{availableLabels}{$s, u, l, s', strategy, stateSet$}
@@ -515,6 +517,7 @@ Finally, $availableLabels$ uses $enumerate$ to enumerate labels with different b
 \EndFunction
 
 \end{algorithmic}
+\caption{The \textsc{availableLabels} function}
 \label{alg:available_labels}
 \end{algorithm}
 
