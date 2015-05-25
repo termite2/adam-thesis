@@ -252,6 +252,7 @@ It is clear from the figure that the abstraction forms a partition of the concre
 \end{figure}
 
 \subsection{Controllable predecessor}
+\label{sec:var_cpre}
 
 The controllable predecessor is constructed using the transition relation. For efficiency, the transition relation will be constructed incrementally. As the state variables in our initial abstraction are only the variables in $G$, these are the only ones we need to compute the transition relation for initially.
 
@@ -866,7 +867,7 @@ We construct the abstract transition relation via efficient syntactic analysis o
 
 For each state predicate in $\Sigma$, we compute the update function by replacing concrete variables in the predicate with their corresponding update functions. We then transform the resulting formula into a boolean combination of atomic predicates over concrete state and label variables.
 
-In the general case, the syntactically computed update function for a predicate may depend on existing state predicates in $\Sigma$ as well as new predicates that are not yet part of the abstraction.  The new predicates are partitioned into \emph{untracked predicates} defined over concrete state variables (e.g., $\mathtt{bsy=false}$ in Figure!\ref{fig:ex_game_specification}a) and \emph{label predicates} that involve at least one concrete label variable (e.g., $\mathtt{val=req}$).  The term ``untracked predicate'' indicates that these predicates are not part of the abstract state space of the game.  Untracked predicates can be seen as partitioning abstract states in $V$ into smaller \emph{untracked sub-states}, as illustrated in Figure~\ref{f:crefinement}.
+In the general case, the syntactically computed update function for a predicate may depend on existing state predicates in $\Sigma$ as well as new predicates that are not yet part of the abstraction.  The new predicates are partitioned into \emph{untracked predicates} defined over concrete state variables (e.g., $\mathtt{bsy=false}$ in Figure!\ref{fig:ex_game_specification}a) and \emph{label predicates} that involve at least one concrete label variable (e.g., $\mathtt{val=req}$).  The term ``untracked predicate'' indicates that these predicates are not part of the abstract state space of the game. They play a similar role to the free variables of Section~\ref{sec:var_cpre}. Untracked predicates can be seen as partitioning abstract states in $V$ into smaller \emph{untracked sub-states}, as illustrated in Figure~\ref{f:crefinement}.
 
 \begin{ex}
     Let us compute the update function for abstract variable $\sigma_1$ (Figure~\ref{fig:ex_game_abstraction}).  Using update functions for $req$ and $dat$ variables (Figure~\ref{fig:ex_game_variables}b), we obtain: 
@@ -877,7 +878,7 @@ In the general case, the syntactically computed update function for a predicate 
     
     \noindent This equation contains three atomic predicates: in addition to the existing predicate $\sigma_1 \leftrightarrow (req=dat)$, it introduces new predicates $(bsy=false)$ and $(val=req)$.  
 
-    The first two predicates correspond to existing state variables $\sigma_1$ and $\sigma_2$.  The last predicate is new; hence it is added to set $\Omega$ and a new untracked variable $\omega_1$ is created for it.  By substituting predicates in the equation with corresponding abstract variables, we obtain the following abstract transition relation for $\sigma_1$ in line~11 of the algorithm:
+    The first two predicates correspond to existing state variables $\sigma_1$ and $\sigma_2$.  The last predicate is new. A new untracked variable $\omega_1$ is created for it.  By substituting predicates in the equation with corresponding abstract variables, we obtain the following abstract transition relation for $\sigma_1$:
     $\sigma_1' = (\overline{\sigma_2} \land \omega_1) \lor (\sigma_2 \land \sigma1)$
     \qed
 \end{ex}
