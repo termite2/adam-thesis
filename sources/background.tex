@@ -182,6 +182,7 @@ A Generalized \buchi\ objective is defined by a finite set of sets $\genbuchiobj
 \end{equation}
 
 \paragraph{Fairness}
+\label{sec:fairness}
 Sometimes it is necessary to rule out invalid plays that are not easily ruled out by changing the state machine. As an example, consider a progress assumption that guarantees that the game will eventually leave a set of `pending' states. For this we use fairness conditions. A fairness condition is a set of states, the \emph{fair} set, which we may assume that all valid runs of the game eventually enter. Or, equivalently, a set of states, called the \emph{unfair} set which we may assume that all valid runs of the game eventually leave. If a spoiling strategy exists that results in an unfair run, i.e.\ it does not always, at some point in the future, enter the fair set, then it does not count. Formally, a run satisfies a fair reachability objective if 
 
 \begin{equation}
@@ -189,6 +190,7 @@ Sometimes it is necessary to rule out invalid plays that are not easily ruled ou
 \end{equation}
 
 \paragraph{GR(1)}
+\label{sec:gr1}
 A Generalized Reactive 1, or GR(1) \cite{Piterman_PS_06} objective, is a generalized \buchi\ objective with multiple fairness conditions. In practice, this turns out to be a very useful type of objective. Formally, given a set $FAIRS$ of fair sets of states, a run satisfies a GR(1) objective if 
 
 \begin{multline}

@@ -24,7 +24,67 @@ To formalise the driver synthesis problem using games, the first thing we must d
     \item Player~2 is the environment, which consists of the device to be controlled as well as the operating system.
 \end{itemize}
 
+\section{GR(1) based formalism}
+
+In the following sections, we attempt to formalise the driver synthesis problem using the simplest game - the reachability game - and analyse its shortcomings. We show that extending our formalism to GR(1) objectives, as used in Termite, overcomes these shortcomings.
+
+\subsection{Reachability}
+
+As a concrete example, we could create a crude formalism for driver synthesis using only a reachability game. Consider, for example, figure~\ref{fig:reach}, which shows the state machine for a game to control a hypothetical network controller. Execution begins in the leftmost state where the OS may initiate a network transfer by choosing the `send' label. The goal of the game is the rightmost state (labelled `G') as this is the point where player 1 has completed the request. So, to win, player 1 (who controls the transitions with solid lines) must ensure that execution of the state machine reaches the goal. 
+
+\begin{figure}
+\centering
+\includegraphics[width=0.85\linewidth]{diagrams/reachGame.pdf}
+\caption{Reachability game for simple network device}
+\label{fig:reach}
+\end{figure}
+
+The network device has two 8-bit registers, command (abbreviated cmd) and data. Writing 0x01 to the command register starts the transfer, and eventually whatever is in the data register gets written out to the network. Note that the actual sending of the data is an uncontrollable event. 
+
+The correct sequence to win the game, therefore, is to write to the data register and then to the control register after the OS performs a send request. This takes us to state `S5' where the only move by player 2 is `evt\_send' taking us to the goal. 
+
+If the command register is written first and then the data register there is potential for the environment to play the `evt\_send' label before the data is written, potentially resulting in the wrong data being sent. This is the transition that terminates in the `E' state (for error). The `E' state is a dead end, so it is not possible to reach the goal. 
+
+So, if player 1 takes the top half of the diamond (i.e.\ writes data before command) then it will be guaranteed to reach the goal and the reachability game is winning for player 1. The strategy to reach the goal tells us the sequence of labels the driver must play to get to the goal. In principle, this could be turned into a driver for our simple network device.
+
+This simplistic formalism for driver synthesis has several shortcomings that we will deal with in the following sections.
+
+\subsection{\buchi}
+
+Consider a simplified version of the previous network controller that does not have a command register. Instead, writing to the data register triggers future transmission of the byte. However, there are two ways of writing to the data register. One is a standard register write. The other also performs the register write and then schedules a self destruct sequence to happen immediately after the byte is transmitted. The state machine for this device is shown in figure~\ref{fig:buchi}. The goal, in this case, is the set $\{S3, S5\}$ corresponding to the state after completion of the send request. The problem is that, unless you only ever want to send one byte, this goal does not capture the required behavior. For example, a valid strategy for the reachability game with objective $\{S3, S5\}$ is to take the bottom branch of the specification, putting the device in a state where it is not possible to transmit another packet. One could easily work around this problem by specifying only ${S3}$ as the goal, but this breaks composition of the specifications (Section~\ref{sec:composition}).
+
+The solution is to modify the objective of the game. Instead of being able to reach the goal once, we want to be able to reach the goal an infinite number of times. Or, equivalently, we want to always be able to reach the goal again. This is a \buchi\ game.
+
+\begin{figure}
+\centering
+\includegraphics[width=0.85\linewidth]{diagrams/buchiGame.pdf}
+\caption{\buchi\ game for the simple network device}
+\label{fig:buchi}
+\end{figure}
+
+\subsection{Fairness}
+
+Consider another modification of our simplified network device without a self destruct sequence, but with the ability to check that noone is using the communication medium prior to transmitting. The state machine of this device is given in figure~\ref{fig:fair}. After the user requests data transmission by writing to the data register, it executes a loop that checks if the medium is free, and if so, it performs the transmission. 
+
+If we pose this as a reachability game with goal state $G$, then the game is not winnable. The device may stay in the loop forever as it is never guaranteed to exit. Such a behavior should not prevent a driver from being synthesized providing that we have good reason to believe that the loop will eventually exit. Looping forever can be seen as a invalid behavior and we want to synthesize a driver for this system providing the invalid behavior does not occur. 
+
+These behaviors are eliminated with fairness conditions (Section~\ref{sec:fairness}). Fairness conditions are sets of states which we guarantee execution will eventually leave. We refer to these as unfair states. In the example, the unfair states are the set $\{S2, S3\}$. The fairness condition says that we will eventually leave the unfair set once we enter it, and the only way of doing this is through the $evt\_send$ transition, so the game becomes winning.
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=0.85\linewidth]{diagrams/fairReach.pdf}
+\caption{Fair reachability game for the simple network device}
+\label{fig:fair}
+\end{figure}
+
+\subsection{GR(1)}
+
+We allow multiple goals as real drivers may be required to meet multiple objectives. Additionally, we allow multiple fairness conditions as real drivers may have multiple `looping' behaviors that need to be ruled out.
+
+The combination of multiple fairness and multiple \buchi\ objectives is a GR(1) objective (Section~\ref{sec:gr1}). Intuitively a GR(1) objective says that we can always reach any goal provided that we do not get stuck forever in some unfair set of states. We use GR(1) objectives in Termite as we have found that in practice they are sufficient to express the requirements of our drivers.
+
 \section{Device and OS specifications and synchronization}
+\label{sec:composition}
 
 A core concept of Termite is the separation of device and operating system specifications. Games so far have been defined to have a single state machine that contains all of the states of the system as well as all of the actions. In Termite, we decouple the description of the operating system from the device to be controlled and then combine these to form a state machine before synthesis.
 
@@ -111,65 +171,4 @@ We combine the device and OS specifications by executing them concurrently. We d
 \label{fig:combined_spec_mealy}
 \end{subfigure}
 \end{figure}
-
-\section{GR(1) based formalism}
-
-In the following sections, we attempt to formalise the driver synthesis problem using the simplest game - the reachability game - and analyse its shortcomings. We show that extending our formalism to GR(1) objectives, as used in Termite, overcomes these shortcomings.
-
-\subsection{Reachability}
-
-As a concrete example, we could create a crude formalism for driver synthesis using only a reachability game. Consider, for example, figure~\ref{fig:reach}, which shows the state machine for a game to control a hypothetical network controller. Execution begins in the leftmost state where the OS may initiate a network transfer by choosing the `send' label. The goal of the game is the rightmost state (labelled `G') as this is the point where player 1 has completed the request. So, to win, player 1 (who controls the transitions with solid lines) must ensure that execution of the state machine reaches the goal. 
-
-\begin{figure}
-\centering
-\includegraphics[width=0.85\linewidth]{diagrams/reachGame.pdf}
-\caption{Reachability game for simple network device}
-\label{fig:reach}
-\end{figure}
-
-The network device has two 8-bit registers, command (abbreviated cmd) and data. Writing 0x01 to the command register starts the transfer, and eventually whatever is in the data register gets written out to the network. Note that the actual sending of the data is an uncontrollable event. 
-
-The correct sequence to win the game, therefore, is to write the data register and then the control register after the OS performs a send request. This takes us to state `S5' where the only move by player 2 is `evt\_send' taking us to the goal. 
-
-If the command register is written first and then the data register there is potential for the environment to play the `evt\_send' label before the data is written, potentially resulting in the wrong data being sent. This is the transition that terminates in the `E' state (for error). The `E' state is a dead end, so it is not possible to reach the goal. 
-
-So, if player 1 takes the top half of the diamond (i.e.\ writes data before command) then it will be guaranteed to reach the goal and the reachability game is winning for player 1. The strategy to reach the goal tells us the sequence of labels the driver must play to get to the goal. In principle, this could be turned into a driver for our simple network device.
-
-This simplistic formalism for driver synthesis has several shortcomings that we will deal with in the following sections.
-
-\subsection{\buchi}
-
-Consider a simplified network controller that does not have a command register. Instead, writing to the data register triggers transmission of the byte. However, there are two ways of writing to the data register. One is a standard register write. The other also performs the register write and then schedules a self destruct sequence to happen immediately after the byte is transmitted. The state machine for this device is shown in figure~\ref{fig:buchi}. The goal, in this case, is the set ${S3, S5}$ corresponding to the state after completion of the send request. The problem is that, unless you only ever want to send one byte, this goal does not capture the required behavior. One could easily work around this problem by specifying only ${S3}$ as the goal, but this breaks the compositionality of the specifications.
-
-The solution is to modify the objective of the game. Instead of being able to reach the goal once, we want to be able to reach the goal an infinite number of times. Or, equivalently, we want to always be able to reach the goal again. This kind of objective is called a Buchi objective and a game with a Buchi objective is called a Buchi game. 
-
-\begin{figure}
-\centering
-\includegraphics[width=0.85\linewidth]{diagrams/buchiGame.pdf}
-\caption{Buchi game for simple network device}
-\label{fig:buchi}
-\end{figure}
-
-\subsection{Fairness}
-
-Consider a modification of our simplified network device without a self destruct sequence, but with the ability to check that noone is using the communication medium prior to transmitting. The state machine of this device is given in figure~\ref{fig:fair}. After the user requests data transmission by writing to the data register, it executes a loop that checks if the medium is free, and if so, it performs the transmission. 
-
-If we pose this as a reachability game with goal state $G$, then the game is not winnable. The device may stay in the loop forever as it is never guaranteed to exit. Such a behavior should not prevent a driver from being synthesized providing that we have good reason to believe that the loop will eventually exit. Looping forever can be seen as a invalid behavior and we want to synthesize a driver for this system providing the invalid behavior does not occur. 
-
-In model checking these behaviors are eliminated with fairness conditions. Fairness conditions are sets of states which we guarantee will eventually be left, which we refer to as unfair states. In the example, the unfair states are the set ${S2, S3}$. The fairness condition says that we will eventually leave the unfair set, and the only way of doing this is through the $evt\_send$ transition, and the game becomes winning.
-
-\begin{figure}[t]
-\centering
-\includegraphics[width=0.85\linewidth]{diagrams/fairReach.pdf}
-\caption{Fair reachability game for simple network device}
-\label{fig:fair}
-\end{figure}
-
-\subsection{Multiple Goals}
-
-\subsection{Multiple Fairness}
-
-\subsection{GR(1)}
-
-The combination of fairness and buchi objectives is called a GR(1) objective. Intuitively a GR(1) objective says that we can always reach some goal state provided that we do not get stuck forever in some unfair set of states. We use GR(1) objectives in Termite as we have found that in practice it is sufficient to express our goals.
 
