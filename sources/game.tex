@@ -119,22 +119,6 @@ This device model is equivalent to a Mealy machine as shown in Figure~\ref{fig:d
 
 \subsection{OS specification}
 
-The operating system specification, given in Figure~\ref{fig:os_spec} is like a test harness for our driver. It specifies which requests the driver may receive (e.g.\ to send a notification) and how it must respond (e.g.\ by eventually sending the requested notification). It is simply another state machine, like the device specification, but it may also have goals.
-
-The goal state, state \code{O3}, is the state that a correct driver will eventually force the OS specification to be in. It is possible to specify multiple goal states, in which case the driver must force execution into any goal state.
-
-Our OS state machine starts off in the \code{osIdle} state. From there, if a \code{classSent} event is triggered by the device state machine, then the device must have sent a notification without the OS ever having requested one. This is an error, so the OS state machine transitions to the \code{osError} state. There is no way that the OS could have known that this event happened as it does not monitor the device notification output, so, the OS specification does not represent the way that the OS behaves in reality. These events that do not correspond to real interactions but are used to enforce correctness are called \emph{virtual events}. Responding to virtual events in this way is how the OS spec guarantees correctness of the system. 
-
-There is nothing special about the error state, however, we have constructed the state machine in such a way that the error state is a dead end and it is not possible to reach the goal from that state.
-
-If a \code{devSndReq} event happens, the OS transitions into the \code{devRequested} state. From there, when a \code{classSent} event happens, the OS specification transitions into the goal state as this time the \code{classSent} event was expected. 
-
-We can see from the OS specification that it is the job of the driver to ensure that a \code{devSendReq} event is eventually followed by \code{classSent} event. However, a \code{classSent} event can only be issued by the device, not the driver. The driver can, however, force the device to issue a \code{classSent} event indirectly in response to a \code{devSendReq} event. 
-
-In general, it is the job of the driver synthesis algorithm to figure out how to force certain events to happen at the right time (as specified by the OS state machine) by using information from the device state machine. 
-
-As with the device specification, the OS specification may be seen as a Mealy machine as shown in Figure~\ref{fig:os_spec_mealy}. Again, there is a single register for storing the current state and this state is updated on each transition using combinational logic. In addition to taking the label variables as input, it also takes the \code{classSent} boolean signal that was produced by the device Mealy machine as input. 
-
 \begin{figure}
 \centering
 \begin{subfigure}[t]{0.47\textwidth}
@@ -150,6 +134,22 @@ As with the device specification, the OS specification may be seen as a Mealy ma
 \label{fig:os_spec_mealy}
 \end{subfigure}
 \end{figure}
+
+The operating system specification, given in Figure~\ref{fig:os_spec} is like a test harness for our driver. It specifies which requests the driver may receive (e.g.\ to send a notification) and how it must respond (e.g.\ by eventually sending the requested notification). It is simply another state machine, like the device specification, but it may also have goals.
+
+The goal state, state \code{O3}, is the state that a correct driver will eventually force the OS specification to be in. It is possible to specify multiple goal states, in which case the driver must force execution into any goal state.
+
+Our OS state machine starts off in the \code{osIdle} state. From there, if a \code{classSent} event is triggered by the device state machine, then the device must have sent a notification without the OS ever having requested one. This is an error, so the OS state machine transitions to the \code{osError} state. There is no way that the OS could have known that this event happened as it does not monitor the device notification output, so, the OS specification does not represent the way that the OS behaves in reality. These events that do not correspond to real interactions but are used to enforce correctness are called \emph{virtual events}. Responding to virtual events in this way is how the OS spec guarantees correctness of the system. 
+
+There is nothing special about the error state, however, we have constructed the state machine in such a way that the error state is a dead end and it is not possible to reach the goal from that state.
+
+If a \code{devSndReq} event happens, the OS transitions into the \code{devRequested} state. From there, when a \code{classSent} event happens, the OS specification transitions into the goal state as this time the \code{classSent} event was expected. 
+
+We can see from the OS specification that it is the job of the driver to ensure that a \code{devSendReq} event is eventually followed by \code{classSent} event. However, a \code{classSent} event can only be issued by the device, not the driver. The driver can, however, force the device to issue a \code{classSent} event indirectly in response to a \code{devSendReq} event. 
+
+In general, it is the job of the driver synthesis algorithm to figure out how to force certain events to happen at the right time (as specified by the OS state machine) by using information from the device state machine. 
+
+As with the device specification, the OS specification may be seen as a Mealy machine as shown in Figure~\ref{fig:os_spec_mealy}. Again, there is a single register for storing the current state and this state is updated on each transition using combinational logic. In addition to taking the label variables as input, it also takes the \code{classSent} boolean signal that was produced by the device Mealy machine as input. 
 
 \subsection{Combined Specification}
 

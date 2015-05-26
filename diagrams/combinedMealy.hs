@@ -41,7 +41,7 @@ combLogicd = (combd <> inputsd <> outputd) # (withName "comb" $ \d -> moveOrigin
 
 diagd = combLogicd <> regd <> hrule 20 # alignL # moveTo (p2 (5, 3.5)) <> circle 0.5 # fc black # moveTo (p2 (25, 3.5)) <> fromVertices [p2 (35, 3.5), p2 (45, 3.5), p2 (45, 13.5), p2 (0, 13.5), p2 (0, 10)] <> circle 0.5 # fc black # moveTo (p2 (0, 10))
 
-combined = (diagd === diag) <> text "classSent" # fontSize smallF # moveTo (p2 (3, -17)) <> vrule 24 # alignB # moveTo (p2 (-10, -30))
+combined = ((diagd === diag) <> text "classSent" # fontSize smallF # moveTo (p2 (3, -17)) <> vrule 24 # alignB # moveTo (p2 (-10, -30))) # centerXY # pad 1.02
 
 main = mainWith (combined :: Diagram B)
 
