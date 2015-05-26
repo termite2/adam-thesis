@@ -253,6 +253,7 @@ The controllable predecessor for turn based games, given by Equation~\ref{eqn:tu
 This is illustrated in Figure~\ref{fig:turn_cpre}. The two dark states are winning and they form the set $X$ passed to $CPre$. $CPre$ returns state $s1$ in the winning set because it is a controllable state and there exists a transition into a winning state. State $s2$ is also winning because it is an uncontrollable state and all outgoing transitions go to winning states. Lastly, $s3$ is \emph{not} winning because it is uncontrollable and one of its outgoing transitions does not lead to a winning state.
 
 \subsubsection{Termite's controllable predecessor}
+\label{sec:termite_cpre}
 
 \paragraph{Concurrent Games}
 

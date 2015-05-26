@@ -1,6 +1,6 @@
-\chapter{Driver Synthesis as a Game}
+\chapter{Synthesis as a Game}
 
-In this chapter we formalise the device driver synthesis problem using games. We show that GR(1) games are sufficient to capture the properties of the drivers that we require. We also develop the driver synthesis controllable predecessor.
+In the following sections we formalise the device driver synthesis problem using games. We show that GR(1) games are sufficient to capture the properties of the drivers that we require.
 
 We formalize the driver synthesis problem as a \emph{two-player game}~\cite{Thomas_95} between the driver and its environment. The game is played over a finite automaton that represents all possible states and behaviors of the system. Transitions of the automaton are classified into \emph{controllable} transitions triggered by the driver and \emph{uncontrollable} transitions triggered by the device or OS. A winning strategy for the driver in the game corresponds to a correct driver implementation. If, on the other hand, a winning strategy does not exist, this means that there exists no specification-conforming driver implementation.
 
@@ -28,31 +28,21 @@ To formalise the driver synthesis problem using games, the first thing we must d
 
 A core concept of Termite is the separation of device and operating system specifications. Games so far have been defined to have a single state machine that contains all of the states of the system as well as all of the actions. In Termite, we decouple the description of the operating system from the device to be controlled and then combine these to form a state machine before synthesis.
 
-Both the device and OS specifications are given as state machines. They are defined symbolically. Each specification has its own set of state variables that it must supply update functions for, however, one specification may refer to another's state variables in its state update functions. There is also a global set of label variables which each specification may also refer to in its state update functions. An overview of a system consisting of a device and OS specification as well as their interconnections is given in figure~\ref{fig:specs}.
-
-As the figure shows, device and OS specifications are identical to modules that describe Mealy machines in a hardware description language such as Verilog or VHDL\@. They consist of some private state, represented by D type flip-flops (though the variables are not restricted to single bits) that is updated solely by logic within that module. Other modules can read, but not write to, this private state through the Mealy machine's output variables. The label, which is chosen by one of the players, appears as input to both of the modules and they can use it in the update functions for their private state.
-
-To ensure reusability of specifications, specifications do not directly refer to each other's state variables. Instead, they access them through well defined interfaces and there is a device class mechanism to standardise the interfaces of both the device and operating system specification interfaces. We delay description of this mechanism until Chapter~\ref{c:userguided}. For now we assume that specifications can access each other's state variables without restriction.
+Both the device and OS specifications are given as state machines. In Termite, they are defined symbolically in TSL (Termite specification language) (Appendix~\ref{ch:tsl_ref}). Each specification has its own set of state variables that it must supply update functions for. There is also a global set of label variables which each specification may also refer to in its state update functions. 
 
 \section{An Example System Specification}
 
-We give an example system specification to illustrate its decomposition into separate OS and device specifications. We give the system both as graphical state machines and in ASL.
+We give an example system specification to illustrate its decomposition into separate OS and device specifications. 
 
 \subsection{State Machines}
 
-Figure~\ref{fig:dev_spec} is our example device specification. The labelled circles are states. Arrows represent transitions between states. Solid arrows are controllable transitions whereas dashed arrows are uncontrollable, as described in Section~\ref{sec:conc_games}. Each transition is labelled by at least one event. Conceptually, these events trigger the transitions. All events for which there are no outgoing transitions do not change the state, i.e.\ they are self loops and are not shown in the interest of keeping the diagrams concise. The short arrow with no source state indicates the initial state. There may be more than one initial state, in which case the initial state is chosen non-deterministically.
+Figure~\ref{fig:dev_spec} is our example device specification. The labelled circles are states. Arrows represent transitions between states. Solid arrows are controllable transitions whereas dashed arrows are uncontrollable, as described in Section~\ref{sec:termite_cpre}. Each transition is labelled by at least one event. Conceptually, these events trigger the transitions. All events for which there are no outgoing transitions do not change the state, i.e.\ they are self loops and are not shown in the interest of keeping the diagrams concise. The short arrow with no source state indicates the initial state. There may be more than one initial state, in which case the initial state is chosen non-deterministically by the environment.
 
 \subsection{Device Specification}
 
 We start with the device specification given in Figure~\ref{fig:dev_spec}. Our device is a hypothetical trivial UART-like device. Instead of sending bytes, it sends notifications, which carry no value. Its programming interface consists of an action, \code{devSendReq}, that requests that the device send a notification. In a real system this could be a write to a particular bit in a control register that triggers the device action. This action only has an effect in the \code{devIdle} state and it causes the device to transition to the \code{devSending} state. From there, when the \code{devSent} event happens, which corresponds to the device actually sending the notification, the device transitions back to the \code{devIdle} state. Additionally, it emits the \code{classSent} event. We will respond to the \code{classSent} event in the OS specification in the next section. From here, another notification may be requested by performing the \code{devSendReq} action again.
 
-A fragment of the symbolic encoding of the device specification is given in Figure~\ref{fig:dev_spec_asl}. There is only one state variable, \code{devState}, that toggles between two values: \code{devIdle} and \code{devSending}. Additionally, there are three boolean label variabes: \code{controllable}, \code{devSendReq} and \code{devSent}. The \code{devSendReq} and \code{devSent} variables correspond to the actions in the provious paragraph. The \code{controllable} variable is an additional variable to distinguish between controllable and uncontrollable events. 
-
-The update function for the \code{devState} variable (the only variable in the device specification) consists of a single case statement. If the system is currently in the \code{devIdle} state and the \code{devSendReq} label variable is true, and, importantly, the \code{controllable} label variable is also true, then the system transitions to the \code{devSending} state. The \code{controllable} variable had to be true because this was a controllable transition. Additionally if the system is in the \code{devSending} state and the \code{devSent} variable is true and the transition is not controllable then the system transitions to the \code{devIdle} state. If neither of these conditions are met, the device remains in the same state. 
-
-On line~\ref{fig:dev_spec:l:output} we defined the \code{classSent} event to occur when the device is in state \code{devSending}, the \code{devSent} label is true and the transition is not controllable. This matches the state machine. The \code{define} statement is actually an m4~\cite{m4} macro that will be used to substitute the definition of \code{classSent} into the operating system specification later. This behaves much like a signal or continuous assignment in a hardware description language, but, to keep our specification language minimal we have not implemented signals.
-
-Lastly, this device model may be seen as a Mealy machine as shown in Figure~\ref{fig:dev_spec_mealy}. There is a single register for storing the current state and this state is updated on each transition using combinational logic which additionally takes the label variables as input. This combinational logic also produces the output boolean variable \code{classSent}.
+This device model is equivalent to a Mealy machine as shown in Figure~\ref{fig:dev_spec_mealy}. There is a single register for storing the current state and this state is updated on each transition using logic which additionally takes the label variables as input. This logic also produces the output boolean variable \code{classSent}.
 
 \begin{figure}
 \centering
@@ -66,32 +56,6 @@ Lastly, this device model may be seen as a Mealy machine as shown in Figure~\ref
 \includegraphics[width=\linewidth]{diagrams/devMealy.pdf}
 \caption{Device specification}
 \label{fig:dev_spec_mealy}
-\end{subfigure}
-\par\bigskip
-\begin{subfigure}[b]{\textwidth}
-\begin{asllisting}
-State
-devState : {devIdle, devSending};
-
-Label
-devSendReq   : bool;
-devSent      : bool;
-controllable : bool;
-
-Init
-devState == devIdle
-
-Transitions
-devState := case {
-    devState == devIdle && devSendReq && controllable  : devSending;
-    devState == devSending && devSent && !controllable : devIdle;
-    true                                               : devState;
-}
-
-define(classSent, (devState == devSending && devSent && !controllable)) (*@\label{fig:dev_spec:l:output}@*)
-\end{asllisting}
-\caption{Symbolic device specification}
-\label{fig:dev_spec_asl}
 \end{subfigure}
 \end{figure}
 
@@ -111,8 +75,6 @@ We can see from the OS specification that it is the job of the driver to ensure 
 
 In general, it is the job of the driver synthesis algorithm to figure out how to force certain events to happen at the right time (as specified by the OS state machine) by using information from the device state machine. 
 
-The symbolic specification is given in Figure~\ref{fig:os_spec_asl}. After seeing the device specification, it is fairly self explanatory. Note that, on line~\ref{fig:os_spec_asl:l:class} the class event defined in Figure~\ref{fig:dev_spec_asl} is used.
-
 As with the device specification, the OS specification may be seen as a Mealy machine as shown in Figure~\ref{fig:os_spec_mealy}. Again, there is a single register for storing the current state and this state is updated on each transition using combinational logic. In addition to taking the label variables as input, it also takes the \code{classSent} boolean signal that was produced by the device Mealy machine as input. 
 
 \begin{figure}
@@ -129,93 +91,11 @@ As with the device specification, the OS specification may be seen as a Mealy ma
 \caption{OS specification}
 \label{fig:os_spec_mealy}
 \end{subfigure}
-\par\bigskip
-\begin{subfigure}[b]{\textwidth}
-\centering
-\begin{asllisting}
-State
-osState  : {osIdle, osRequested, osDone, osError};
-
-Label
-osReqSend    : bool;
-controllable : bool;
-
-Init
-osState == osIdle 
-
-Transitions
-osState := case {
-    osState == osIdle :
-        case {
-            classSent                 : osError;
-            osReqSend && controllable : osRequested;
-            true                      : osState;
-        };
-    osState == osRequested :
-        case {
-            classSent : osDone; (*@\label{fig:os_spec_asl:l:class}@*)
-            true      : osState;
-        };
-    osState == osDone  : osDone;
-    osState == osError : osError;
-};
-\end{asllisting}
-\caption{Symbolic OS specification}
-\label{fig:os_spec_asl}
-\end{subfigure}
 \end{figure}
 
 \subsection{Combined Specification}
 
-We combine the device and OS specifications by executing them concurrently. We do this by instantiating both Mealy machines in parallel and connecting the signals, as shown in Figure~\ref{fig:combined_spec_mealy}. In ASL, this is as simple as placing both case statements in the \code{Transitions} section, combining the state and label declaration sections and combining the initial states. The result is given in Figure~\ref{fig:combined_spec_asl}.
-
-\begin{figure}
-\centering
-\begin{asllisting}
-State
-osState  : {osIdle, osRequested, osDone, osError};
-devState : {devIdle, devSending};
-
-Label
-osReqSend    : bool;
-classSent    : bool;
-devSendReq   : bool;
-controllable : bool;
-
-Init
-osState == osIdle && devState == devIdle
-
-Transitions
-devState := case {
-    devState == devIdle && devSendReq && controllable  : devSending;
-    devState == devSending && devSent && !controllable : devIdle;
-    true                                               : devState;
-}
-
-define(classSent, (devState == devSending && devSent && !controllable)) 
-
-osState := case {
-    osState == osIdle :
-        case {
-            classSent                 : osError;
-            osReqSend && controllable : osRequested;
-            true                      : osState;
-        };
-    osState == osRequested :
-        case {
-            classSent : osDone; 
-            true      : osState;
-        };
-    osState == osDone  : osDone;
-    osState == osError : osError;
-};
- 
-\end{asllisting}
-\caption{Combined ASL specification}
-\label{fig:combined_spec_asl}
-\end{figure}
-
-Figure~\ref{fig:combined_spec} shows the state machine of the combined specification. This large and cumbersome state machine clearly shows the size and complexity advantages of using separate Mealy machines in parallel as the specification language.
+We combine the device and OS specifications by executing them concurrently. We do this by instantiating both Mealy machines in parallel and connecting the signals, as shown in Figure~\ref{fig:combined_spec_mealy}. Figure~\ref{fig:combined_spec} shows the state machine of the combined specification. This large and cumbersome state machine clearly shows the size and complexity advantages of using separate Mealy machines in parallel as the specification language.
 
 \begin{figure}
 \centering
