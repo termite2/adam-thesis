@@ -431,7 +431,7 @@ This returns the set of labels which are part of the strategy for all states in 
 
 While the above heuristic is straightforward and cheap, is it often unsatisfactory in practice. As an example, consider a current state set containing two states: $s_1$ and $s_2$. Suppose there is no label which is in the winning strategy for both states, but there is a label in the winning strategy for $s_1$ and it does not take $s_2$ further away from the goal. Such an action is a good candidate for an auto completion, however it will not be found by the first heuristic.
 
-Our more general label picking algorithm works as follows: we find the greatest distance (N) of any state in $stateSet$ from the goal and then we look up two sets (which were computed and saved during synthesis).
+Our more general label picking algorithm works as follows: we find the greatest distance (N) of any state in $stateSet$ from the goal and then we look up two sets (which were computed and saved symbolically during synthesis).
 
 \begin{itemize}
     \item the set of states at distance $N$, denoted $win_N$,
