@@ -9,11 +9,11 @@ state = circle 0.1
 
 osIdleDevIdle         = (text "00" # fontSize fs <> state) # named "osIdle_devIdle"         # moveTo (p2 (0, 1))
 osRequestedDevIdle    = (text "01" # fontSize fs <> state) # named "osRequested_devIdle"    # moveTo (p2 (1, 1))
-osDoneDevIdle         = (text "02" # fontSize fs <> state) # named "osDone_devIdle"         # moveTo (p2 (2, 1))
+osDoneDevIdle         = (text "02" # fontSize fs <> circle 0.08 <> state) # named "osDone_devIdle"         # moveTo (p2 (2, 1))
 osErrorDevIdle        = (text "03" # fontSize fs <> state) # named "osError_devIdle"        # moveTo (p2 (-1, 1))
 osIdleDevSending      = (text "10" # fontSize fs <> state) # named "osIdle_devSending"      # moveTo (p2 (0, 3))
 osRequestedDevSending = (text "11" # fontSize fs <> state) # named "osRequested_devSending" # moveTo (p2 (1, 3))
-osDoneDevSending      = (text "12" # fontSize fs <> state) # named "osDone_devSending"      # moveTo (p2 (2, 3))
+osDoneDevSending      = (text "12" # fontSize fs <> circle 0.08 <> state) # named "osDone_devSending"      # moveTo (p2 (2, 3))
 osErrorDevSending     = (text "13" # fontSize fs <> state) # named "osError_devSending"     # moveTo (p2 (-1, 3))
 
 arrowStyleCont  = (with & arrowHead  .~ spike 

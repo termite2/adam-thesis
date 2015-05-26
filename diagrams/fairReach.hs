@@ -11,7 +11,7 @@ stInit     = (text "I"  # fontSize fs <> state) # named "stInit"     # moveTo (p
 stReq      = (text "S1" # fontSize fs <> state) # named "stReq"      # moveTo (p2 (1, 0))
 stSending  = (text "S2" # fontSize fs <> state) # named "stSending"  # moveTo (p2 (2, 0))
 stChecking = (text "S3" # fontSize fs <> state) # named "stChecking" # moveTo (p2 (2, -0.7))
-stDone     = (text "G"  # fontSize fs <> state) # named "stDone"     # moveTo (p2 (3, -0.7))
+stDone     = (text "G"  # fontSize fs <> circle 0.08 <> state) # named "stDone"     # moveTo (p2 (3, -0.7))
 
 arrowStyleCont  = (with & arrowHead  .~ spike 
                         & headLength .~ large)

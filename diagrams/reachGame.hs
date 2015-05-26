@@ -13,7 +13,7 @@ stWroteCmd = (text "S4" # fontSize fs <> state) # named "stWroteCmd" # moveTo (p
 stWroteDat = (text "S3" # fontSize fs <> state) # named "stWroteDat" # moveTo (p2 (1.5, 0.5))
 stErr      = (text "E"  # fontSize fs <> state) # named "stErr"      # moveTo (p2 (2.5, -0.5))
 stSending  = (text "S5" # fontSize fs <> state) # named "stSending"  # moveTo (p2 (2, 0))
-stAck      = (text "G"  # fontSize fs <> state) # named "stAck"      # moveTo (p2 (3, 0))
+stAck      = (text "G"  # fontSize fs <> circle 0.08 <> state) # named "stAck"      # moveTo (p2 (3, 0))
 
 arrowStyleCont  = (with & arrowHead  .~ spike 
                         & headLength .~ large)
