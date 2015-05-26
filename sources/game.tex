@@ -30,7 +30,7 @@ In the following sections, we attempt to formalise the driver synthesis problem 
 
 \subsection{Reachability}
 
-As a concrete example, we could create a crude formalism for driver synthesis using only a reachability game. Consider, for example, figure~\ref{fig:reach}, which shows the state machine for a game to control a hypothetical network controller. Execution begins in the leftmost state where the OS may initiate a network transfer by choosing the `send' label. The goal of the game is the rightmost state (labelled `G') as this is the point where player 1 has completed the request. So, to win, player 1 (who controls the transitions with solid lines) must ensure that execution of the state machine reaches the goal. 
+As a concrete example, we could create a crude formalism for driver synthesis using only a reachability game. Consider, for example, figure~\ref{fig:reach}, which shows the state machine for a game to control a hypothetical network controller. Execution begins in the leftmost state where the OS may initiate a network transfer by choosing the `send' label. The goal of the game is the rightmost state (labelled `G' and with a double circle) as this is the point where player 1 has completed the request. So, to win, player 1 (who controls the transitions with solid lines) must ensure that execution of the state machine reaches the goal. 
 
 \begin{figure}
 \centering
@@ -137,7 +137,7 @@ This device model is equivalent to a Mealy machine as shown in Figure~\ref{fig:d
 
 The operating system specification, given in Figure~\ref{fig:os_spec} is like a test harness for our driver. It specifies which requests the driver may receive (e.g.\ to send a notification) and how it must respond (e.g.\ by eventually sending the requested notification). It is simply another state machine, like the device specification, but it may also have goals.
 
-The goal state, state \code{O3}, is the state that a correct driver will eventually force the OS specification to be in. It is possible to specify multiple goal states, in which case the driver must force execution into any goal state.
+The goal state, state \code{O2}, is the state that a correct driver will eventually force the OS specification to be in. It is possible to specify multiple goal states, in which case the driver must force execution into any goal state.
 
 Our OS state machine starts off in the \code{osIdle} state. From there, if a \code{classSent} event is triggered by the device state machine, then the device must have sent a notification without the OS ever having requested one. This is an error, so the OS state machine transitions to the \code{osError} state. There is no way that the OS could have known that this event happened as it does not monitor the device notification output, so, the OS specification does not represent the way that the OS behaves in reality. These events that do not correspond to real interactions but are used to enforce correctness are called \emph{virtual events}. Responding to virtual events in this way is how the OS spec guarantees correctness of the system. 
 
@@ -153,7 +153,7 @@ As with the device specification, the OS specification may be seen as a Mealy ma
 
 \subsection{Combined Specification}
 
-We combine the device and OS specifications by executing them concurrently. We do this by instantiating both Mealy machines in parallel and connecting the signals, as shown in Figure~\ref{fig:combined_spec_mealy}. Figure~\ref{fig:combined_spec} shows the state machine of the combined specification. This large and cumbersome state machine clearly shows the size and complexity advantages of using separate Mealy machines in parallel as the specification language.
+We combine the device and OS specifications by executing them concurrently. We do this by instantiating both Mealy machines in parallel and connecting the signals, as shown in Figure~\ref{fig:combined_spec_mealy}. Figure~\ref{fig:combined_spec} shows the state machine of the combined specification. This cumbersome state machine shows the size and complexity advantages of using separate Mealy machines in parallel as the specification language. A state is a goal state if the state that it corresponds to in the OS or device state machine is a goal state. Both of the states on the right of Figure~\ref{fig:combined_spec} correspond to state \code{O2} in the OS specification, which is a goal, so they are goals. It is possible to have goals in the device specification but they are not useful in practice. Fair regions work in the same way.
 
 \begin{figure}
 \centering

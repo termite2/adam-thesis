@@ -12,7 +12,7 @@ stReq      = (text "S1" # fontSize fs <> state) # named "stReq"      # moveTo (p
 stSending  = (text "S2" # fontSize fs <> state) # named "stSending"  # moveTo (p2 (2, 0))
 stAck      = (text "S3" # fontSize fs <> circle 0.08 <> state) # named "stAck"      # moveTo (p2 (3, 0))
 stWrong    = (text "S4" # fontSize fs <> state) # named "stWrong"    # moveTo (p2 (2, -0.5))
-stDead     = (text "E"  # fontSize fs <> circle 0.08 <> state) # named "stDead"     # moveTo (p2 (3, -0.5))
+stDead     = (text "S5" # fontSize fs <> circle 0.08 <> state) # named "stDead"     # moveTo (p2 (3, -0.5))
 
 arrowStyleCont  = (with & arrowHead  .~ spike 
                         & headLength .~ large)
