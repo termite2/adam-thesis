@@ -38,7 +38,7 @@ labels = mconcat [
         text "classSent" # fontSize fs # moveTo (p2 (0.15, 0.45))
     ]
 
-diag'   = states # connectOutside' arrowStyleCont  "osIdle"      "osRequested" 
+diag'   = states # connectOutside' arrowStyleUCont  "osIdle"      "osRequested" 
                  # connectOutside' arrowStyleUCont "osIdle"      "osError"    
                  # connectOutside' arrowStyleUCont "osRequested" "osDone"    
 

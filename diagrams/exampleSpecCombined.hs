@@ -53,8 +53,8 @@ labels = mconcat [
         text "devSendReq" # fontSize fs # rotate (0.25 @@ turn) # moveTo (p2 (1.9, 2))
     ]
 
-diag'   = states # connectOutside' arrowStyleCont  "osIdle_devIdle"         "osRequested_devIdle" 
-                 # connectOutside' arrowStyleCont  "osIdle_devSending"      "osRequested_devSending" 
+diag'   = states # connectOutside' arrowStyleUCont  "osIdle_devIdle"         "osRequested_devIdle" 
+                 # connectOutside' arrowStyleUCont  "osIdle_devSending"      "osRequested_devSending" 
 
 
                  # connectOutside' arrowStyleCont  "osIdle_devIdle"          "osIdle_devSending" 
