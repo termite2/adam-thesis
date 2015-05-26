@@ -31,8 +31,8 @@ arrowSplineUCont = (with & arrowHead  .~ spike
 states = mconcat [devIdle, devSending]
 
 labels = mconcat [
-        text "devSendReq" # fontSize fs # moveTo (p2 (0.55, 0.5)),
-        text "classSent"  # fontSize fs # moveTo (p2 (-0.55, 0.5))
+        text "devSent\n/classSent" # fontSize fs # moveTo (p2 (0.55, 0.5)),
+        text "devSendReq" # fontSize fs # moveTo (p2 (-0.55, 0.5))
     ]
 
 diag'   = states # connectPerim' arrowSplineCont  "devIdle"    "devSending" (3/8 @@ turn) (5/8 @@ turn)

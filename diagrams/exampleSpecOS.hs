@@ -33,9 +33,9 @@ arrowSplineUCont = (with & arrowHead  .~ spike
 states = mconcat [osIdle, osRequested, osDone, osError]
 
 labels = mconcat [
-        text "devSendReq" # fontSize fs # moveTo (p2 (0.5, 1.2)),
-        text "classSent"  # fontSize fs # moveTo (p2 (1.5, 1.2)),
-        text "classSent"  # fontSize fs # moveTo (p2 (0.15, 0.45))
+        text "osSendReq" # fontSize fs # moveTo (p2 (0.5, 1.2)),
+        text "classSent" # fontSize fs # moveTo (p2 (1.5, 1.2)),
+        text "classSent" # fontSize fs # moveTo (p2 (0.15, 0.45))
     ]
 
 diag'   = states # connectOutside' arrowStyleCont  "osIdle"      "osRequested" 
@@ -44,7 +44,7 @@ diag'   = states # connectOutside' arrowStyleCont  "osIdle"      "osRequested"
 
 initArrow = arrowBetween (p2 (-0.3, 1)) (p2 (-0.1, 1)) 
 
-diag = (diag' <> labels <> initArrow) # pad 1.6
+diag = (diag' <> labels <> initArrow) # centerXY # pad 1.1
 
 main = mainWith (diag :: Diagram B)
 

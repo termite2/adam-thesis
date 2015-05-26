@@ -86,11 +86,9 @@ The combination of multiple fairness and multiple \buchi\ objectives is a GR(1) 
 \section{Device and OS specifications and synchronization}
 \label{sec:composition}
 
-A core concept of Termite is the separation of device and operating system specifications. Games so far have been defined to have a single state machine that contains all of the states of the system as well as all of the actions. In Termite, we decouple the description of the operating system from the device to be controlled and then combine these to form a state machine before synthesis.
+A core concept of Termite is the separation of device and operating system specifications. This allows us to reuse the same device specification with different OS specifications as well as reusing the same OS specification with different devices. Games so far have been defined to have a single state machine that contains all of the states of the system as well as all of the actions. In Termite, we decouple the description of the operating system from the device to be controlled and then combine these to form a state machine before synthesis.
 
-Both the device and OS specifications are given as state machines. In Termite, they are defined symbolically in TSL (Termite specification language) (Appendix~\ref{ch:tsl_ref}). Each specification has its own set of state variables that it must supply update functions for. There is also a global set of label variables which each specification may also refer to in its state update functions. 
-
-\section{An Example System Specification}
+Both the device and OS specifications are given as state machines. In Termite, they are defined symbolically in TSL (Termite specification language) (Appendix~\ref{ch:tsl_ref}). Each specification has its own set of state variables that it must supply update functions for. There is also a global set of label variables which each specification may also refer to in its state update functions. The actual update functions are provided by the TSL compiler which generates them from a high level C-like language. In this section, we work at the level of state machines and not the TSL they are generated from.
 
 We give an example system specification to illustrate its decomposition into separate OS and device specifications. 
 
