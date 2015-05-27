@@ -414,9 +414,9 @@ This example illustrates how \termite supports incremental changes to the driver
 
 Termite acts as an advanced auto-complete by suggesting lines of code for the driver. These suggestions are obtained using the symbolic strategy generated in the synthesis phase. Termite keeps track of the possible set of states that the system may be in at each line of code in the graphical IDE and uses this along with the strategy to generate a suggestion. 
 
-Generating a winnng move from an individual state is straightforward. All one has to do is look up the state in the strategy relation and pick any winning label related to that state. Termite's code generator, however, deals in sets of states - the set of states which the system may be in at a particular line - which complicates matters considerably. For example, although every state in the set is winning (an invariant that the code generator enforces), there might not exist a single label that is winning for all of these states. In this case, the code generator uses smarter methods for picking labels or possibly falls back to spliting the current state set in two, as described in the following sections.
+Generating a winnng move from an individual state is straightforward. All one has to do is look up the state in the strategy relation and pick any winning label related to that state. Termite's code generator, however, deals in sets of states - the set of states which the system may be in at a particular line - which complicates matters considerably. For example, although every state in the set is winning (an invariant that the code generator enforces), there might not exist a single label that is winning for all of these states. In this case, the code generator uses smarter methods for picking labels or possibly falls back to splitting the current state set in two, as described in the following sections.
 
-\subsection{Straightford label picking}
+\subsection{Straightforward label picking}
 
 In the simplest case, there exists a winning action that is available from all states within the current line's state set (denoted $stateSet$). This action will cause all states in $stateSet$ to transition to a state closer to the goal, guaranteeing that if we keep choosing actions in this way we will eventually force execution into the goal. We compute the set of such winning actions using the formula in Equation~\ref{eqn:simple_strat}. 
 
@@ -438,29 +438,28 @@ Our more general label picking algorithm works as follows: we find the greatest 
     \item and, the set of states at distance $N-1$, denoted $win_{N-1}$.
 \end{itemize}
 
-We define three constraints on the label, all computable symbolically, and pick a label that satisfies all three constraints by taking their conjunction, also symbolically.
+We define two constraints on the label, all computable symbolically, and pick a label that satisfies all two constraints by taking their conjunction.
 
 When played, the label must:
 
 \begin{itemize}
     \item keep execution in $win_{N-1}$ for states within $stateSet \cap win_{N-1}$, and
-    \item keep execution in $win_N$ for states within $stateSet \cap win_N$, and
-    \item take at least one state in $win_N$ into $win_{N-1}$.
+    \item move execution in $win_N$ to $win_{N-1}$.
 \end{itemize}
 
-These requirements ensure that each time a label is picked in this way, the number of states at the furthest distance to the goal decreases and eventually becomes zero as the number of abstract states in finite, in turn decreasing the maximum distance to the goal, $N$. Thus, repeatedly picking actions in this way ensures that we eventually get to the goal and is therefore a sound method of picking auto completions. Note that even though execution is guaranteed to reach the goal, the label picked may not be part of the strategy for all states in $stateSet$.
+These requirements ensure that each time a label is picked in this way, the maximum distance to the goal of states in $stateSet$ decreases. Thus, repeatedly picking actions in this way ensures that we eventually get to the goal and is therefore a sound method of picking auto completions. Note that even though execution is guaranteed to reach the goal, the label picked may not be part of the strategy for all states in $stateSet$.
 
 \subsection{Splitting states}
 
-Lastly, suppose that there is no action found by the first two heuristics. In this case we recursively split $stateSet$ by finding a subset $a \subset stateSet$ from which there is a winning action for all of $a$ and splitting this out in C code using an \emph{if-statement}. What remains of $stateSet$ is recursively split enough times that there is a suitable label to play from each partition. This is guaranteed to eventually happen because $stateSet$ in finite. 
+Lastly, suppose that there is no action found by the first two heuristics. In this case we recursively split $stateSet$ by finding a subset $a \subset stateSet$ from which there is a winning action for all of $a$ and splitting this out in C code using an \emph{if-statement}. What remains of $stateSet$ is recursively split enough times that there is a suitable label to play from each partition. This is guaranteed to eventually happen because $stateSet$ in finite and in practice only one or two splits are needed.
 
-We describe how the condtion for this if-statement is computed. There exists at least one winning label from each state in the current set, as they are all winning. However, there does not exist a single label which is winning for all states in the current set. Our heuristic to find a subset of $stateSet$ for which there does exist such a label is as follows:
+We describe how the condtion for this if-statement is computed. There exists at least one winning label from each state in the current set, as they are all winning. However, there does not exist a single label which is winning for all states in the current set. Our heuristic to find a large subset of $stateSet$ for which there does exist a single winning label is as follows:
 
 \begin{enumerate}
     \item Enumerate labels that are winning in some state in $stateSet$.
     \item Compute the set where each label is part of the strategy.
-    \item Compute a small condition over state variables that distinguishes this set from the rest of $stateSet$.
-    \item Choose the condition that is the simplest and return this and the corresponding lablel.
+    \item Compute a small condition (a BDD) over state variables that distinguishes this set from the rest of $stateSet$.
+    \item Choose the condition that is the simplest (measured by BDD size) and return this and the corresponding lablel.
 \end{enumerate}
 
 \subsubsection{Enumerating winning labels}
