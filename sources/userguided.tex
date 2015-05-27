@@ -468,18 +468,12 @@ In practice, the first step is infeasible, however. Games in Termite have labels
 
 This algorithm invokes two other algorithms: $genPair$ (Algorithm~\ref{alg:gen_pair}) and $enumerate$ (Algorithm~\ref{alg:enumerate}), both of which deserve some explanation. 
 
-$genPair$, given two sets of variables ($X$ and $Y$) and a relation, extracts a single valuation of $X$ from the relation, determines the set of valuations of $Y$ that are related to and then determines the set of valuations of $X$ that relate to exactly this set. 
-
-$enumerate$, given two sets of variables ($X$ and $Y$) and a relation repeatedly extracts pairs from the relation using $genPair$, erasing the $X$ valuations from the relation each time so that they are not chosen again. It computes a set of pairs of sets of $X$ and $Y$ valuations that are related to exactly the other element of the pair.
-
-Finally, $availableLabels$ uses $enumerate$ to enumerate labels with different behaviours in the current $stateSet$. It does this by restricting the transition relation to transitions that originate from states in $stateSet$ and treating this as a relation between $\langle s, s' \rangle$ and $l$. This works because equivalent labels will result in the same $\langle s, s' \rangle$ relation, i.e.\ the same state transition, thus calling $enumerate$ with this relation and these variables will enumerate equivalent labels.
-
 \begin{algorithm}
 \begin{algorithmic}
 
 \Function{GenPair}{$x$, $y$, $rel$}
-    \State $xMinterm \gets \Call{extractMinterm}{\exists y. \: rel}$
-    \State $img      \gets \Call{substitute}{rel, xMinterm}$
+    \State $v \gets \Call{extractMinterm}{\exists y. \: rel}$
+    \State $img      \gets \Call{substitute}{rel, v}$
     \State $genX     \gets \forall y. \: reg \leftrightarrow img$
     \State\Return $\langle genX, img \rangle$
 \EndFunction
@@ -488,6 +482,8 @@ Finally, $availableLabels$ uses $enumerate$ to enumerate labels with different b
 \caption{The \textsc{GenPair} function}
 \label{alg:gen_pair}
 \end{algorithm}
+
+$genPair$, given two sets of variables ($X$ and $Y$) and a relation $rel \subseteq valuations(X) \times valuations (Y)$, extracts a single valuation $v$ of $X$ from the relation. It then determines the set of valuations of $Y$, $img$, that are related to $v$. Finally, it determines the set of valuations of $X$ that relate to exactly this set, $genX$. 
 
 \begin{algorithm}
 \begin{algorithmic}
@@ -507,6 +503,10 @@ Finally, $availableLabels$ uses $enumerate$ to enumerate labels with different b
 \label{alg:enumerate}
 \end{algorithm}
 
+$enumerate$, given two sets of variables ($X$ and $Y$) and a relation over valuations of these variables repeatedly extracts pairs of related sets from the relation using $genPair$, erasing the $X$ valuations from the relation each time so that they are not chosen again. It computes $P \subseteq 2^{valuations(X)} \times 2^{valuations(Y)}$, such that for $\langle A, B \rangle \in P$, any $a \in A$ is related to each $b \in B$ and nothing more. Furthermore, all of the $A$ sets are disjoint and their union is the set of all $X$ valuations that satisfy the relation.
+
+Finally, $availableLabels$ uses $enumerate$ to enumerate labels with different behaviours in the current $stateSet$. It does this by restricting the transition relation to transitions that originate from states in $stateSet$ and treating this as a relation between $l$ and $\langle s, s' \rangle$. This works because equivalent labels will result in the same $\langle s, s' \rangle$ relation, i.e.\ the same state transition, thus calling $enumerate$ with this relation and these variables will enumerate sets of equivalent labels in the current state.
+
 \begin{algorithm}
 \begin{algorithmic}
 
@@ -522,7 +522,7 @@ Finally, $availableLabels$ uses $enumerate$ to enumerate labels with different b
 
 \subsubsection{Computing the condition}
 
-We compute a condition over state variables that distinguishes the states where the label is winning from the rest using the $liCompaction$ function. This function, provided by the CUDD library, minimises a condition BDD given a care set so that it returns the correct value within the care set and is undefined otherwise. Our condition BDD is the set of states from the winning label is available and our care set is $currentState$. Since we are only applying the if condition in one of the states in $currentState$, this is the only set where it needs to be accurate. 
+We compute an if condition over state variables that distinguishes the states where the label is winning from the rest of $stateSet$ using the $liCompaction$ function. This function, provided by the CUDD library, minimises a condition BDD given a care set so that it returns the correct value within the care set and is undefined otherwise. Our condition BDD is the set of states from which the winning label is available and our care set is $stateSet$. Since we are only applying the if condition in one of the states in $stateSet$, this is the only set where it needs to be accurate. 
 
 We found that a good heuristic is to choose the label which results in the simplest if condition, where a simple condition has a small BDD representation. The size of a BDD can be conveniently calculated using the function $dagSize$ from the CUDD library. 
 
