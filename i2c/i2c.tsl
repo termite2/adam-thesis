@@ -1,5 +1,3 @@
-// @LICENSE(NICTA, 2014)
-
 import <class.tsl>
 
 template i2c_dev_m3(i2c_os os)
@@ -21,7 +19,7 @@ uint<8> i2clc   = 8'h0;
 
 //master_transmit_st_t master_transmit_st = idle;
 
-function bool ack_enabled(){
+function bool ack_enabled(){(*@\label{l:dev_ack_enabled}@*)
     return i2ccon[7:7] == 1;
 };
 
@@ -99,8 +97,8 @@ task controllable uint<8> read8_i2cstat(){
     return tmp;
 };
 
-task controllable void write8_i2ccon(uint<8> wval){
-    i2ccon = wval;
+task controllable void write8_i2ccon(uint<8> wval){(*@\label{l:dev_write8_i2ccon}@*)
+    i2ccon = wval;(*@\label{l:dev_write8_i2ccon_reg}@*)
 
     //transmit state machine
     //clearing pending
@@ -119,7 +117,7 @@ task controllable void write8_i2ccon(uint<8> wval){
         };
     };
 
-    os.config_updated();
+    os.config_updated(); (*@\label{l:dev_write8_i2ccon_cu}@*)
 };
 
 
