@@ -17,8 +17,6 @@ uint<8> i2cadd;
 uint<8> i2cds;
 uint<8> i2clc   = 8'h0;
 
-//master_transmit_st_t master_transmit_st = idle;
-
 function bool ack_enabled(){(*@\label{l:dev_ack_enabled}@*)
     return i2ccon[7:7] == 1;
 };
@@ -42,7 +40,7 @@ function mode_t mode_val(uint<8> val){
         2'h2 : return master_receive;
         2'h3 : return master_transmit;
     };
-    return slave_receive; //why?
+    return slave_receive; 
 };
 
 function mode_t the_mode(){
@@ -76,7 +74,7 @@ function sdaod sda_output_delay(){
         2'h2 : return clocks10;
         2'h3 : return clocks15;
     };
-    return clocks0; //why?
+    return clocks0; 
 };
 
 task controllable uint<8> read8_i2ccon(){
@@ -121,7 +119,7 @@ task controllable void write8_i2ccon(uint<8> wval){(*@\label{l:dev_write8_i2ccon
 };
 
 
-task controllable void write8_i2cstat(uint<8> wval){
+task controllable void write8_i2cstat(uint<8> wval){(*@\label{l:dev_write8_i2cstat}@*)
     i2cstat[6:7] = wval[6:7];
     i2cstat[4:4] = wval[4:4];
     i2cstat[5:5] = wval[5:5];
@@ -141,15 +139,11 @@ task controllable void write8_i2cstat(uint<8> wval){
 };
 
 task controllable void write8_i2cadd(uint<8> wval){
-    //I2CADD  : if(enabled()) {
-        i2cadd  = wval;
-    //};
+    i2cadd  = wval;
 };
 
 task controllable void write8_i2cds(uint<8> wval){
-    //I2CDS   : if(enabled()) {
-        i2cds   = wval;
-    //};
+    i2cds   = wval;
 };
 
 task controllable void write8_i2clc(uint<8> wval){
@@ -157,17 +151,17 @@ task controllable void write8_i2clc(uint<8> wval){
 };
 
 //transmit state machine
-process pmaster {
+process pmaster {(*@\label{l:dev_pmaster}@*)
     forever {
         pause;
         case(master_transmit_st){
-            transmitting_address_t : {
+            transmitting_address_t : {(*@\label{l:dev_pmaster_ta}@*)
                 //address is a write address
                 assert(i2cds[0:0] == 0);
 
                 master_transmit_st = addr_transmitted_t;
                 i2ccon[4:4] = 1;
-                os.address_written(i2cds[1:7]);
+                os.address_written(i2cds[1:7]);(*@\label{l:dev_pmaster_aw}@*)
             };
             transmitting_data      : {
                 master_transmit_st = addr_transmitted_t;

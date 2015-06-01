@@ -1,5 +1,3 @@
-// @LICENSE(NICTA, 2014)
-
 typedef enum {
     slave_receive, slave_transmit, master_receive, master_transmit
 } mode_t;

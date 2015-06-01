@@ -6,7 +6,6 @@ derive i2c_os;
 
 procedure void config_updated(){(*@\label{l:os_config_updated}@*)
     if(inited){
-        //assert(dev.ack_enabled());
         assert(dev.clk_src());
         assert(dev.clk_prescalar() == 4'h3);
         assert(dev.tx_int());
@@ -86,7 +85,8 @@ task void data_sent(uint<8> data){(*@\label{l:os_data_sent}@*)
 };
 
 task void stop_sent(){
-    assert(master_state == stop_pending || master_read_state == master_read_stop_pending);
+    assert(master_state == stop_pending 
+            || master_read_state == master_read_stop_pending);
     master_state = master_idle;
     master_read_state = master_read_idle;
 };

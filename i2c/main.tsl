@@ -1,5 +1,3 @@
-// @LICENSE(NICTA, 2014)
-
 import <os.tsl>
 import <i2c.tsl>
 import <drv.tsl>
