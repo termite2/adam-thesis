@@ -1,7 +1,7 @@
 \chapter{A specification Language for Symbolic Games}
 \label{ch:asl_ref}
 
-We describe a simple specification language for symbolic games. This language is used to illustrate, in the simplest possible way, how Termite's specifications work. Furthermore, I have created a compiler for this language as an alternate frontend for Termite and it is available as part of Termite. As a result, all of the examples given in this chapter will compile and synthesize with Termite.
+We describe a simple specification language for symbolic games. This language is used to illustrate, in the simplest possible way, how Termite's specifications work. Furthermore, I have created a compiler for this language as an alternate frontend for Termite and it is available as part of Termite. As a result, all of the examples given in this chapter will compile and synthesise with Termite.
 
 Fundamentally, symbolic transition systems are specified by defining how each state variable is updated on each transition, as a function of the other state variables and the label variables. We call these functions update functions and there is one update function for each state variable. 
 
@@ -63,7 +63,7 @@ Variables are declared by giving a name of the variable and its type.
 
 \subsection{Boolean Expressions}
 
-Boolean expressions consist of boolean literals, value expressions (to follow) combined with the equality operator, and other boolean expressions combined with logical connectives.
+Boolean expressions consist of Boolean literals, value expressions (to follow) combined with the equality operator, and other Boolean expressions combined with logical connectives.
 
 \begin{bnflisting}
     <boolLit>  := "true" | "false"
@@ -75,7 +75,7 @@ Boolean expressions consist of boolean literals, value expressions (to follow) c
 \end{bnflisting}
 
 \subsection{Value Expressions}
-Each value expression is a number, an identifier or a case statement. A case statement consists of a list of cases. Each case consists of a boolean condition followed by a value expression. Thus, case statements may contain further case statements. The outcome of a case statement is the value of the first case whose boolean expression evaluates to true.
+Each value expression is a number, an identifier or a case statement. A case statement consists of a list of cases. Each case consists of a Boolean condition followed by a value expression. Thus, case statements may contain further case statements. The outcome of a case statement is the value of the first case whose Boolean expression evaluates to true.
 
 \begin{bnflisting}
     <caseStmt> := "case" "{" 

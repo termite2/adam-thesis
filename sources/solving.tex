@@ -5,7 +5,7 @@ We have a formalism for the driver synthesis problem as a game. A practical driv
 
 The straightforward symbolic solver that uses BDDs as the symbolic data structure is remarkably efficient. In fact, it is the current state of the art in reactive synthesis. I will use this as the starting point for my description of Termite's game solver.
 
-I begin by describing my entry to the reactive synthesis competition in 2014, appropriately named "Simple BDD Solver". This solver won the sequential realizability category.
+I begin by describing my entry to the reactive synthesis competition in 2014, appropriately named "Simple BDD Solver". This solver won the sequential realisability category.
 
 Next, I introduce abstraction, a technique to increase the scalability of the basic symbolic algorithm by reducing the effective size of the state space that the algorithm must operate on. The cost of reducing the size of the state space is that the abstracted game is represented with less precision and is often not precise enough to solve the original game. To counter this, the abstraction needs to be \emph{refined}, i.e.\ the precision of the abstraction needs to be increased. This is performed in an \emph{abstraction-refinement loop}. Ideally, this loop results in an abstraction just precise enough to solve the game, but coarse enough that solving it is tractable.
 
@@ -18,15 +18,15 @@ To simplify the presentation, with the exception of Section~\ref{sec:syntcomp}, 
 
 The Reactive Synthesis Competition is a competition for reactive synthesis tools inspired by competitions in other fields such as the SAT competition and the Hardware Model Checking Competition. The competition had four tracks:
 \begin{itemize}
-    \item Sequential realizability
-    \item Parallel realizability
+    \item Sequential realisability
+    \item Parallel realisability
     \item Sequential synthesis
     \item Parallel synthesis
 \end{itemize}
 
 The tools were required to solve safety games given in an extension of the AIGER format \cite{aiger}. 
 
-Entrants in the synthesis categories were required to produce an implementation of a controller that enforced the safety condition, also given in extended AIGER format. Entrants in the realizability category were only required to determine if the safety game was winnable.
+Entrants in the synthesis categories were required to produce an implementation of a controller that enforced the safety condition, also given in extended AIGER format. Entrants in the realisability category were only required to determine if the safety game was winnable.
 
 The Synthesis Competition was run as a satellite event to the CAV conference and Kurt Godel medals in silver were awarded to the winners of each category.
 
@@ -232,7 +232,7 @@ This abstraction satisfies our two requirements for a valid abstraction (Section
 
 \subsection{Initial abstraction}
 
-The initial abstraction, $V_{init}$, for a boolean reachability game is created from only the variables that are mentioned in the goal. This ensures that the initial abstraction is \emph{precise} for the goal set.
+The initial abstraction, $V_{init}$, for a Boolean reachability game is created from only the variables that are mentioned in the goal. This ensures that the initial abstraction is \emph{precise} for the goal set.
 
 The initial abstraction of our running example is illustrated in figure~\ref{fig:abs_state_sp}. $V_{init} = \{X, Y\}$. The abstract states are illustrated by the solid squares. There is one state for each valuation of $X$ and $Y$, the variables that occur in the goal in our example. Each abstract state contains four concrete states, one for each valuation of the concrete variables that were dropped from the abstraction, $U$ and $V$. $\concrete{}$ is a function from valuations of $U$ and $V$ to the powerset of the set of valuations of all state variables. For example:
 
@@ -309,7 +309,7 @@ Since $W^M$ is a subset of the true winning region, if $I \rightarrow W^M$ then 
 
 If none of the above termination conditions held then it is because our abstraction is not precise enough and must be refined.
 
-The may (light gray) and must (dark gray) winning regions of our example system are given in figure~\ref{fig:may_must_win}. All states are may winning, but the top states are not must winning. These are the states where $Y$ is not $True$, as prescribed by the goal expression. Intuitively, this is because $U$ is not part of the abstraction. The solving algorithm is aware that the value of $Y$ can be set to the value of $U$ but it is not aware that $U$ can be set to $True$ by action $a2$.
+The may (light grey) and must (dark grey) winning regions of our example system are given in figure~\ref{fig:may_must_win}. All states are may winning, but the top states are not must winning. These are the states where $Y$ is not $True$, as prescribed by the goal expression. Intuitively, this is because $U$ is not part of the abstraction. The solving algorithm is aware that the value of $Y$ can be set to the value of $U$ but it is not aware that $U$ can be set to $True$ by action $a2$.
 
 After solving, the initial state is not classified as either losing or must winning. In the next section, we attempt to refine the abstraction to remove the imprecision that prevented us from definitively classifying the initial state. 
 
@@ -662,7 +662,7 @@ We build on the three valued variable abstraction-refinement scheme already deve
 
 \subsection{Running Example}
 
-We introduce our running example, where we aim to synthesise a driver for an artificially trivial I/O device. This example also motivates the need for predicate abstraction when synthesizing device drivers. The device contains $32$ bits of non-volatile memory, which can be accessed from software via the data register. The task of the driver is to transfer a data value from the main memory to the device memory.
+We introduce our running example, where we aim to synthesise a driver for an artificially trivial I/O device. This example also motivates the need for predicate abstraction when synthesising device drivers. The device contains $32$ bits of non-volatile memory, which can be accessed from software via the data register. The task of the driver is to transfer a data value from the main memory to the device memory.
 
 We set up a game between the driver (player~1) and the device (player~2).  Device and driver internal state is modelled using state variables (Figure~\ref{fig:ex_game_variables}).  The player who makes the next move is determined by the value of the $bsy$ flag inside the device.  When the flag is set to $0$, the device remains idle and the driver may perform an action, such as a write to the data register.  When the flag is set to $1$, the device is performing an internal operation and no actions of the driver will have any effect. 
 
@@ -733,9 +733,9 @@ Figure~\ref{fig:ex_game_specification} specifies the transition relation $\delta
 
 \subsection{Definitions}
 
-We instantiate the three-valued abstraction refinement scheme for predicate abstraction instead of simple boolean variables. Consider a symbolic game $G = \langle S, L, I, \tau_1, \tau_2, \delta \rangle$ defined over state variables $X$ and label variables $Y$. Let $\Sigma\subseteq\forms(X)$ be a finite set of boolean predicates over the state variables. We refer to $\Sigma$ as \emph{state predicates}. We introduce boolean variables $\vect{\sigma}=(\sigma_1\ldots\sigma_n)$ to represent values of predicates $\Sigma$. Given a boolean variable $\sigma$, $\|\sigma\|$ denotes its corresponding state or label predicate. $\|\vect{\sigma}\|$ denotes the vector of all state predicates in $\Sigma$.
+We instantiate the three-valued abstraction refinement scheme for predicate abstraction instead of simple Boolean variables. Consider a symbolic game $G = \langle S, L, I, \tau_1, \tau_2, \delta \rangle$ defined over state variables $X$ and label variables $Y$. Let $\Sigma\subseteq\forms(X)$ be a finite set of Boolean predicates over the state variables. We refer to $\Sigma$ as \emph{state predicates}. We introduce Boolean variables $\vect{\sigma}=(\sigma_1\ldots\sigma_n)$ to represent values of predicates $\Sigma$. Given a Boolean variable $\sigma$, $\|\sigma\|$ denotes its corresponding state or label predicate. $\|\vect{\sigma}\|$ denotes the vector of all state predicates in $\Sigma$.
 
-The state space $V$ of the abstract game is defined as $V = \mathbb{B}^n$, where each abstract boolean state vector $v\in V$ represents a truth assignment of variables $\vect{\sigma}$. The concretisation function $\concrete{}$ from Section~\ref{sec:abstraction_def} can be expressed as: 
+The state space $V$ of the abstract game is defined as $V = \mathbb{B}^n$, where each abstract Boolean state vector $v\in V$ represents a truth assignment of variables $\vect{\sigma}$. The concretisation function $\concrete{}$ from Section~\ref{sec:abstraction_def} can be expressed as: 
 
 \begin{equation}
 \concrete{v}=\bigwedge_{i=1..n}\|\sigma_i\|=v_i
@@ -783,7 +783,7 @@ The goal of the following sections is to apply the machinery developed in the pr
 \subsection{Motivation}
 The abstraction-refinement scheme described in Section~\ref{sec:three_val_abs_ref} is very general. It makes the assumption that both of the controllable predecessors, $\cprem$ and $\cpreM$, can be computed precisely and efficiently.
 
-While it was straightforward to compute them when performing variable abstraction on a boolean game, it is not clear that they can be computed efficiently when performing predicate abstraction.
+While it was straightforward to compute them when performing variable abstraction on a Boolean game, it is not clear that they can be computed efficiently when performing predicate abstraction.
 
 \begin{ex}
     \everymath{\mathtt{\xdef\tmp{\fam\the\fam\relax}\aftergroup\tmp}}
@@ -861,11 +861,11 @@ The goal of the following sections is to create a symbolic version of algorithm~
 \subsection{Abstract Transition Relations}
 \label{s:cpre}
 
-Following the three-valued abstraction-refinement algorithm presented in Section~\ref{sec:three_val_abs_ref}, we would like to find an efficient way to compute over- and under-approximations $Cpre^{m+}$ and $Cpre^{M-}$ of the abstract controllable predecessor operators. Recall that computing $Cpre^m$ and $Cpre^M$ precisely is expensive, as it requires applying the controllable predecessor operator to the concrete transition relation $\delta$. We approximate this costly computation by computing the controllable predecessor over the \emph{abstract transition relation} instead. The abstract transition relation of the game is defined over boolean predicate variables and therefore can be manipulated much more efficiently than the concrete one.
+Following the three-valued abstraction-refinement algorithm presented in Section~\ref{sec:three_val_abs_ref}, we would like to find an efficient way to compute over- and under-approximations $Cpre^{m+}$ and $Cpre^{M-}$ of the abstract controllable predecessor operators. Recall that computing $Cpre^m$ and $Cpre^M$ precisely is expensive, as it requires applying the controllable predecessor operator to the concrete transition relation $\delta$. We approximate this costly computation by computing the controllable predecessor over the \emph{abstract transition relation} instead. The abstract transition relation of the game is defined over Boolean predicate variables and therefore can be manipulated much more efficiently than the concrete one.
 
 We construct the abstract transition relation via efficient syntactic analysis of the concrete transition relation $\delta$. We present the construction assuming that $\delta$ is given in the variable update form, as in Figure~\ref{fig:ex_game_specification}b. A similar construction is possible for specifications written in real-world hardware and software description languages.
 
-For each state predicate in $\Sigma$, we compute the update function by replacing concrete variables in the predicate with their corresponding update functions. We then transform the resulting formula into a boolean combination of atomic predicates over concrete state and label variables.
+For each state predicate in $\Sigma$, we compute the update function by replacing concrete variables in the predicate with their corresponding update functions. We then transform the resulting formula into a Boolean combination of atomic predicates over concrete state and label variables.
 
 In the general case, the syntactically computed update function for a predicate may depend on existing state predicates in $\Sigma$ as well as new predicates that are not yet part of the abstraction.  The new predicates are partitioned into \emph{untracked predicates} defined over concrete state variables (e.g., $\mathtt{bsy=false}$ in Figure!\ref{fig:ex_game_specification}a) and \emph{label predicates} that involve at least one concrete label variable (e.g., $\mathtt{val=req}$).  The term ``untracked predicate'' indicates that these predicates are not part of the abstract state space of the game. They play a similar role to the free variables of Section~\ref{sec:var_cpre}. Untracked predicates can be seen as partitioning abstract states in $V$ into smaller \emph{untracked sub-states}, as illustrated in Figure~\ref{f:crefinement}.
 
@@ -883,7 +883,7 @@ In the general case, the syntactically computed update function for a predicate 
     \qed
 \end{ex}
 
-By substituting untracked and label predicates with fresh boolean variables, $\vect{\omega}$ and $\vect{\lambda}$ respectively, we obtain the abstract transition relation $\Delta$ in the form:
+By substituting untracked and label predicates with fresh Boolean variables, $\vect{\omega}$ and $\vect{\lambda}$ respectively, we obtain the abstract transition relation $\Delta$ in the form:
 
 $$
 \vect{\sigma}'=\Delta(\vect{\sigma},\vect{\omega},\vect{\lambda})
@@ -1130,7 +1130,7 @@ Line~9 picks a single refinement candidate $\langle v,u,l \rangle$ from the set.
             \State $\vect{\omega} \gets \vect{\omega} \cup (\text{fresh variables for predicates in } P\setminus\Omega)$
             \State $\Omega        \gets \Omega \cup P$
             \State $\hat{A}       \gets A[\|x\|\mid x, \text{for all } x\in\Omega \cup \Sigma ]$
-            \State $\hat{A}       \gets$ replace atomic predicates in $A$ with boolean
+            \State $\hat{A}       \gets$ replace atomic predicates in $A$ with Boolean
             \Statex  ~~~~~~~~~~~~~~~~~~~~vars, introducing fresh vars when necessary
             \State $C^{M-}        \gets C^{M-} \lor (\hat{A}\land \vect{\lambda}=l)$% \Comment{add consistent transition}
         \Else
@@ -1145,7 +1145,7 @@ Line~9 picks a single refinement candidate $\langle v,u,l \rangle$ from the set.
 
 If, on the other hand, the formula is satisfiable, then there exists a concrete state-label pair consistent with $\langle v,u,l\rangle$.  In this case we want to precisely characterise the set of states where label $l$ is available, so that we can either add $\langle v,u,l\rangle$ to $C^{M-}$ (as in Figure~\ref{f:crefinement}c) or refine it with additional untracked predicates (as in Figure~\ref{f:crefinement}d).
 
-Line~12 computes the set of concrete states where abstract label $l$ is available by performing quantifier elimination from formula $(\exists Y.\|\vect{\lambda}\|=l)$, resulting in a quantifier-free formula $A$ over concrete state variables $X$.  We assume that the underlying theory supports quantifier elimination, which is the case for many practically relevant theories, including the theory of fixed-size bit vectors supported by our tool.  In line~13, the resulting formula $A$ is decomposed into atomic predicates possibly introducing new untracked and label predicates.  By replacing all atomic predicates in $A$ with corresponding boolean variables, we obtain a formula $\hat{A}$ that describes the set of all state-untracked pairs must-consistent with the abstract label $l$.  Line~14 refines $C^{M-}$ with the set of newly discovered must-consistent transitions.
+Line~12 computes the set of concrete states where abstract label $l$ is available by performing quantifier elimination from formula $(\exists Y.\|\vect{\lambda}\|=l)$, resulting in a quantifier-free formula $A$ over concrete state variables $X$.  We assume that the underlying theory supports quantifier elimination, which is the case for many practically relevant theories, including the theory of fixed-size bit vectors supported by our tool.  In line~13, the resulting formula $A$ is decomposed into atomic predicates possibly introducing new untracked and label predicates.  By replacing all atomic predicates in $A$ with corresponding Boolean variables, we obtain a formula $\hat{A}$ that describes the set of all state-untracked pairs must-consistent with the abstract label $l$.  Line~14 refines $C^{M-}$ with the set of newly discovered must-consistent transitions.
 
 %The resulting formula is decomposed into atomic predicates 
 %(lines~11--12).  New predicates from $A$ are added to the set of 
@@ -1224,7 +1224,7 @@ We resort to conservatively resetting $C^{M-}$ to $false$ when a new label varia
 \subsection{Checking Containment of the Initial Set}
 \label{sec:init_containment}
 
-We create an abstraction of the initial set by introducing a boolean state variable for each predicate that appears in the expression for the initial set. We then replace each predicate by the corresponding boolean variable.
+We create an abstraction of the initial set by introducing a Boolean state variable for each predicate that appears in the expression for the initial set. We then replace each predicate by the corresponding Boolean variable.
 
 The approximate three valued abstraction-refinement algorithm must check whether the winning set contains the initial set. This check is performed for both winning sets in Algorithm~\ref{alg:approx_three_val}. Again, predicate abstraction complicates things as the following example shows.
 

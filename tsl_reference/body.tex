@@ -320,7 +320,7 @@ endtemplate
 \tsl provides several mechanisms for specifying correctness 
 conditions over system behaviour:
 \begin{itemize}
-    \item \emph{Goals.} A goal is a side-effect-free boolean 
+    \item \emph{Goals.} A goal is a side-effect-free Boolean 
         expression over global variables that must hold infinitely 
         often in any infinite run of the system.  A template can 
         declare any number of goals.  In addition, \tsl defines 
@@ -380,7 +380,7 @@ strategy by assigning goals to magic blocks.
 
 \subsection{Literals}\label{s:r:literals}
 
-\tsl supports boolean literals ``\src{true}'' and ``\src{false}'' 
+\tsl supports Boolean literals ``\src{true}'' and ``\src{false}'' 
 and Verilog-style binary, octal, decimal and hexadecimal integer 
 literals.  The exact number of bits can be specified for each 
 integer literal.  
@@ -502,13 +502,13 @@ endtemplate
 Type expressions can occur in various contexts in a \tsl 
 specification, including variables, method, wire, type, and 
 constant declarations.  The language currently supports arbitrary 
-fixed-width signed and unsigned integers, booleans, enums, 
+fixed-width signed and unsigned integers, Booleans, enums, 
 structs, arrays, and pointers.
 
 \begin{bnflisting}
 <typeSpec>   := ( <sintType>    // signed int
                 | <uintType>    // unsigned int
-                | <boolType>    // boolean
+                | <boolType>    // Boolean
                 | <userType>    // user-defined type name
                 | <enumType>    // enumeration
                 | <structType>) // struct
@@ -577,7 +577,7 @@ Table~\ref{t:ops} in the order of decreasing precedence.
     {\tt.}                           & {\tt e.f}    & struct         & -              & struct field \\
     {\tt\verb=->=}                   & {\tt\verb=e->f=}  & struct pointer & -              & struct dereference \\
     \hline
-    \src{!}                          & prefix  & bool           & bool           & boolean negation \\
+    \src{!}                          & prefix  & bool           & bool           & Boolean negation \\
     {\tt\verb=~=}                    & prefix  & integer        & integer        & bit-wise negation \\
     {\tt-}                           & prefix  & integer        & integer        & unary minus \\
     {\tt*}                           & prefix  & pointer        & -              & pointer dereference \\
@@ -592,11 +592,11 @@ Table~\ref{t:ops} in the order of decreasing precedence.
     \hline    
     {\tt\verb#^#}                    & infix   & integer        & integer        & bit-wise xor \\
     \hline    
-    {\tt\&\&}                        & infix   & bool           & bool           & boolean and \\
+    {\tt\&\&}                        & infix   & bool           & bool           & Boolean and \\
     \hline    
-    {\tt||}                          & infix   & bool           & bool           & boolean or \\
+    {\tt||}                          & infix   & bool           & bool           & Boolean or \\
     \hline    
-    {\tt\verb#=>#}                   & infix   & bool           & bool           & boolean implication\\
+    {\tt\verb#=>#}                   & infix   & bool           & bool           & Boolean implication\\
     \hline    
     {\tt*}                           & infix   & integer        & integer        & multiplication \\
     \hline    

@@ -39,11 +39,11 @@ On a Linux system, when an interrupt is raised, the currently executing task is 
 
 \subsubsection{Concurrency}
 
-Most operating systems are multithreaded, including the device drivers. Driver entry points and interrupt handlers may be invoked concurrently and in a nested fashion. Careful use of synchronization primitives are required to avoid race conditions and deadlock. In this work, we assume that only one driver entry point is invoked at a time, removing all concurrency. This can be achieved by using an event based framework such as Dingo \cite{Ryzhyk_CKH_09}, writing a wrapper to translate the concurrent interface required by the operating system to the single threaded interface of the generated drivers, or by post processing the generated driver as described by \cite{Cerny_HRRT_13}
+Most operating systems are multithreaded, including the device drivers. Driver entry points and interrupt handlers may be invoked concurrently and in a nested fashion. Careful use of synchronisation primitives are required to avoid race conditions and deadlock. In this work, we assume that only one driver entry point is invoked at a time, removing all concurrency. This can be achieved by using an event based framework such as Dingo \cite{Ryzhyk_CKH_09}, writing a wrapper to translate the concurrent interface required by the operating system to the single threaded interface of the generated drivers, or by post processing the generated driver as described by \cite{Cerny_HRRT_13}
 
 \subsubsection{Operating system services}
 
-In addition to bus level drivers, the OS provides various services to device drivers. These include memory management, timing and synchronization. Memory management includes allocating memory and support for memory mapped IO and DMA. Timer functionality includes both synchronous (thread delays) and asynchronous (callback) timers. Various synchronization primitives are also provided, but, given that Termite does not make any use of them, we do not discuss them further.
+In addition to bus level drivers, the OS provides various services to device drivers. These include memory management, timing and synchronisation. Memory management includes allocating memory and support for memory mapped IO and DMA. Timer functionality includes both synchronous (thread delays) and asynchronous (callback) timers. Various synchronization primitives are also provided, but, given that Termite does not make any use of them, we do not discuss them further.
 
 \section{Fixed points}
 
@@ -174,8 +174,8 @@ A \buchi\ objective is defined by a set $\buchiobj \subseteq S$ that player~1 mu
 \forall i.\ \exists j>i.\ s_j \in \buchiobj
 \end{equation}
 
-\paragraph{Generalized \buchi}
-A Generalized \buchi\ objective is defined by a finite set of sets $\genbuchiobj \subseteq 2^S$. Player~1 must always be able to force execution into each set $\buchiobj \in \genbuchiobj$. Formally, a run satisfies a generalized \buchi\ objective if 
+\paragraph{Generalised \buchi}
+A Generalised \buchi\ objective is defined by a finite set of sets $\genbuchiobj \subseteq 2^S$. Player~1 must always be able to force execution into each set $\buchiobj \in \genbuchiobj$. Formally, a run satisfies a generalised \buchi\ objective if 
 
 \begin{equation}
 \forall i.\ \forall \buchiobj \in \genbuchiobj.\ \exists j>i.\ s_j \in \buchiobj
@@ -191,7 +191,7 @@ Sometimes it is necessary to rule out invalid plays that are not easily ruled ou
 
 \paragraph{GR(1)}
 \label{sec:gr1}
-A Generalized Reactive 1, or GR(1) \cite{Piterman_PS_06} objective, is a generalized \buchi\ objective with multiple fairness conditions. In practice, this turns out to be a very useful type of objective. Formally, given a set $FAIRS$ of fair sets of states, a run satisfies a GR(1) objective if 
+A Generalised Reactive 1, or GR(1) \cite{Piterman_PS_06} objective, is a generalised \buchi\ objective with multiple fairness conditions. In practice, this turns out to be a very useful type of objective. Formally, given a set $FAIRS$ of fair sets of states, a run satisfies a GR(1) objective if 
 
 \begin{multline}
 \forall i.\ \forall \fairobj \in \genfairobj.\ \exists j>i.\ s_j \in \fairobj \rightarrow \\ \forall i.\ \forall \buchiobj \in \genbuchiobj.\ \exists j>i.\ s_j \in \buchiobj
@@ -378,13 +378,13 @@ This fixed point is the set of states from which we can reach the goal any numbe
 \label{eqn:mu_buchi}
 \end{equation}
 
-\subsection{Generalized \buchi}
+\subsection{Generalised \buchi}
 
-Solving a generalized \buchi\ game is similar to a \buchi\ game except that we find the set from which we can reach any goal once, then any goal twice, etc. The algorithm is a small modification to the \buchi\ algorithm and is given in Algorithm~\ref{alg:gen_buchi}. The equivalent \mucalc formula is given in Equation~\ref{eqn:mu_genbuchi}.
+Solving a generalised \buchi\ game is similar to a \buchi\ game except that we find the set from which we can reach any goal once, then any goal twice, etc. The algorithm is a small modification to the \buchi\ algorithm and is given in Algorithm~\ref{alg:gen_buchi}. The equivalent \mucalc formula is given in Equation~\ref{eqn:mu_genbuchi}.
 
 \begin{algorithm}[t]
 \begin{algorithmic}
-\Function{Generalized\_Buchi}{$T$, $CPre$}
+\Function{Generalised\_Buchi}{$T$, $CPre$}
 \State $X \gets S$
 \Loop
 \State $X' \gets S$
@@ -400,7 +400,7 @@ Solving a generalized \buchi\ game is similar to a \buchi\ game except that we f
 \EndLoop
 \EndFunction
 \end{algorithmic}
-\caption{Solving a generalized \buchi\ game}
+\caption{Solving a generalised \buchi\ game}
 \label{alg:gen_buchi}
 \end{algorithm}
 
@@ -461,7 +461,7 @@ Once we have solved a game and determined that it is winning, we can extract a s
 
 When solving a reachability game, we discover the sets of states for which we can force execution into the goal in 1 step, 2 steps, etc. When extracting a strategy for a reachability game we need to record, for each iteration, how we got one step closer to the goal. The algorithm is given in Algorithm~\ref{alg:reach_strat}. 
 
-The strategy relation is initialized to the empty set on line~\ref{l:rs:init}. Then, we perform an iteration of the controllable predecessor. This time we also use \textsc{CPre\_Strat} on line~\ref{l:rs:cs}, which computes a relation between the winning states discovered so far and the labels that take execution from these newly discovered states one step closer to the goal.
+The strategy relation is initialised to the empty set on line~\ref{l:rs:init}. Then, we perform an iteration of the controllable predecessor. This time we also use \textsc{CPre\_Strat} on line~\ref{l:rs:cs}, which computes a relation between the winning states discovered so far and the labels that take execution from these newly discovered states one step closer to the goal.
 
 On each iteration we combine this strategy for the newly discovered states with the strategy for the previously discovered states. We are careful on line~\ref{l:rs:as} not to add new labels for states that have already been discovered to ensure that the labels take us towards the goal. We iterate until our winning region reaches a fixed point as before. In the end, the strategy relates each state in the final winning region to a set of labels that take the game one step closer to the goal.
 
@@ -516,19 +516,19 @@ The algorithm for computing the strategy in a \buchi\ game is given in Algorithm
 \label{alg:buchi_strat}
 \end{algorithm}
 
-\subsubsection{Generalized \buchi}
+\subsubsection{Generalised \buchi}
 
-A generalized \buchi\ strategy must ensure that we can always get to any of the goals. If we compute, for each goal, the reachability strategy for the intersection of that goal and the generalised \buchi\ winning region, we get a strategy that takes us to that goal and, by keeping execution in the winning region, ensures that we can reach any of the other goals using their strategies. 
+A generalised \buchi\ strategy must ensure that we can always get to any of the goals. If we compute, for each goal, the reachability strategy for the intersection of that goal and the generalised \buchi\ winning region, we get a strategy that takes us to that goal and, by keeping execution in the winning region, ensures that we can reach any of the other goals using their strategies. 
 
 Thus, a strategy for a generalised \buchi\ game is a set of strategies, one for each goal, that we must play in a round robin manner to ensure that each goal is eventually reached. The finite state required to ensure that the strategies are played in a round robin order is the finite state that the generalised \buchi\ strategy requires as discussed in Section~\ref{sec:strat_and_cex}. This, for example, could be a counter that that loops through the goals and is incremented each time the current goal is reached.
 
-The algorithm for computing the strategy in a generalized \buchi\ game is given in Algorithm~\ref{alg:gen_buchi_strat}. It first computes the winning region of the generalised \buchi\ on line~\ref{l:gbs:wr} and then it computes a strategy to reach the intersection of this and each goal on line~\ref{l:gbs:rs}.
+The algorithm for computing the strategy in a generalised \buchi\ game is given in Algorithm~\ref{alg:gen_buchi_strat}. It first computes the winning region of the generalised \buchi\ on line~\ref{l:gbs:wr} and then it computes a strategy to reach the intersection of this and each goal on line~\ref{l:gbs:rs}.
 
 \begin{algorithm}
 \begin{algorithmic}[1]
 
 \Function{Gen\_Buchi\_Strat}{$\genbuchiobj$}
-\State $win \gets \Call{Generalized\_Buchi}{\genbuchiobj}$ \label{l:gbs:wr}
+\State $win \gets \Call{Generalised\_Buchi}{\genbuchiobj}$ \label{l:gbs:wr}
     \State $strats \gets [\;]$
     \For{\textbf{each} $G \in \genbuchiobj$}
         \State $strats \gets strats \; \oplus \; \Call{Reach\_Strat}{win \cap G}$ \label{l:gbs:rs}
@@ -537,7 +537,7 @@ The algorithm for computing the strategy in a generalized \buchi\ game is given 
 \EndFunction
 
 \end{algorithmic}
-\caption{Extracting a strategy for a generalized \buchi\ game}
+\caption{Extracting a strategy for a generalised \buchi\ game}
 \label{alg:gen_buchi_strat}
 \end{algorithm}
 

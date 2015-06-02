@@ -1,5 +1,5 @@
 \subsection{Overview}
-Simple BDD Solver is a substantial simplification of the solver that was developed for the Termite adapted to safety games given in the AIGER format. It performs realizability checking and does not synthesize a strategy. It uses the standard backwards symbolic algorithm to compute the winning set of states as a greatest fixed point. Binary decision diagrams (BDDs) are used to symbolically represent sets and relations. In particular, it computes:
+Simple BDD Solver is a substantial simplification of the solver that was developed for the Termite adapted to safety games given in the AIGER format. It performs realisability checking and does not synthesise a strategy. It uses the standard backwards symbolic algorithm to compute the winning set of states as a greatest fixed point. Binary decision diagrams (BDDs) are used to symbolically represent sets and relations. In particular, it computes:
 
 \begin{equation}
 \label{eqn:mu}
@@ -11,10 +11,10 @@ Simple BDD Solver is a substantial simplification of the solver that was develop
 \subsection{Implementation}
 The solver is written in the Haskell functional programming language. It uses the CUDD \cite{cudd} package for binary decision diagram manipulation and the Attoparsec Haskell package for fast parsing. Altogether, the solver, AIGER parser, compiler and command line argument parser are just over 300 lines of code. The code is available online at: \path{https://github.com/adamwalker/syntcomp}.
 
-\subsection{Optimizations}
+\subsection{Optimisations}
 \label{sec:syntcomp_optimisations}
 
-The optimizations that we have used, in approximate order of importance, are:
+The optimisations that we have used, in approximate order of importance, are:
 \begin{itemize}
     \item dynamic variable reordering using the sifting algorithm \cite{Rudell_1993}
     \item partitioned transition relations \cite{Burch_91}
@@ -66,7 +66,7 @@ The optimizations that we have used, in approximate order of importance, are:
 \end{algorithmic}
 \end{algorithm}
 
-The optimized algorithm is given in algorithm \ref{alg:syntcomp}. It calls the optimized controllable predecessor defined in algorithm \ref{alg:syntcomp_cpre}.
+The optimised algorithm is given in algorithm \ref{alg:syntcomp}. It calls the optimised controllable predecessor defined in algorithm \ref{alg:syntcomp_cpre}.
 
 \subsubsection{Dynamic variable ordering}
 We do not try to find a good static variable ordering at the start and instead rely on the sifting algorithm provided by the CUDD package for finding good variable orderings dynamically. In our experience, the sifting algorithm provides the best tradeoff between the quality of the resulting ordering and time taken to find it. We enable sifting at the start so that is is active during both compilation and solving. We did not modify any of the default parameters to the sifting algorithm.
