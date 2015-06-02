@@ -333,8 +333,6 @@ conditions over system behaviour:
         placed anywhere inside processes, tasks, and procedures.  
         It defines a condition whose violation immediately 
         transitions the system to an error state.
-    \item \emph{Postconditions}.  Magic block postconditions are 
-        discussed in Section~\ref{s:o:magic} above.
 \end{itemize}
 
 
@@ -342,9 +340,7 @@ conditions over system behaviour:
 \subsection{Magic blocks}\label{s:o:magic}
 
 A \emph{magic block} is a place holder for automatically generated 
-code.  \tsl supports two types of magic blocks.  Magic blocks with 
-\emph{postconditions} specify a condition that must hold upon 
-returning from the magic block.  
+code. 
 
 %Note that for synthesis to succeed the resulting system must 
 %satisfy all correctness conditions described in the following 
@@ -353,9 +349,8 @@ returning from the magic block.
 \begin{tsllisting2}
 template main
   task uncontrollable bool probe() {
-    // Magic block with postcondition
-    {...} post((os.reset_status == iosuccess) ||
-               (os.reset_status == ioerror));
+    // Magic block 
+    {...} 
     if (os.reset_status == iosuccess) {
       return true;
     } else {
@@ -365,14 +360,11 @@ template main
 endtemplate
 \end{tsllisting2}
 
-The second type of magic blocks are magic blocks with 
-\emph{goals}.  These are needed because not all correctness 
-conditions can be captured using postconditions and assertions.  
 For correctness conditions specified using goals (see 
 Section~\ref{s:o:correctness}), the synthesis algorithm computes a 
 strategy for each goal; however the scheduling of strategies is 
 left to the user, i.e., the user decides when to execute each 
-strategy by assigning goals to magic blocks. 
+strategy during code generation.
 
 %\section{Constraints on the environment}
 
@@ -1013,7 +1005,7 @@ beginning of the next transition performed by the process.
 \subsubsection{Magic blocks}
 
 \begin{bnflisting}
-<smagic> := "{" "..." "}" ("using" <ident> | "post" <detexpr>)
+<smagic> := "{" "..." "}" 
 \end{bnflisting}
 
 See section~\ref{s:o:magic}.
