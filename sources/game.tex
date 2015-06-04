@@ -63,6 +63,7 @@ The solution is to modify the objective of the game. Instead of being able to re
 \end{figure}
 
 \subsection{Fairness}
+\label{sec:game_fairness}
 
 Consider another modification of our simplified network device without a self destruct sequence, but with the ability to check that noone is using the communication medium prior to transmitting. The state machine of this device is given in figure~\ref{fig:fair}. After the user requests data transmission by writing to the data register, it executes a loop that checks if the medium is free, and if so, it performs the transmission. 
 

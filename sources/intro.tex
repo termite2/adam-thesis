@@ -11,11 +11,24 @@ Automatic driver synthesis was proposed in earlier work on the Termite-1 project
     \item Termite-1 produced poor quality synthesised code.  While functionally correct, Termite-1 drivers were bloated and poorly structured.  This made it impossible for a programmer to maintain and improve the generated code and prevented synthesised drivers from being adopted by Linux and other major operating systems.  Furthermore, it was impossible to enforce non-functional properties such as CPU and power efficiency.
 \end{itemize}
 
+\section{Game based formalism}
+
+In this work, we develop Termite-1's game based approach into the first precise mathematical formulation of the driver synthesis problem.  This enables us to apply theoretical results and algorithmic techniques from game theory to driver synthesis. 
+
+Following the approach proposed by Termite-1, we treat the driver synthesis problem as a two-player game between the driver and its environment, comprised of the device and the OS\@. Each player has a set of \emph{moves} available to it. The driver's moves are called the \emph{controllable} moves, while the environment's moves are \emph{uncontrollable}. The driver's moves, for example, may consist of the set of device register writes that it can perform. The game is played on a large state machine that describes the behavior of the device and operating system. At any instant, one state is the \emph{current state} and play progresses from state to state by following edges labelled with the set of moves. 
+
+The \emph{objective} of a Termite-1 game was defined by designating some states as \emph{goal} states. A goal may, for example, correspond to a state where the driver has no outstanding data to send. A correct driver is defined as one that can eventually force the current state to be in the set of goal states, regardless of the labels that the environment chooses to play. 
+
+Termite-1's objectives, defined using goals, had two major shortcomings. They did not capture recurring properties. Termite-1 considered a driver to be correct if it could force execution into the goal once. Real drivers, however, are reactive systems that need to continuously satisfy requests. Secondly, it did not allow the driver to make realistic assumptions about how the environment behaves. Termite-1 drivers could not rely on simple properties like the fact that timeouts eventually time out. This is discussed further in Section~\ref{sec:game_fairness}. 
+
+Lastly, Termite-1 did not handle the concurrency between the driver and its environment properly, resulting in subtly incorrect drivers. We handle this in a robust way using concurrent games. 
+
+Our new tool, Termite-1, overcomes all of these shortcomings by using generalised reactive (1), or GR(1) objectives \cite{Piterman_PS_06}.
+
 \section{Scalable Synthesis Algorithm}
+\label{sec:scalable_synth}
 
-To address the scalability problem, we created a new scalable synthesis algorithm, which mitigates the computational bottleneck in driver synthesis.  Following the approach proposed in Termite-1, we treat the driver synthesis problem as a two-player game between the driver and its environment, comprised of the device and the OS\@.  In this work, we develop this approach into the first precise mathematical formulation of the driver synthesis problem based on game theory.  This enables us to apply theoretical results and algorithmic techniques from game theory to driver synthesis.  
-
-Our game-based synthesis algorithm relies on abstraction and symbolic reasoning to achieve orders of magnitude speed up compared to the current state-of-the-art synthesis techniques.  The algorithm is described in Chapter~\ref{ch:solving}.
+To address the scalability problem, we created a new scalable synthesis algorithm, which mitigates the computational bottleneck in driver synthesis~\cite{Walker_Ryzhyk_14}. Our game-based synthesis algorithm relies on abstraction and symbolic reasoning to achieve orders of magnitude speed up compared to the current state-of-the-art synthesis techniques.  The algorithm is described in Chapter~\ref{ch:solving}.
 
 Game solving involves exploring potentially large state spaces. \emph{Abstraction} offers an effective approach to mitigating the state space explosion problem.  For example, in the model checking domain abstraction proved instrumental in enabling automatic verification of complex hardware and software systems~\cite{Clarke_GJLV_00,Clarke_KSY_04,Henzinger_JMS_02}.  The reactive synthesis community has also identified the key role of abstraction in tackling real-world synthesis problems; however most research in this area has so far been of theoretical nature~\cite{Alfaro_Roy_07,Henzinger_JM_03}.  
 
@@ -50,7 +63,24 @@ From the developer's perspective, user-guided synthesis appears as an enhancemen
 
 Most previous research on automatic synthesis, including Termite-1, considered input specifications to be ``correct by definition''.  In contrast, we recognise that input specifications produced by human developers are likely to contain defects, which can prevent the synthesis algorithm from finding a correct driver implementation.  Therefore \termite incorporates powerful debugging tools that help the developer identify and fix specification defects through well-defined steps, similar to how conventional debuggers help troubleshoot implementation errors.
 
-We evaluate \termite by synthesising drivers for several I/O devices.  Our experience demonstrates that our methodology meets our design goals, and indeed makes automatic driver synthesis practical.
+The components of Termite which will be presented in the following chapters of this thesis are:
+\begin{itemize}
+    \item A scalable synthesis algorithm.
+    \item A high level specification language and compiler.
+    \item A graphical debugging and state space exploration environment.
+    \item A counterexample generator.
+    \item A heuristic code generator.
+\end{itemize}
+
+We evaluate \termite by synthesising drivers for several I/O devices representative of peripherals found in a typical embedded system. Our evaluation criteria are:
+\begin{itemize}
+    \item Percent of the driver that is synthesiseable by Termite.
+    \item Performance and code size of the synthesized driver.
+    \item Synthesis algorithm running time and memory usage.
+    \item Ease of creation and debugging of the specifications.
+\end{itemize}
+
+We conclude that for typical embedded devices automatic driver synthesis is practical. The biggest limitation of Termite, however, is that it cannot synthesize code to perform DMA. Such code must be manually written. We did this for our case studies where it was required and we were able to synthesize the rest of the driver independently. However, this limitation makes the use of Termite less appealing for devices such as gigabit ethernet controllers where the majority of driver writing effort goes into handling DMA.
 
 This dissertation makes two contributions in the field of practical device driver synthesis:
 \begin{enumerate}
