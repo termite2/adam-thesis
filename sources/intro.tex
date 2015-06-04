@@ -39,7 +39,7 @@ From the developer's perspective, user-guided synthesis appears as an enhancemen
 
 Most previous research on automatic synthesis, including Termite-1, considered input specifications to be ``correct by definition''.  In contrast, we recognise that input specifications produced by human developers are likely to contain defects, which can prevent the synthesis algorithm from finding a correct driver implementation.  Therefore \termite incorporates powerful debugging tools that help the developer identify and fix specification defects through well-defined steps, similar to how conventional debuggers help troubleshoot implementation errors.
 
-The components of Termite which will be presented in the following chapters of this thesis are:
+Figure~\ref{f:termite_intro} gives an overview of the components of Termite and the synthesis workflow. I will be presenting each of the following components in the remaining chapters of this thesis:
 \begin{itemize}
     \item A scalable synthesis algorithm.
     \item A high level specification language and compiler.
@@ -47,6 +47,12 @@ The components of Termite which will be presented in the following chapters of t
     \item A counterexample generator.
     \item A heuristic code generator.
 \end{itemize}
+
+\begin{figure}
+    \center
+    \includegraphics[width=\linewidth]{imgs/termite.pdf}
+    \caption{\termite synthesis workflow.}\label{f:termite_intro}
+\end{figure}
 
 We evaluate \termite by synthesising drivers for several I/O devices representative of peripherals found in a typical embedded system. Our evaluation criteria are:
 \begin{itemize}
