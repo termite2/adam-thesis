@@ -5,7 +5,7 @@ import Development.Shake.FilePath
 
 buildDir = "build"
 
-latexSources  = ["thesis.tex", "background.tex", "game.tex", "intro.tex", "solving.tex", "syntcomp.tex", "userguided.tex", "i2c.tex", "conclusions.tex", "asl.tex"]
+latexSources  = ["thesis.tex", "background.tex", "game.tex", "intro.tex", "solving.tex", "syntcomp.tex", "userguided.tex", "i2c.tex", "conclusions.tex", "asl.tex", "related.tex"]
 tslRefSources = ["body.tex"]
 bibSources    = ["extra.bib"]
 
