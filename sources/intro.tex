@@ -7,8 +7,8 @@ The primary motivations for device driver synthesis are the fact that device dri
 Automatic driver synthesis was proposed in earlier work on the Termite-1 project~\cite{Ryzhyk_CKSH_09}, which formulated the key principles behind the approach and demonstrated its feasibility by synthesising drivers for several real-world devices.  The next logical step was to develop driver synthesis into a practical methodology, capable of replacing the conventional driver development process.  To this end we have addressed the key problems left open by Termite-1:
 
 \begin{itemize}
-    \item Termite-1 produced poor quality synthesised code.  While functionally correct, Termite-1 drivers were bloated and poorly structured.  This made it impossible for a programmer to maintain and improve the generated code and prevented synthesised drivers from being adopted by Linux and other major operating systems.  Furthermore, it was impossible to enforce non-functional properties such as CPU and power efficiency.
-    \item The scalability of the Termite-1 synthesis algorithm was severely limited, which made synthesis of drivers for real-world devices intractable. Termite-1 got around the problem by using carefully crafted simplified device specifications, which is acceptable in a proof-of-concept prototype, but not in a practical tool. Addressing this issue is the major contribution of this dissertation.
+    \item Termite-1 produced poor quality synthesised code.  While functionally correct, Termite-1 drivers were bloated and poorly structured.  This made it impossible for a programmer to maintain and improve the generated code and prevented synthesised drivers from being adopted by Linux and other major operating systems.  Furthermore, it was impossible to enforce non-functional properties such as CPU and power efficiency. Addressing these issues is the first major contribution of this dissertation.
+    \item The scalability of the Termite-1 synthesis algorithm was severely limited, which made synthesis of drivers for real-world devices intractable. Termite-1 got around the problem by using carefully crafted simplified device specifications, which is acceptable in a proof-of-concept prototype, but not in a practical tool. Addressing this issue is the second major contribution of this dissertation.
 \end{itemize}
 
 \section{Game based formalism}
@@ -23,7 +23,7 @@ Termite-1's objectives, defined using goals, had two major shortcomings. They di
 
 Lastly, Termite-1 did not handle the concurrency between the driver and its environment properly, resulting in subtly incorrect drivers. We handle this in a robust way using concurrent games. 
 
-Our new tool, Termite-2, overcomes all of these shortcomings by using generalised reactive (1), or GR(1) objectives \cite{Piterman_PS_06}.
+Our new tool called Termite-2 (further referred to as Termite) overcomes all of these shortcomings by using generalised reactive (1), or GR(1) objectives \cite{Piterman_PS_06}.
 
 \section{User Guided Synthesis}
 
@@ -31,7 +31,7 @@ We came to the conclusion that the approach taken by Termite-1 was \emph{critica
 
 A radically different approach was needed---one that combines the power of automation with the flexibility of conventional development, and that involves the developer from the start, guiding the generation of the driver.  In many ways, synthesis and conventional development are conflicting.  Hence, a key challenge was to conceive of a way that allowed the two to be combined so that the developer could do their job more efficiently and with fewer errors without having the synthesis tool get in the way.
 
-This dissertation presents a novel \emph{user-guided} approach to driver synthesis implemented in a new tool called \termite-2 (further referred to as \termite).  In \termite, the user has full control over the synthesis process, while the tool acts as an assistant that suggests, but does not enforce, implementation options and ensures correctness of the resulting code.  At any point during synthesis the user can modify or extend previously synthesised code.  The tool automatically analyses user-provided code and, on user's request, suggests possible ways to extend it to a complete implementation.  If such an extension is not possible due to an error in the user code, the tool generates an explanation of the failure that helps the user to identify and correct the error.
+This dissertation presents a novel \emph{user-guided} approach to driver synthesis implemented in Termite.  In \termite, the user has full control over the synthesis process, while the tool acts as an assistant that suggests, but does not enforce, implementation options and ensures correctness of the resulting code.  At any point during synthesis the user can modify or extend previously synthesised code.  The tool automatically analyses user-provided code and, on user's request, suggests possible ways to extend it to a complete implementation.  If such an extension is not possible due to an error in the user code, the tool generates an explanation of the failure that helps the user to identify and correct the error.
 
 In an extreme scenario, \termite can be used to synthesise the complete implementation fully automatically.  At the other extreme, the user can build the complete implementation by hand, in which case \termite acts as a static verifier for the driver.  In practice, we found the intermediate approach, where most of the code is auto-generated, but manual involvement is used when needed to improve the implementation, to be the most practical.
 
