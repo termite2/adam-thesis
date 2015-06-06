@@ -3,7 +3,7 @@
 
 \section{Device Drivers}
 
-A device driver provides an interface for the operating system (OS) to use a hardware device that is attached to the computer. It translates requests between the OS and the hardware. It allows the operating system to use the device without knowing the exact details of the hardware. As an example, a network interface driver may provide functions to send and receive packets from the network. It performs the low level device register and memory writes necessary to perform these operations while presenting a high level interface to the OS.
+A device driver provides an interface for the operating system (OS) to use a hardware device that is attached to the computer. It translates requests between the OS and the hardware. It allows the operating system to use the device without knowing the exact details of the hardware. As an example, a network interface driver may provide functions to send and receive packets from the network. It performs the low-level device register and memory writes necessary to perform these operations while presenting a high level interface to the OS.
 
 Writing a device driver requires in depth knowledge of both the device to be controlled and the interface to the OS. This makes writing a device driver a tedious and error prone process. Additionally, device drivers usually operate in a privileged part of the OS so that it can access the hardware. As a result, errors often lead to failures of the system.
 
@@ -13,7 +13,7 @@ Device drivers are usually developed by the hardware vendor as they have the bes
 
 The key functions of a device driver are:
 \begin{itemize}
-    \item \emph{Abstraction.} As discussed, the driver abstracts away the low level details of the device and presents the functionality through a high level set of operations.
+    \item \emph{Abstraction.} As discussed, the driver abstracts away the low-level details of the device and presents the functionality through a high level set of operations.
     \item \emph{Unification.} The driver provides a unified interface to similar devices. For example, another network interface may have present a completely different hardware interface to the first but its driver presents the same send and receive functionality to the OS as before. 
     \item \emph{Multiplexing.} The driver and OS cooperate to make sure that the services that the hardware provides are available to all users of the system with sufficient permissions to access the hardware.
 \end{itemize}
@@ -21,7 +21,7 @@ The key functions of a device driver are:
 \subsection{Device driver organisation}
 \subsubsection{I/O buses}
 
-Device drivers communicate with devices over an I/O bus such as the \emph{Peripheral Component Interconnect} (PCI) or \emph{Universal Serial Bus} (USB). Modern operating systems contain drivers that operate these buses and provide low level access to devices over them. In this thesis we assume that these bus level drivers already exist. 
+Device drivers communicate with devices over an I/O bus such as the \emph{Peripheral Component Interconnect} (PCI) or \emph{Universal Serial Bus} (USB). Modern operating systems contain drivers that operate these buses and provide low-level access to devices over them. In this thesis we assume that these-bus level drivers already exist. 
 
 \subsubsection{Memory Mapped I/O}
 
@@ -39,11 +39,11 @@ On a Linux system, when an interrupt is raised, the currently executing task is 
 
 \subsubsection{Concurrency}
 
-Most operating systems are multithreaded, including the device drivers. Driver entry points and interrupt handlers may be invoked concurrently and in a nested fashion. Careful use of synchronisation primitives are required to avoid race conditions and deadlock. In this work, we assume that only one driver entry point is invoked at a time, removing all concurrency. This can be achieved by using an event based framework such as Dingo \cite{Ryzhyk_CKH_09}, writing a wrapper to translate the concurrent interface required by the operating system to the single threaded interface of the generated drivers, or by post processing the generated driver as described by \cite{Cerny_HRRT_13}
+Most operating systems are multithreaded, including the device drivers. Driver entry points and interrupt handlers may be invoked concurrently and recursively. Careful use of synchronisation primitives are required to avoid race conditions and deadlock. In this work, we assume that only one driver entry point is invoked at a time, removing all concurrency. This can be achieved by using an event based framework such as Dingo \cite{Ryzhyk_CKH_09}, writing a wrapper to translate the concurrent interface required by the operating system to the single threaded interface of the generated drivers, or by post processing the generated driver as described by \cite{Cerny_HRRT_13}
 
 \subsubsection{Operating system services}
 
-In addition to bus level drivers, the OS provides various services to device drivers. These include memory management, timing and synchronisation. Memory management includes allocating memory and support for memory mapped IO and DMA. Timer functionality includes both synchronous (thread delays) and asynchronous (callback) timers. Various synchronization primitives are also provided, but, given that Termite does not make any use of them, we do not discuss them further.
+In addition to bus-level drivers, the OS provides various services to device drivers. These include memory management, timing and synchronisation. Memory management includes allocating memory and support for memory mapped IO and DMA. Timer functionality includes both synchronous (thread delays) and asynchronous (callback) timers. Various synchronization primitives are also provided, but, given that Termite does not make any use of them, we do not discuss them further.
 
 \section{Fixed points}
 
@@ -192,7 +192,7 @@ Sometimes it is necessary to rule out invalid plays that are not easily ruled ou
 
 \paragraph{GR(1)}
 \label{sec:gr1}
-A Generalised Reactive 1, or GR(1) \cite{Piterman_PS_06} objective, is a generalised \buchi\ objective with multiple fairness conditions. In practice, this turns out to be a very useful type of objective. Formally, given a set $FAIRS$ of fair sets of states, a run satisfies a GR(1) objective if 
+A Generalised Reactive 1, or GR(1) \cite{Piterman_PS_06} objective, is a generalised \buchi\ objective with multiple fairness conditions. In practice, this turns out to be a very useful type of objective with specifying the requirements of device drivers. This is because it captures the notion that the driver must satisfy requestes indefinitly while at the same time relying on guarantees provided by the environment in order to satisfy those requests. Formally, given a set $FAIRS$ of fair sets of states, a run satisfies a GR(1) objective if 
 
 \begin{multline}
 \forall i.\ \forall \fairobj \in \genfairobj.\ \exists j>i.\ s_j \in \fairobj \rightarrow \\ \forall i.\ \forall \buchiobj \in \genbuchiobj.\ \exists j>i.\ s_j \in \buchiobj
