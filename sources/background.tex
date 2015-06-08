@@ -57,7 +57,7 @@ Section~\ref{sec:intro_solving} presents the controllable predecessor, the must 
 
 In addition to deciding whether there exists a correct driver for a set of specifications, Termite must synthesize a strategy which will be turned into driver code. In Section~\ref{sec:strat_and_cex} we modify the algorithms given in the previous section to return a strategy if the game is winnable. We also show how to generate a strategy for the opponent, called a counterexample, when the game is not winnable. Counterexamples are used extensively in Termite to aid in debugging faulty specifications.
 
-Finally, Section~\ref{sec:symbolic_games} borrows symbolic techniques from model checking and applies them to games. Symbolic techniques, particularly the binary decision diagram data structure, revolutionised model checking. Instead of representing states explicitly, they are represented by a characteristic equation over state variables. This technique allowed model checking and game solving to scale for beyond what was possible previously.
+Finally, Section~\ref{sec:symbolic_games} borrows symbolic techniques from model checking and applies them to games. Symbolic techniques, particularly the binary decision diagram data structure, revolutionised model checking. Instead of representing states explicitly, they are represented by a characteristic equation over state variables. This technique allowed model checkers and game solvers to scale well beyond what was possible previously.
 
 \section{$\omega$-regular languages}
 \label{sec:omega_regular}
