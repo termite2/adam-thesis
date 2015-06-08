@@ -1,0 +1,80 @@
+\chapter{Related Work}
+\label{ch:related}
+
+Termite is motivated by the two main problems with traditional device drivers:
+
+\begin{itemize}
+    \item They are notoriously unreliable~\cite{Chou_YCHE_01,Ganapathi_GP_06}.
+    \item Substantial effort is required to develop them.
+\end{itemize}
+
+This chapter presents preexisting work that aims to solve at least one of these problems. The first issue has received substantial attention in recent times with the introduction of new static analysis and model checking tools and techniques. 
+
+Work related to the scalable synthesis algorithm is presented before it is built upon in Sections~\ref{sec:three_val_abs_ref} and~\ref{sec:approx_three_val} of Chapter~\ref{ch:solving}.
+
+\section{Driver reliability}
+Preexisting work for improving driver reliability fall into two groups: static analysis and runtime fault isolation.
+
+\subsection{Static analysis}
+Static analysis tools analyse program source code and sometimes binaries for defects. Static analysis usually involves creating a formal model of the program or binary and verifying this against a formal description of the required properties using a model checker. Verifying such a property involves checking all possible executions of the model.
+
+These models, particularly when constructed from real C and C++ programs, typically have extremely large state spaces. Rapid advances in model checking techniques have made checking properties of these large state spaces feasible in practice. In order to scale to these large models, motel checkers typically employ symbolic techniques such as binary decision diagrams~\cite{Bryant_86} and SAT solvers to represent and manipulate the state space of the system. They also employ a technique called abstraction to build a less detailed model with which it is tractable to prove or disprove the property and then perform model checking using this simplified model. The simplified model loses precision and as a result, the verification of the property of interest may me wrong. More advanced static analysis tools can detect this, produce a counterexample, and use this counterexample to refine the abstraction, i.e.\@ make it more accurate at the expense of computational difficulty. This is called Counterexample Guided Abstraction Refinement~\cite{Clarke_GJLV_00}.
+
+Metal~\cite{Engler_CCH_00}, SLAM~\cite{Ball_CLR_04} and Blast~\cite{Beyer_HJM_07} are notable examples of static analysis tools. They operate directly on the source code of the system. Metal can verify that drivers release all acquired locks and no not attempt to acquire a lock twice, do not dereference use pointers and check for null pointers. 
+
+SLAM can verify more sophisticated properties involving misuse of the kernel provided API. An example rule checked by SLAM for the Windows driver API is: ``drivers do not return STATUS\_PENDING if IoCompleteRequest has been called''. Input to SLAM consists of the driver source code, the rules to be checked and a model of the OS interface.
+
+The advantage of static analysis is that errors are found before drivers are even shipped. However, many potential bugs are missed by these tools. Complex API rules are prohibitively costly to check and, for example, it is impossible to completely rule out invalid memory accesses. Furthermore, none of these analysis techniques consider valid interactions with the device. For such properties, detailed device models are needed. 
+
+\subsection{Runtime fault isolation}
+\subsubsection{Microkernel based systems}
+
+Some OSs, particularly microkernel based ones, run device drivers in separate protection domains and address spaces to the privileged kernel. The driver is not run in a privileged domain so the kernel must provide some mechanism for it to access the hardware. Typically, the device's registers are mapped into the driver's address space or the kernel provides system calls for device access. Such a driver cannot possibly access privileged instructions or the kernel's memory, preventing it from damaging the running kernel in case of a fault. 
+
+In case of a fault, there is usually nothing the kernel can do as it typically has little knowledge of the driver of the device it controls. Usually, it simply stops the malfunctioning driver and restarts it in a new protection domain. This approach prevents the faulty driver from damaging the rest of the system but it can not guarantee proper functioning of the device. 
+
+Futhermore, the device usually has access to the system bus. A faulty, or even malicious driver may program the device to access protected memory that the driver itself does not have access to, subverting the protection provided by encapsulating drivers at user level. This may be prevented with a hardware device like an IOMMU~\cite{BenYehuda_MKXVMN_06}.
+
+User level drivers were pioneered in the Michigan Terminal System~\cite{Boettner_Alexander_75} and were used in Mach 3~\cite{Accetta_BBGRTY_86, Forin_GB_91} and L3~\cite{Liedtke_BBHRS_91, Liedtke_93} as well as Linux.
+
+\subsubsection{Monolithic systems}
+The ideas behind user level device drivers in microkernel based systems have also been applied to monolithic systems such as Linux. One example is Nooks~\cite{Swift_BL_03}. Nooks encapsulates device drivers inside a protection domain called a nook. Drivers encapsulated in a nook use the kernel address space, so addresses can be used without translation, but are within a separate protection domain where all kernel memory and data structures are marked read only. Each nook has access to a private heap and device memory mapped registers. 
+
+Communication between a nook and the rest of the kernel is mediated by the Nooks isolation manager. It intercepts function calls and ensures that the driver can read and write memory passed to it by reference. It does this by forwarding these reads and writes to the rest of the kernel or by maintaining a synchronised copy of the memory inside the nook. 
+
+Illegal memory accesses caused by the driver are caught by hardware as each nook runs inside its own protection domain. Additionally, the isolation manager knows enough about the kernel API to detect invalid parameters passed to the kernel as well as temporal failures, where the driver has not responded within an acceptable time. If a driver fails, the isolation manager frees all of the kernel objects it allocated and restarts it. As with user level device drivers, the driver's clients still observe the failure, but the rest of the kernel is not corrupted. 
+
+Shadow drivers~\cite{Swift_ABL_04} are an extension of Nooks where all communication between the kernel and the nook is intercepted and recorded. When the driver fails, the driver is re-instantiated as before, but this time the sequence of events is replayed to bring the driver to the state it was in before the failure. 
+
+Clearly, the Nooks approach suffers from the enormous complexity of the isolation and recovery infrastructure. In order to synchronise data structures outside the nook, as well as validate data passed through the interface and timing, the isolation manager must have in-depth knowledge of the kernel API. Additionally, the shadow driver, when replaying events to restart the failed driver, must mimic the semantics of the entire OS API during this time. Lastly, all communication must be translated by the isolation manager. As drivers frequently makes calls to the rest of the kernel, this imposes considerable overhead.
+
+\section{Driver synthesis}
+
+Driver synthesis counters both problems with device drivers: reliability and required developer effort. Driver synthesis techniques fall into three groups:
+\begin{itemize}
+    \item Complete synthesis (the Termite approach)
+    \item Device interface generation
+    \item Automatic reverse engineering of execution traces
+\end{itemize}
+
+As this project is the direct descendent of Termite-1, this is where I will start.
+
+\subsection{Complete synthesis}
+
+The original Termite~\cite{Ryzhyk_CKSH_09} generates a driver implementation from a formal specification of the device behaviour and the OS interface. It treats the specifications as independent state machines which synchronise on shared events, called device class events, to form a product state machine. The driver synthesis problem is then formalised as a two player game played by the driver against its environment consisting of the device and OS. The objective for the driver is to force execution into the goal set. 
+
+Termite-1 had several limitations. Most notably, the synthesis algorithm was not scalable. It did not use abstraction or symbolic data structures. As a result, it only worked on simple and carefully hand crafted specifications. Termite-1's approach to code generation was all or nothing. You had to accept the unreadable and bloated code that it generated and had no means to modify or influence the generated output. Termite-1 specifications were written in a formal language. While ideal for specifying state machines, is it not reasonable to expect OS and hardware developers to create specifications in such a language. Lastly, Termite-1 did not provide any debugging support in case of synthesis failures.
+
+Despite these considerable limitations, Termite-1 did do some things right. As a result, Termite-2 borrows several key concepts pioneered in Termite-1. Firstly, Termite-2 borrows the game formalism, but builds on it considerably with much more expressive game objectives. Temite-2 also maintains separation of device and OS specifications by treating they as independent state machines that synchronise with shared events, though these events are abstracted by the specification language, TSL (Appendix~\ref{ch:tsl_ref}).
+
+\subsection{Device interface generation}
+
+Devil~\cite{Merillon_RCMM_00}, NDL~\cite{Conway_Edwards_04} and HAIL~\cite{Sun_YKI_05} are tools for generating the low level device access functions of the driver. They each provide a domain specific language for expressing device register and memory layout. Additionally, they provide a mechanism to define valid sequences of memory and register accesses through either temporal logic or state machines. 
+
+These tools generate low level device access functions in C. The functions enforce correct device access ordering through the structure of the functions and runtime checks. This approach tends to be quite effective in practice as these low level hardware manipulation functions, when handwritten, usually contain a large proportion of driver defects.
+
+\subsection{Automatic reverse engineering}
+
+RevNIC~\cite{revnic} automates the reverse engineering of closed source binary drivers to discover the device control logic. It uses this information to synthesise a new driver that implements the same device control protocol as the original driver. The driver may be targeted at a different OS. 
+
+Unlike Termite, this approach does not require device specifications, but it does require a preexisting driver. Is is potentially useful in the common case where drivers exist for Windows but not other platforms.
