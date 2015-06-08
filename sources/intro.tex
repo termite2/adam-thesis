@@ -13,17 +13,16 @@ Automatic driver synthesis was proposed in earlier work on the Termite-1 project
 
 \section{Game based formalism}
 
-In this work, I develop Termite-1's game based approach into the first precise mathematical formulation of the driver synthesis problem.  This enables us to apply theoretical results and algorithmic techniques from game theory to driver synthesis. 
+The key step towards addressing the above challenges is to capture the driver synthesis problem using a precise mathematical formalism.  In this work, I develop the first precise mathematical formulation of the driver synthesis problem.  This enables us to apply theoretical results and algorithmic techniques from game theory to driver synthesis.  Following the approach proposed by Termite-1, I treat the driver synthesis problem as a two-player game between the driver and its environment, comprised of the device and the OS\@. Each player has a set of \emph{moves} available to it. The driver's moves are called the \emph{controllable} moves, while the environment's moves are \emph{uncontrollable}. The driver's moves, for example, may consist of the set of device register writes that it can perform. The game is played on a large state machine that describes the behaviour of the device and operating system. At any instant, one state is the \emph{current state} and play progresses from state to state by following edges labelled with the set of moves. 
 
-Following the approach proposed by Termite-1, I treat the driver synthesis problem as a two-player game between the driver and its environment, comprised of the device and the OS\@. Each player has a set of \emph{moves} available to it. The driver's moves are called the \emph{controllable} moves, while the environment's moves are \emph{uncontrollable}. The driver's moves, for example, may consist of the set of device register writes that it can perform. The game is played on a large state machine that describes the behaviour of the device and operating system. At any instant, one state is the \emph{current state} and play progresses from state to state by following edges labelled with the set of moves. 
+However, the formal model used in Termite-1 had several important shortcomings that made it unsound, potentially leading to incorrect synthesised drivers or synthesis failures.  The \emph{objective} of a Termite-1 game was defined by designating some states as \emph{goal} states. A goal may, for example, correspond to a state where the driver has no outstanding data to send. A correct driver is defined as one that can eventually force the current state to be in the set of goal states, regardless of the environment behaviour. 
 
-The \emph{objective} of a Termite-1 game was defined by designating some states as \emph{goal} states. A goal may, for example, correspond to a state where the driver has no outstanding data to send. A correct driver is defined as one that can eventually force the current state to be in the set of goal states, regardless of the labels that the environment chooses to play. 
+Objectives, defined using goals, are insufficient for two reasons. First, they do not capture recurring properties. Termite-1 considered a driver to be correct if it could force execution into the goal once. Real drivers, however, are reactive systems that need to continuously satisfy requests. Second, such objectives do not allow the driver to make realistic assumptions about how the environment behaves. Termite-1 drivers could not rely on simple properties like the fact that timeouts eventually time out. This is discussed further in Section~\ref{sec:game_fairness}. 
 
-Termite-1's objectives, defined using goals, had two major shortcomings. They did not capture recurring properties. Termite-1 considered a driver to be correct if it could force execution into the goal once. Real drivers, however, are reactive systems that need to continuously satisfy requests. Secondly, it did not allow the driver to make realistic assumptions about how the environment behaves. Termite-1 drivers could not rely on simple properties like the fact that timeouts eventually time out. This is discussed further in Section~\ref{sec:game_fairness}. 
+The new tool called Termite-2 (further referred to as Termite) overcomes these shortcomings by using generalised reactive (1), or GR(1) objectives \cite{Piterman_PS_06}.
 
-Lastly, Termite-1 did not handle the concurrency between the driver and its environment properly, resulting in subtly incorrect drivers. I handle this in a robust way using concurrent games. 
+In addition, Termite-1 did not handle the concurrency between the driver and its environment properly, resulting in subtly incorrect drivers. I handle this in a robust way using concurrent games. 
 
-The new tool called Termite-2 (further referred to as Termite) overcomes all of these shortcomings by using generalised reactive (1), or GR(1) objectives \cite{Piterman_PS_06}.
 
 \section{User Guided Synthesis}
 
@@ -54,7 +53,7 @@ Figure~\ref{f:termite_intro} gives an overview of the components of Termite and 
     \caption{\termite synthesis workflow.}\label{f:termite_intro}
 \end{figure}
 
-The Termite team and I evaluated \termite by synthesising drivers for several I/O devices representative of peripherals found in a typical embedded system. The evaluation criteria are:
+I evaluated \termite by synthesising drivers for several I/O devices representative of peripherals found in a typical embedded system. The evaluation criteria are:
 \begin{itemize}
     \item Percent of the driver that is synthesiseable by Termite.
     \item Performance and code size of the synthesized driver.
