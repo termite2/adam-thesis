@@ -21,7 +21,7 @@ The key functions of a device driver are:
 \subsection{Device driver organisation}
 \subsubsection{I/O buses}
 
-Device drivers communicate with devices over an I/O bus such as the \emph{Peripheral Component Interconnect} (PCI) or \emph{Universal Serial Bus} (USB). Modern operating systems contain drivers that operate these buses and provide low-level access to devices over them. In this thesis we assume that these-bus level drivers already exist. 
+Device drivers communicate with devices over an I/O bus such as the \emph{Peripheral Component Interconnect} (PCI) or \emph{Universal Serial Bus} (USB). Modern operating systems contain drivers that operate these buses and provide low-level access to devices over them. In this thesis I assume that these-bus level drivers already exist. 
 
 \subsubsection{Memory Mapped I/O}
 
@@ -39,23 +39,23 @@ On a Linux system, when an interrupt is raised, the currently executing task is 
 
 \subsubsection{Concurrency}
 
-Most operating systems are multithreaded, including the device drivers. Driver entry points and interrupt handlers may be invoked concurrently and recursively. Careful use of synchronisation primitives are required to avoid race conditions and deadlock. In this work, we assume that only one driver entry point is invoked at a time, removing all concurrency. This can be achieved by using an event based framework such as Dingo \cite{Ryzhyk_CKH_09}, writing a wrapper to translate the concurrent interface required by the operating system to the single threaded interface of the generated drivers, or by post processing the generated driver as described by \cite{Cerny_HRRT_13}
+Most operating systems are multithreaded, including the device drivers. Driver entry points and interrupt handlers may be invoked concurrently and recursively. Careful use of synchronisation primitives are required to avoid race conditions and deadlock. In this work, I assume that only one driver entry point is invoked at a time, removing all concurrency. This can be achieved by using an event based framework such as Dingo \cite{Ryzhyk_CKH_09}, writing a wrapper to translate the concurrent interface required by the operating system to the single threaded interface of the generated drivers, or by post processing the generated driver as described by \cite{Cerny_HRRT_13}
 
 \subsubsection{Operating system services}
 
-In addition to bus-level drivers, the OS provides various services to device drivers. These include memory management, timing and synchronisation. Memory management includes allocating memory and support for memory mapped IO and DMA. Timer functionality includes both synchronous (thread delays) and asynchronous (callback) timers. Various synchronization primitives are also provided, but, given that Termite does not make any use of them, we do not discuss them further.
+In addition to bus-level drivers, the OS provides various services to device drivers. These include memory management, timing and synchronisation. Memory management includes allocating memory and support for memory mapped IO and DMA. Timer functionality includes both synchronous (thread delays) and asynchronous (callback) timers. Various synchronization primitives are also provided, but, given that Termite does not make any use of them, I do not discuss them further.
 
 \section{Formal intro}
 
-Termite's game formalism and synthesis algorithm build on considerable pre-existing work in the field of reactive synthesis which we present in the following sections. We begin, in Section~\ref{sec:omega_regular}, with the definition of the $\omega$-regular languages and $\omega$-regular expressions which describe sets of infinite length sequences. Termite must respond to the environment continuously so we use certain subsets of the $\omega$-regular languages to specify game objectives.
+Termite's game formalism and synthesis algorithm build on considerable pre-existing work in the field of reactive synthesis which is presented in the following sections. I begin, in Section~\ref{sec:omega_regular}, with the definition of the $\omega$-regular languages and $\omega$-regular expressions which describe sets of infinite length sequences. Termite must respond to the environment continuously so I use certain subsets of the $\omega$-regular languages to specify game objectives.
 
-Next, in Section~\ref{sec:fixed_points}, we introduce a logic for describing fixed points. Evaluation of a fixed point formula returns a set of states. The winning set of states in a game with $\omega$-regular objectives can be described with a fixed point formula. Furthermore, there is a mechanical translation from a fixed point formula to an algorithm that evaluates it. Fixed-point formulas are thus a useful tool for defining $\omega$-regular objectives and describing the algorithms to compute winning regions and are used extensively throughout this chapter.
+Next, in Section~\ref{sec:fixed_points}, I introduce a logic for describing fixed points. Evaluation of a fixed point formula returns a set of states. The winning set of states in a game with $\omega$-regular objectives can be described with a fixed point formula. Furthermore, there is a mechanical translation from a fixed point formula to an algorithm that evaluates it. Fixed-point formulas are thus a useful tool for defining $\omega$-regular objectives and describing the algorithms to compute winning regions and are used extensively throughout this chapter.
 
 Section~\ref{sec:two_player} defines two player games and strategies - the central formalisms of Termite. It then defines several types of objectives (which are themselves $\omega$-regular languages), eventually building up to GR(1) games - the kind of objective used by Termite.
 
 Section~\ref{sec:intro_solving} presents the controllable predecessor, the must fundamental unit of game solving. It then uses this to present translations of the objectives to $\mu$-calculus formulas which, in turn, gives us algorithms to solve them.
 
-In addition to deciding whether there exists a correct driver for a set of specifications, Termite must synthesize a strategy which will be turned into driver code. In Section~\ref{sec:strat_and_cex} we modify the algorithms given in the previous section to return a strategy if the game is winnable. We also show how to generate a strategy for the opponent, called a counterexample, when the game is not winnable. Counterexamples are used extensively in Termite to aid in debugging faulty specifications.
+In addition to deciding whether there exists a correct driver for a set of specifications, Termite must synthesize a strategy which will be turned into driver code. In Section~\ref{sec:strat_and_cex} I modify the algorithms given in the previous section to return a strategy if the game is winnable. I also show how to generate a strategy for the opponent, called a counterexample, when the game is not winnable. Counterexamples are used extensively in Termite to aid in debugging faulty specifications.
 
 Finally, Section~\ref{sec:symbolic_games} borrows symbolic techniques from model checking and applies them to games. Symbolic techniques, particularly the binary decision diagram data structure, revolutionised model checking. Instead of representing states explicitly, they are represented by a characteristic equation over state variables. This technique allowed model checkers and game solvers to scale well beyond what was possible previously.
 
@@ -78,7 +78,7 @@ Elements of $A^\omega$ are obtained by concatenating words from $A$ infinitely m
 
 \subsection{Syntax}
 
-We define a logic with fixed points capable of expressing greatest and least solutions of fixed point equations $X = f(X)$ where $f$ is a monotone function. The set of formulas in this logic is defined as follows:
+This section defines a logic with fixed points capable of expressing greatest and least solutions of fixed point equations $X = f(X)$ where $f$ is a monotone function. The set of formulas in this logic is defined as follows:
 
 Let $P$ be a set of propositions and $V$ be a set of variables. Then
 
@@ -120,7 +120,7 @@ It is straightforward to convert a \mucalc formula into an algorithm that return
 
 Greatest and least fixed points are computed by iteration. To compute the greatest fixed point of a function $f(x)$ i.e. $\nu X. f(X)$ we iterate $f$ starting with the universal set. As $f$ is monotonic, the result is guaranteed to shrink or stay the same on each iteration. Furthermore, if the set of states, $S$ is finite, this iteration must eventually converge to some set as $S$ being finite prevents the result from shrinking forever. 
 
-We give the algorithm for computing the set of states for which a \mucalc formula holds in Algorithm~\ref{a:mu_semantics}. It assumes the existence of an abstract set datatype that supports set union, complementation and equality checking.
+The algorithm for computing the set of states for which a \mucalc formula holds is given in Algorithm~\ref{a:mu_semantics}. It assumes the existence of an abstract set datatype that supports set union, complementation and equality checking.
 
 \begin{algorithm}
 \begin{algorithmic}
@@ -154,13 +154,13 @@ We give the algorithm for computing the set of states for which a \mucalc formul
 \section{Two player games}
 \label{sec:two_player}
 
-Two-player games are a useful formalism for reactive synthesis. Many problems in electronic design automation, industrial automation and robotics can be formalised as a game. In particular, the driver synthesis problem can be formalised as a game, and, this is the formalism around which Termite is built. Here, we present the fundamentals of two player games. 
+Two-player games are a useful formalism for reactive synthesis. Many problems in electronic design automation, industrial automation and robotics can be formalised as a game. In particular, the driver synthesis problem can be formalised as a game, and, this is the formalism around which Termite is built. Here, I present the fundamentals of two player games. 
 
 \subsection{Formalism}
 
 A two player game is played by player~1 against its opponent, player~2. It consists of a possibly infinite state space $S$ on which the game is played. The game is always in some state $s \in S$ called the \emph{current state}. The game progresses from state to state according to a transition relation, $\delta \subseteq S \times L \times S$ where $S$ is the set of states and $L$ is a set of label variables. A transition $t \in S \times L \times S$ is allowed in the game iff $t \in \delta$. 
 
-The meaning of the label $l \in L$ depends on the type of game, but for now we will consider turn based games. In a turn based game, $S$ is partitioned into two sets: the player~1 set $\tau_1$ and the player~2 set $\tau_2$, where $\tau_1 \cap \tau_2 = \emptyset$ and $ \tau_1 \cup \tau_2 = S$. When $s \in \tau_1$ player 1 gets to pick $l$ and when $s \in \tau_2$ player 2 gets to pick $l$. We refer to the opponent of player $i$ as $\overline{i}$ ($\overline{1} = 2$, $\overline{2} = 1$).
+The meaning of the label $l \in L$ depends on the type of game, but for now we will consider turn based games. In a turn based game, $S$ is partitioned into two sets: the player~1 set $\tau_1$ and the player~2 set $\tau_2$, where $\tau_1 \cap \tau_2 = \emptyset$ and $ \tau_1 \cup \tau_2 = S$. When $s \in \tau_1$ player 1 gets to pick $l$ and when $s \in \tau_2$ player 2 gets to pick $l$. The opponent of player $i$ is referred to as $\overline{i}$ ($\overline{1} = 2$, $\overline{2} = 1$).
 
 Lastly, each game has an associated set of initial states $I \in 2^S$ where execution of the game begins.
 
@@ -246,15 +246,15 @@ Given a game and an objective there are two questions we can ask:
     \item if so, what is the strategy for player~1 and, if not, what is the counterexample strategy for player~2
 \end{itemize}
 
-We present algorithms to answer these questions in this section. We begin with the simplest game, the reachability game, and progress to GR(1) games as are used in Termite.
+I present algorithms to answer these questions in this section. I begin with the simplest game, the reachability game, and progress to GR(1) games as are used in Termite.
 
 \subsection{Controllable predecessor}
 
 All of the algorithms for games I will be describing use a function called the \emph{controllable predecessor} (abbreviated \cpre). \cpre\ is a function from a target set of game states ($2^S$) called the \emph{target set} to another set of game states. Given a set $T$, $CPre(T)$ returns the set of states from which player 1 can force execution into $T$ in one step. 
 
-The exact details of \cpre\ depend on the type of game being solved. Here we consider it to be a parameter to the game solving algorithms. The only property of $CPre$ that the game solving algorithms require is that it is monotonic, i.e.\ if $X \subseteq Y$ then $CPre(X) \subseteq CPre(Y)$. Clearly, any reasonable \cpre\ function will have this property.
+The exact details of \cpre\ depend on the type of game being solved. Here it is considered to be a parameter to the game solving algorithms. The only property of $CPre$ that the game solving algorithms require is that it is monotonic, i.e.\ if $X \subseteq Y$ then $CPre(X) \subseteq CPre(Y)$. Clearly, any reasonable \cpre\ function will have this property.
 
-In the following sections we describe the controllable predecessor for turn based games as well as Termite's games.
+In the following sections I describe the controllable predecessor for turn based games as well as Termite's games.
 
 \subsubsection{Turn based controllable predecessor}
 
@@ -285,9 +285,9 @@ Games where there are states in which both player~1 and player~2 have moves are 
 
 In Termite, however, the concurrent game is almost as simple as a turn based game. Labels, not states, are classified as controllable or uncontrollable. $\lambda$ chooses the effective label non-deterministically. This means that while player~1 may choose a label in any state, there is no guarantee that it will be played. There is, however, a fairness guarantee that each player eventually gets a turn that will be dealt with later.
 
-We simulate this non-determinism with the input variable \code{controllable}. This variable is always chosen non-deterministically. Our (now deterministic) $\lambda$ function picks the player~1 chosen label if \code{controllable} is $True$ and it picks the player~2 chosen label otherwise.
+This non-determinism is simulated with the input variable \code{controllable}. This variable is always chosen non-deterministically. The (now deterministic) $\lambda$ function picks the player~1 chosen label if \code{controllable} is $True$ and it picks the player~2 chosen label otherwise.
 
-Disregarding fairness for now, given a target state $X$, we define a state $s$ to be winning if both:
+Disregarding fairness for now, given a target state $X$, a state $s$ is defined to be winning if both:
 \begin{enumerate}
     \item there exists a controllable label originating from $S$ such that all transitions with this label lead to $X$, and
     \item all uncontrollable transitions with any label originating from $S$ lead to $X$
@@ -326,7 +326,7 @@ This is illustrated in Figure~\ref{fig:concurrent_cpre}. Again, the two dark sta
 
 \subsection{Safety and reachability}
 
-We will start with reachability as it is the most straightforward. We solve games by finding the set of states from which player~1 can win, called the \emph{winning region} and denoted \win. If the winning region contains the set of initial states, then we know that player~1 can win from any state in the initial set and thus can win the game.
+We start with reachability as it is the most straightforward. Games are solved by finding the set of states from which player~1 can win, called the \emph{winning region} and denoted \win. If the winning region contains the set of initial states, then we know that player~1 can win from any state in the initial set and thus can win the game.
 
 According to Equation~\ref{eqn:reachobj}, a state is winning in a reachability game if there is some finite $i$ such that we can guarantee that after $i$ rounds of the game, execution will have, at least once, entered a state in $\reachobj$. 
 
@@ -339,7 +339,7 @@ This suggests an algorithm to find the winning region. We start with $\reachobj$
     \item After termination, has the algorithm found all the winning states?
 \end{itemize}
 
-We denote the set of states from which it is possible to reach \reach\ in $N$ or less steps $W_N$. Observe that $W_{N+1} \supseteq W_N$. So, on each iteration, we either grow the winning set or it remains the same. Also observe that our set $S$ is finite, which means that $2^S$ is also finite. As set inclusion is a transitive relation, we cannot grow our winning set forever, so eventually we must reach a fixed point of the \cpre\ function. 
+We denote the set of states from which it is possible to reach \reach\ in $N$ or less steps $W_N$. Observe that $W_{N+1} \supseteq W_N$. So, on each iteration, we either grow the winning set or it remains the same. Also observe that the set $S$ is finite, which means that $2^S$ is also finite. As set inclusion is a transitive relation, we cannot grow the winning set forever, so eventually we must reach a fixed point of the \cpre\ function. 
 
 A more formal proof of termination is based in the Knaster-Tarski theorem \cite{tarski1955}. The power set of $S$ can be ordered by set inclusion to obtain a complete lattice with supremum $S$ and infimum $\emptyset$. $f(X) = \cpre\ (X \cup REACH)$ is an order preserving function, so by the Knaster-Tarski theorem the set of fixed points of $f$ is also a complete lattice. Thus there exists a greatest and least fixed point (as the lattice is complete). The least fixed point of $f$ is clearly obtained by iteration starting from the least element of the lattice, ie. $\emptyset$. 
 
@@ -347,7 +347,7 @@ Thus, we will eventually reach a fixed point, and, this is when we should stop i
 
 Finally, to answer the question of whether the game is winning for player~1, we check if the winning region contains the initial state set. If it does, we return \emph{Yes}; otherwise, we return \emph{No}.
 
-Safety games are the dual of reachability games and are also solved by iterating the controllable predecessor. The algorithm for solving safety games is also the dual of the algorithm for solving reachability games and will not be given here. However, we do give the \mucalc formula in Equation~\ref{eqn:mu_safe} and the algorithm can be deduced from this using Algorithm~\ref{a:mu_semantics}.
+Safety games are the dual of reachability games and are also solved by iterating the controllable predecessor. The algorithm for solving safety games is also the dual of the algorithm for solving reachability games and will not be given here. However, the \mucalc formula is given in Equation~\ref{eqn:mu_safe} and the algorithm can be deduced from this using Algorithm~\ref{a:mu_semantics}.
 
 \begin{equation}
     \mathit{\reachFun}(T) = \mu Y. CPre(Y \vee T)
@@ -431,7 +431,7 @@ Solving a generalised \buchi\ game is similar to a \buchi\ game except that we f
 
 \subsection{GR(1)}
 
-Next, we need to add fairness. Consider a fair reachability game. An unfair region is a region that we can assume execution will leave, regardless of the loops it contains. We modify the controllable predecessor to create a fair controllable predecessor that takes this into account. Intuitively, the algorithm considers a set of unfair states to be winning if the only way out leads to an already winning state. To achieve this, we play a variation of a safety game where we can win if we stay indefinitely within the unfair set or upon exiting the unfair set we are immediately in the target set $T$. The procedure for the fair controllable predecessor is given in Algorithm~\ref{a:fair_cpre} and the equivalent \mucalc formula is given in Equation~\ref{eqn:mu_fair}. 
+Next, fairness is added. Consider a fair reachability game. An unfair region is a region that we can assume execution will leave, regardless of the loops it contains. The controllable predecessor is modified to create a fair controllable predecessor that takes this into account. Intuitively, the algorithm considers a set of unfair states to be winning if the only way out leads to an already winning state. To achieve this, we play a variation of a safety game where we can win if we stay indefinitely within the unfair set or upon exiting the unfair set we are immediately in the target set $T$. The procedure for the fair controllable predecessor is given in Algorithm~\ref{a:fair_cpre} and the equivalent \mucalc formula is given in Equation~\ref{eqn:mu_fair}. 
 
 \begin{algorithm}[t]
 \begin{algorithmic}
@@ -483,12 +483,13 @@ When solving a reachability game, we discover the sets of states for which we ca
 
 The strategy relation is initialised to the empty set on line~\ref{l:rs:init}. Then, we perform an iteration of the controllable predecessor. This time we also use \textsc{CPre\_Strat} on line~\ref{l:rs:cs}, which computes a relation between the winning states discovered so far and the labels that take execution from these newly discovered states one step closer to the goal.
 
-On each iteration we combine this strategy for the newly discovered states with the strategy for the previously discovered states. We are careful on line~\ref{l:rs:as} not to add new labels for states that have already been discovered to ensure that the labels take us towards the goal. We iterate until our winning region reaches a fixed point as before. In the end, the strategy relates each state in the final winning region to a set of labels that take the game one step closer to the goal.
+On each iteration we combine this strategy for the newly discovered states with the strategy for the previously discovered states. We are careful on line~\ref{l:rs:as} not to add new labels for states that have already been discovered to ensure that the labels take us towards the goal. We iterate until the winning region reaches a fixed point as before. In the end, the strategy relates each state in the final winning region to a set of labels that take the game one step closer to the goal.
 
-\textsc{CPre\_Strat} is a parameter to the strategy extraction algorithm in the same way as \textsc{\cpre} is to the game solving algorithm. Its definition depends on the exact details of the game. For completeness, we give the definition of \textsc{CPre\_Strat} for turn based games. 
+\textsc{CPre\_Strat} is a parameter to the strategy extraction algorithm in the same way as \textsc{\cpre} is to the game solving algorithm. Its definition depends on the exact details of the game. For completeness, the definition of \textsc{CPre\_Strat} for turn based games is given in Equation~\ref{eqn:cpre_strat}. 
 
 \begin{equation}
     CPre\_Strat(X) = \{\langle x, l \rangle | x \in \tau_1 \wedge (\langle x, l, x' \rangle \in \delta \rightarrow x' \in X)\}
+    \label{eqn:cpre_strat}
 \end{equation}
 
 It returns a set of $\langle state, label \rangle$ pairs where the state belongs to the \pone\ controllable set such that if the label is played, execution ends up in the set $X$, the argument to the function.
@@ -627,23 +628,23 @@ The negation of a GR(1) objective is considerably more complex than a reachabili
 \section{Symbolic games}
 \label{sec:symbolic_games}
 
-The algorithm described so far appears very inefficient. Consider a reachability game. We are performing a backwards breadth-first search starting from $\reachobj$. If we were to implement it directly as described, we would need a set abstract datatype to represent the winning set. Some of the games we have solved with Termite have upwards of $2^{80}$ states, even after abstraction. Clearly, explicitly representing the winning set will never succeed. 
+The algorithm described so far appears very inefficient. Consider a reachability game. We are performing a backwards breadth-first search starting from $\reachobj$. If we were to implement it directly as described, we would need a set abstract datatype to represent the winning set. Some of the games that have been solved with Termite have upwards of $2^{80}$ states, even after abstraction. Clearly, explicitly representing the winning set will never succeed. 
 
 Identical problems are encountered in model checking. The breakthrough that revolutionised model checking was to represent state sets implicitly as a characteristic equation over state variables.
 
 \subsection{State variable encoding}
 
-Symbolic games are defined over a finite set of state variables, $\symStateVars$, and a finite set of label variables $\symLabelVars$. A \emph{valuation} for a set of variables $V$ is a function from each of those variables to an element of its domain. We redefine $S$, the set of states, to be the set of possible valuations of each state variable in $\symStateVars$. That is, each state $s \in S$ is given by a valuation of all of the state variables in $\symStateVars$. Similarly, we redefine $L$, the set of labels, to be the set of possible valuations of each label variable in $\symLabelVars$.
+Symbolic games are defined over a finite set of state variables, $\symStateVars$, and a finite set of label variables $\symLabelVars$. A \emph{valuation} for a set of variables $V$ is a function from each of those variables to an element of its domain. $S$, the set of states, is redefined to be the set of possible valuations of each state variable in $\symStateVars$. That is, each state $s \in S$ is given by a valuation of all of the state variables in $\symStateVars$. Similarly, $L$, the set of labels, is redefined to be the set of possible valuations of each label variable in $\symLabelVars$.
 
-For a set $Z$ of variables, we denote by $\forms(Z)$ the set of propositional formulas constructed from the variables in $Z$. The characteristic formula of a set of states $T$ is a function $f \in \forms(\symStateVars)$ that evaluates to true for the valuation corresponding to a state $s \in T$ and false otherwise. We use characteristic formulas to represent sets of states without explicitly listing each member of the set. This is called a symbolic representation. 
+For a set $Z$ of variables, $\forms(Z)$ denotes the set of propositional formulas constructed from the variables in $Z$. The characteristic formula of a set of states $T$ is a function $f \in \forms(\symStateVars)$ that evaluates to true for the valuation corresponding to a state $s \in T$ and false otherwise. Characteristic formulas are used to represent sets of states without explicitly listing each member of the set. This is called a symbolic representation. 
 
 Likewise, $\delta$ is specified by a formula in $\forms(\symStateVars \bigcup \symLabelVars \bigcup \symStateVars')$, where $\symStateVars' = \{\sigma' \mid \sigma \in \symStateVars \}$ is the set of next state variables.
 
-Sometimes, we make the variables that a characteristic formula depends on explicit. For example, we may write the transition relation as $\delta(\Sigma, \Lambda, \Sigma')$.
+Sometimes, the variables that a characteristic formula depends on are made explicit. For example, the transition relation may be written as $\delta(\Sigma, \Lambda, \Sigma')$.
 
 \subsection{Symbolic algorithms}
 
-We can redefine our game solving algorithms to use characteristic functions instead of explicit sets. The algorithms are superficially similar except they use conjunction and disjunction to modify sets instead of explicit set intersection and union. As an example, we convert the turn based controllable predecessor (Equation~\ref{eqn:turn_cpre}) to symbolic form in Equation~\ref{eqn:cpre_symb} and, we convert the simplest algorithm, determining the outcome of a reachability game to symbolic form, in Algorithm~\ref{a:symb_reach}.
+We can redefine the game solving algorithms to use characteristic functions instead of explicit sets. The algorithms are superficially similar except they use conjunction and disjunction to modify sets instead of explicit set intersection and union. As an example, we convert the turn based controllable predecessor (Equation~\ref{eqn:turn_cpre}) to symbolic form in Equation~\ref{eqn:cpre_symb} and, we convert the simplest algorithm, determining the outcome of a reachability game to symbolic form, in Algorithm~\ref{a:symb_reach}.
 
 \begin{equation}
 CPre(X) = \tau_1 \wedge \exists \symLabelVars. \forall \symStateVars'. \delta \rightarrow X' \vee \tau_2 \wedge \forall \symLabelVars. \forall \symStateVars'. \delta \rightarrow X' 
@@ -682,7 +683,7 @@ CPre(X) = \tau_1 \wedge \exists \symLabelVars. \forall \symStateVars'. \delta \r
 
 \subsection{Binary decision diagrams}
 
-A binary decision diagram is an efficient data structure for manipulating large propositional formulas. They are the symbolic data structure that we use in Termite.
+A binary decision diagram is an efficient data structure for manipulating large propositional formulas. They are the symbolic data structure that is used in Termite.
 
 \subsubsection{Binary decision trees}
 
@@ -750,7 +751,7 @@ Conjunction and disjunction are computed using a straightforward recursive algor
 
 Function composition is where a BDD representing some function is substituted for a variable in another BDD.
 
-Given a function $f(x_1,\cdots,x_n)$, we define existential quantification of $f$ with respect to the Boolean variable $x_i$ as $\exists x_i.\ f = f_{x_i} \vee f_{\overline{x_i}}$ and universal quantification of $f$ with respect to $x_i$ as $\forall x_i.\ f = f_{x_i} \wedge f_{\overline{x_i}}$.
+Given a function $f(x_1,\cdots,x_n)$, existential quantification of $f$ with respect to the Boolean variable $x_i$ is defined as $\exists x_i.\ f = f_{x_i} \vee f_{\overline{x_i}}$ and universal quantification of $f$ with respect to $x_i$ as $\forall x_i.\ f = f_{x_i} \wedge f_{\overline{x_i}}$.
 
 Quantifications of the same type commute, so quantification with respect to a set of variables is well defined. 
 
@@ -760,5 +761,5 @@ The number of nodes in a BDD depends drastically on the ordering chosen for the 
 
 Optimal variable orderings may be found using exact algorithms, but these are prohibitively expensive for BDDs with more than a few nodes. In practice heuristics are used which produce good, but not optimal orderings. One such heuristic is Ruddell's sifting algorithm \cite{Rudell_1993}.
 
-The CUDD BDD package performs \emph{dynamic variable ordering}, which means that once the number of BDD nodes the package knows about grows past a certain threshold, the package automatically performs the requested reordering algorithm on all BDDs that exist in the manager. Dynamic variable ordering is critical to the performance of game solving algorithms that utilise BDDs and therefore we always enable it.
+The CUDD BDD package performs \emph{dynamic variable ordering}, which means that once the number of BDD nodes the package knows about grows past a certain threshold, the package automatically performs the requested reordering algorithm on all BDDs that exist in the manager. Dynamic variable ordering is critical to the performance of game solving algorithms that utilise BDDs and therefore it is always enabled in Termite.
 
