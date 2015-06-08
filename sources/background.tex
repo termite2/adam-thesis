@@ -45,7 +45,36 @@ Most operating systems are multithreaded, including the device drivers. Driver e
 
 In addition to bus-level drivers, the OS provides various services to device drivers. These include memory management, timing and synchronisation. Memory management includes allocating memory and support for memory mapped IO and DMA. Timer functionality includes both synchronous (thread delays) and asynchronous (callback) timers. Various synchronization primitives are also provided, but, given that Termite does not make any use of them, we do not discuss them further.
 
+\section{Formal intro}
+
+Termite's game formalism and synthesis algorithm build on considerable pre-existing work in the field of reactive synthesis which we present in the following sections. We begin, in Section~\ref{sec:omega_regular}, with the definition of the $\omega$-regular languages and $\omega$-regular expressions which describe sets of infinite length sequences. Termite must respond to the environment continuously so we use certain subsets of the $\omega$-regular languages to specify game objectives.
+
+Next, in Section~\ref{sec:fixed_points}, we introduce a logic for describing fixed points. Evaluation of a fixed point formula returns a set of states. The winning set of states in a game with $\omega$-regular objectives can be described with a fixed point formula. Furthermore, there is a mechanical translation from a fixed point formula to an algorithm that evaluates it. Fixed-point formulas are thus a useful tool for defining $\omega$-regular objectives and describing the algorithms to compute winning regions and are used extensively throughout this chapter.
+
+Section~\ref{sec:two_player} defines two player games and strategies - the central formalisms of Termite. It then defines several types of objectives (which are themselves $\omega$-regular languages), eventually building up to GR(1) games - the kind of objective used by Termite.
+
+Section~\ref{sec:intro_solving} presents the controllable predecessor, the must fundamental unit of game solving. It then uses this to present translations of the objectives to $\mu$-calculus formulas which, in turn, gives us algorithms to solve them.
+
+In addition to deciding whether there exists a correct driver for a set of specifications, Termite must synthesize a strategy which will be turned into driver code. In Section~\ref{sec:strat_and_cex} we modify the algorithms given in the previous section to return a strategy if the game is winnable. We also show how to generate a strategy for the opponent, called a counterexample, when the game is not winnable. Counterexamples are used extensively in Termite to aid in debugging faulty specifications.
+
+Finally, Section~\ref{sec:symbolic_games} borrows symbolic techniques from model checking and applies them to games. Symbolic techniques, particularly the binary decision diagram data structure, revolutionised model checking. Instead of representing states explicitly, they are represented by a characteristic equation over state variables. This technique allowed model checking and game solving to scale for beyond what was possible previously.
+
+\section{$\omega$-regular languages}
+\label{sec:omega_regular}
+
+\todo{wrong}
+
+The $\omega$-regular languages extend the regular languages to infinite length sequences. An $\omega$-regular language is a set of sequences of symbols of infinite length. An $\omega$-regular language has the form:
+\begin{itemize}
+    \item $A^\omega$ where $A$ is a nonempty regular language not containing the empty string.
+    \item $AB$, the concatenation of a regular language $A$ and an $\omega$-regular language $B$. Note that $B$ must not be a regular language as this would imply that the sequence is finite.
+    \item $A \cup B$ where $A$ and $B$ are $\omega$-regular languages.
+\end{itemize}
+
+Elements of $A^\omega$ are obtained by concatenating words from $A$ infinitely many times. Intuitively, $\omega$-regular languages are similar to regular languages but with an additional $\omega$ operator that concatenates words from the regular language infinitely many times.
+
 \section{Fixed points}
+\label{sec:fixed_points}
 
 \subsection{Syntax}
 
@@ -122,19 +151,8 @@ We give the algorithm for computing the set of states for which a \mucalc formul
 \label{a:mu_semantics}
 \end{algorithm}
 
-\section{$\omega$-regular languages}
-\label{sec:omega_regular}
-
-The $\omega$-regular languages extend the regular languages to infinite length sequences. An $\omega$-regular language is a set of sequences of symbols of infinite length. An $\omega$-regular language has the form:
-\begin{itemize}
-    \item $A^\omega$ where $A$ is a nonempty regular language not containing the empty string.
-    \item $AB$, the concatenation of a regular language $A$ and an $\omega$-regular language $B$. Note that $B$ must not be a regular language as this would imply that the sequence is finite.
-    \item $A \cup B$ where $A$ and $B$ are $\omega$-regular languages.
-\end{itemize}
-
-Elements of $A^\omega$ are obtained by concatenating words from $A$ infinitely many times. Intuitively, $\omega$-regular languages are similar to regular languages but with an additional $\omega$ operator that concatenates words from the regular language infinitely many times.
-
 \section{Two player games}
+\label{sec:two_player}
 
 Two-player games are a useful formalism for reactive synthesis. Many problems in electronic design automation, industrial automation and robotics can be formalised as a game. In particular, the driver synthesis problem can be formalised as a game, and, this is the formalism around which Termite is built. Here, we present the fundamentals of two player games. 
 
@@ -220,6 +238,7 @@ This is known as a \emph{counterexample strategy}. It is a strategy for player~2
 Again, in the case of generalised \buchi\ and GR(1) games, the counterexample strategy may depend on an additional finite state: $\pi_1 : \tau_2 \times \sigma \rightarrow L \times \sigma$.
 
 \section{Solving games}
+\label{sec:intro_solving}
 
 Given a game and an objective there are two questions we can ask:
 \begin{itemize}
