@@ -392,11 +392,13 @@ Date\hspace{0.5cm}\dotfill\hfill\\
 
 \begin{abstract}
 
-Automatic device driver synthesis is a radical approach to creating drivers faster and with fewer defects by generating them automatically based on hardware device specifications. This thesis presents the design and implementation of a device driver synthesis toolkit called \termite. \termite is the first tool to combine the power of automation with the flexibility of conventional development. It is also the first practical synthesis tool based on abstraction refinement. Finally, it is the first synthesis tool to support automated debugging of input specifications.
+Automatic device driver synthesis is a radical approach to creating drivers faster and with fewer defects by generating them automatically based on operating system and hardware device specifications. This thesis addresses the two fundamental challenges in driver synthesis: (1) usability and (2) scalability.
 
-At the core of \termite is a scalable synthesis engine, which enables it to handle real-world device specifications that are beyond the reach of existing synthesis techniques. This thesis presents the predicate-based abstraction refinement algorithm that this synthesis engine is based on. We develop solutions to the key problems involved in the implementation of efficient predicate abstraction which have not been addressed previously in a synthesis settings: (1) keeping abstractions concise by identifying relevant predicates only, (2) solving abstract games efficiently, and (3) computing and solving abstractions symbolically. 
+It addresses the usability challenge by generating driver code in a user guided fashion. Termite acts as an advanced auto-complete, suggesting lines of driver code while simultaneously verifying hand written ones. Termite's specifications are written in a familiar imperative style and Termite provides a comprehensive counterexample guided debugging facility for use when the specifications contain defects that prevent Termite from synthesising a driver.
 
-Lastly, we demonstrate the practicality of \termite by synthesising drivers for a number of I/O devices representative of a typical embedded platform.
+It addresses the scalability challenge with a new scalable synthesis engine which enables it to handle real-world device specifications that are beyond the reach of existing synthesis techniques. This thesis presents the predicate-based abstraction-refinement engine at the heart of Termite. We develop solutions to the three key problems involved in the implementation of efficient predicate abstraction which have not been addressed previously in a synthesis settings: (1) keeping abstractions concise by identifying relevant predicates only, (2) solving abstract games efficiently, (3) and computing abstractions symbolically. 
+
+The proposed techniques are implemented in the Termite tool and evaluated by synthesising drivers for a number of I/O devices representative of a typical embedded platform. Termite is the first tool to combine the power of automation with the flexibility of conventional development. It is also the first practical synthesis tool based on abstraction refinement. Finally, it is the first synthesis tool to support automated debugging of input specifications.
 
 \end{abstract}
 \clearpage
