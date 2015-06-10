@@ -5,7 +5,7 @@
 
 A device driver provides an interface for the operating system (OS) to use a hardware device that is attached to the computer. It translates requests between the OS and the hardware. It allows the operating system to use the device without knowing the exact details of the hardware. As an example, a network interface driver may provide functions to send and receive packets from the network. It performs the low-level device register and memory writes necessary to perform these operations while presenting a high level interface to the OS.
 
-Writing a device driver requires in depth knowledge of both the device to be controlled and the interface to the OS. This makes writing a device driver a tedious and error prone process. Additionally, device drivers usually operate in a privileged part of the OS so that it can access the hardware. As a result, errors often lead to failures of the system.
+Writing a device driver requires in depth knowledge of both the device to be controlled and the interface to the OS. This makes writing a device driver a tedious and error prone process. Additionally, a device driver usually operates in a privileged part of the OS so that it can access the hardware. As a result, errors often lead to failures of the system.
 
 Device drivers are usually developed by the hardware vendor as they have the best access to information about the design of the hardware. This includes hardware documentation as well as the actual description of the hardware in a hardware description language. If is common for the documentation to never be released to the public.
 
@@ -14,7 +14,7 @@ Device drivers are usually developed by the hardware vendor as they have the bes
 The key functions of a device driver are:
 \begin{itemize}
     \item \emph{Abstraction.} As discussed, the driver abstracts away the low-level details of the device and presents the functionality through a high level set of operations.
-    \item \emph{Unification.} The driver provides a unified interface to similar devices. For example, another network interface may have present a completely different hardware interface to the first but its driver presents the same send and receive functionality to the OS as before. 
+    \item \emph{Unification.} The driver provides a unified interface to similar devices. For example, another network interface may have a completely different hardware interface to the first but its driver presents the same send and receive functionality to the OS as before. 
     \item \emph{Multiplexing.} The driver and OS cooperate to make sure that the services that the hardware provides are available to all users of the system with sufficient permissions to access the hardware.
 \end{itemize}
 
@@ -25,21 +25,21 @@ Device drivers communicate with devices over an I/O bus such as the \emph{Periph
 
 \subsubsection{Memory Mapped I/O}
 
-Device registers and data buffers are mapped into the system's memory space by the bus controller. When the CPU initiates a load or store transaction which falls in the range of memory mapped to the device the PCI controller translates this to a transaction with the device. This transaction reads and writes the device's internal registers.
+Device registers and data buffers can be mapped into the system's memory space by the bus controller. When the CPU initiates a load or store transaction which falls in the range of memory mapped to the device the bus controller translates this to a transaction with the device. This transaction reads and writes the device's internal registers.
 
 \subsubsection{Direct Memory Access}
 
-It is also possible for the device to initiate a transaction to transfer data to or from main memory. This is known as \emph{Direct Memory Access} or DMA. The CPU is not involved at all. DMA is necessary for efficient I/O with devices that transfer large amounts of data as otherwise the CPU would be required to copy all of the data to and from the device word by word.
+It is also possible for the device to initiate a transaction to transfer data to or from main memory. The CPU is not involved in such a transfer. This is known as \emph{Direct Memory Access} or DMA. DMA is necessary for efficient I/O with devices that transfer large amounts of data as otherwise the CPU would be required to copy all of the data to and from the device word by word.
 
 \subsubsection{Interrupts}
 
-\emph{Interrupts} are asynchronous transactions initiated by the device to signal to the CPU that an event has happened that requires the driver's attention. For example, a network interface may raise an interrupt when a packet has arrived or when a packet has been successfully been sent. Interrupts are also often raised on error conditions within the device.
+\emph{Interrupts} are asynchronous transactions initiated by the device to signal to the CPU that an event has happened that requires the driver's attention. For example, a network interface may raise an interrupt when a packet has arrived or when a packet has been successfully sent. Interrupts are also often raised on error conditions within the device.
 
 On a Linux system, when an interrupt is raised, the currently executing task is temporarily suspended and control is transferred to the kernel's interrupt handler routine. This determines which driver is responsible for handling the interrupt and invokes the driver's interrupt handler.
 
 \subsubsection{Concurrency}
 
-Most operating systems are multithreaded, including the device drivers. Driver entry points and interrupt handlers may be invoked concurrently and recursively. Careful use of synchronisation primitives are required to avoid race conditions and deadlock. In this work, I assume that only one driver entry point is invoked at a time, removing all concurrency. This can be achieved by using an event based framework such as Dingo \cite{Ryzhyk_CKH_09}, writing a wrapper to translate the concurrent interface required by the operating system to the single threaded interface of the generated drivers, or by post processing the generated driver as described by \cite{Cerny_HRRT_13}
+Most operating systems are multithreaded, including the device drivers. Driver entry points and interrupt handlers may be invoked concurrently and recursively. Careful use of synchronisation primitives are required to avoid race conditions and deadlock. In this work, I assume that only one driver entry point is invoked at a time, removing all concurrency. This can be achieved by using an event based framework such as Dingo \cite{Ryzhyk_CKH_09}, writing a wrapper to translate the concurrent interface required by the operating system to the single threaded interface of the generated drivers, or by post processing the generated driver as described by \cite{Cerny_HRRT_13, sched-cav, scheduling-cav15}
 
 \subsubsection{Operating system services}
 
@@ -61,8 +61,6 @@ Finally, Section~\ref{sec:symbolic_games} borrows symbolic techniques from model
 
 \section{$\omega$-regular languages}
 \label{sec:omega_regular}
-
-\todo{wrong}
 
 The $\omega$-regular languages extend the regular languages to infinite length sequences. An $\omega$-regular language is a set of sequences of symbols of infinite length. An $\omega$-regular language has the form:
 \begin{itemize}
@@ -154,11 +152,11 @@ The algorithm for computing the set of states for which a \mucalc formula holds 
 \section{Two player games}
 \label{sec:two_player}
 
-Two-player games are a useful formalism for reactive synthesis. Many problems in electronic design automation, industrial automation and robotics can be formalised as a game. In particular, the driver synthesis problem can be formalised as a game, and, this is the formalism around which Termite is built. Here, I present the fundamentals of two player games. 
+Two-player games are a useful formalism for reactive synthesis. Many problems in electronic design automation, industrial automation, software synthesis and robotics can be formalised as a game. In particular, the driver synthesis problem can be formalised as a game, and, this is the formalism around which Termite is built. Here, I present the fundamentals of two player games. 
 
 \subsection{Formalism}
 
-A two player game is played by player~1 against its opponent, player~2. It consists of a possibly infinite state space $S$ on which the game is played. The game is always in some state $s \in S$ called the \emph{current state}. The game progresses from state to state according to a transition relation, $\delta \subseteq S \times L \times S$ where $S$ is the set of states and $L$ is a set of label variables. A transition $t \in S \times L \times S$ is allowed in the game iff $t \in \delta$. 
+A two player game is played by player~1 against its opponent, player~2. It consists of a possibly infinite state space $S$ on which the game is played. The game is always in some state $s \in S$ called the \emph{current state}. The game progresses from state to state according to a transition relation, $\delta \subseteq S \times L \times S$ where $S$ is the set of states and $L$ is a set of labels. A transition $t \in S \times L \times S$ is allowed in the game iff $t \in \delta$. 
 
 The meaning of the label $l \in L$ depends on the type of game, but for now we will consider turn based games. In a turn based game, $S$ is partitioned into two sets: the player~1 set $\tau_1$ and the player~2 set $\tau_2$, where $\tau_1 \cap \tau_2 = \emptyset$ and $ \tau_1 \cup \tau_2 = S$. When $s \in \tau_1$ player 1 gets to pick $l$ and when $s \in \tau_2$ player 2 gets to pick $l$. The opponent of player $i$ is referred to as $\overline{i}$ ($\overline{1} = 2$, $\overline{2} = 1$).
 
@@ -202,7 +200,7 @@ A Generalised \buchi\ objective is defined by a finite set of sets $\genbuchiobj
 
 \paragraph{Fairness}
 \label{sec:fairness}
-Sometimes it is necessary to rule out invalid plays that are not easily ruled out by changing the state machine. As an example, consider a progress assumption that guarantees that the game will eventually leave a set of `pending' states. For this we use fairness conditions. A fairness condition is a set of states, the \emph{fair} set, which we may assume that all valid runs of the game eventually enter. Or, equivalently, a set of states, called the \emph{unfair} set which we may assume that all valid runs of the game eventually leave. If a spoiling strategy exists that results in an unfair run, i.e.\ it does not always, at some point in the future, enter the fair set, then it does not count. Formally, a run satisfies a fair reachability objective if 
+Sometimes it is necessary to rule out invalid plays that are not easily ruled out by changing the state machine. As an example, consider a progress assumption that guarantees that the game will eventually leave a set of `pending' states. For this we use fairness conditions. A fairness condition is a set of states, the \emph{fair} set, which we may assume that all valid runs of the game eventually enter. Or, equivalently, a set of states, called the \emph{unfair} set which we may assume that all valid runs of the game eventually leave. The player can assume that all executions of the system are fair and hence they only need to satisfy the objective of the game in fair runs. Formally, a run satisfies a fair reachability objective if 
 
 \begin{equation}
 \forall i.\ \exists j>i.\ s_j \in \fairobj \rightarrow \exists i.\ s_i \in \reachobj
@@ -225,15 +223,13 @@ Perfect information games are two player games where both players know the curre
 \subsection{Strategies and counterexamples}
 \label{sec:strat_and_cex}
 
-If a game is winnable for player~1 then there exists (by definition) a strategy that tells player~1, in any state, which label it must play and ensures that if player~1 adheres to the strategy then the objective will be satisfied.
-
 It is known that for perfect information safety, reachability and \buchi\ games, if there exists a strategy, then there also exists one that only depends on the current state \cite{Gradel}. Thus, we can simplify the definition of a strategy in this case for player~1 to be a function $\pi_1 : \tau_1 \rightarrow L$ that only depends on the current state.
 
-Furthermore, for the case of generalised \buchi\ and GR(1) games, if there exists a strategy, then there also exists one that only depends on the current state and some finite additional state. We can simplify the definition of a strategy in this case for player~1 to be a function $\pi_1 : \tau_1 \times \sigma \rightarrow L \times \sigma$ that only depends on the current state and the finite additional state ($\sigma$), and, in addition to returning the label to play, returns the updated additional state.
+Furthermore, for the case of generalised \buchi\ and GR(1) games, if there exists a strategy, then there also exists one that only depends on the current state and some finite additional state (Section~\ref{sec:genbuch}). We can simplify the definition of a strategy in this case for player~1 to be a function $\pi_1 : \tau_1 \times \sigma \rightarrow L \times \sigma$ that only depends on the current state and the finite additional state ($\sigma$), and, in addition to returning the label to play, returns the updated additional state.
 
 Perfect information $\omega$-regular games are \emph{determined}. That is, the winning regions for player~1 and player~2 partition the set of game states \cite{Gradel}. This means that if a state is not winning for player~1, then it is winning for player~2 and there exists a strategy for player 2 to violate the objective.
 
-This is known as a \emph{counterexample strategy}. It is a strategy for player~2 which ensure that player~1 cannot satisfy their objective. Again, in the case of perfect information safety, reachability and \buchi\ games, if there exists a counterexample strategy (or, equivalently if the game is not winnable for player~1) then there exists a counterexample strategy that only depends on the current state. This is a function $\pi_2 : \tau_2 \rightarrow L$ that associates any player~2 state with a label for player~2 to play. 
+This is known as a \emph{counterexample strategy}. It is a strategy for player~2 which ensures that player~1 cannot satisfy their objective. In the case of perfect information safety, reachability and \buchi\ games, if there exists a counterexample strategy (or, equivalently if the game is not winnable for player~1) then there exists a counterexample strategy that only depends on the current state. This is a function $\pi_2 : \tau_2 \rightarrow L$ that associates any player~2 state with a label for player~2 to play. 
 
 Again, in the case of generalised \buchi\ and GR(1) games, the counterexample strategy may depend on an additional finite state: $\pi_1 : \tau_2 \times \sigma \rightarrow L \times \sigma$.
 
@@ -254,12 +250,12 @@ All of the algorithms for games I will be describing use a function called the \
 
 The exact details of \cpre\ depend on the type of game being solved. Here it is considered to be a parameter to the game solving algorithms. The only property of $CPre$ that the game solving algorithms require is that it is monotonic, i.e.\ if $X \subseteq Y$ then $CPre(X) \subseteq CPre(Y)$. Clearly, any reasonable \cpre\ function will have this property.
 
-In the following sections I describe the controllable predecessor for turn based games as well as Termite's games.
+In the following sections I describe the controllable predecessor for turn based games as well as the more complicated type of games used in Termite's.
 
 \subsubsection{Turn based controllable predecessor}
 
 \begin{multline}
-CPre(X) = \tau_1 \cap \{x | \exists l. \langle x, l, x' \rangle \in \delta \rightarrow x' \in X\} \\ \cup \tau_2 \cap \{x | \forall l. \langle x, l, x' \rangle \in \delta \rightarrow x' \in X \}
+CPre(X) = \tau_1 \cap \{x | \exists l. \langle x, l, x' \rangle \in \delta \rightarrow x' \in X\} \\ \cup \tau_2 \cap \{x | \langle x, l, x' \rangle \in \delta \rightarrow x' \in X \}
 \label{eqn:turn_cpre}
 \end{multline}
 
@@ -272,7 +268,7 @@ The controllable predecessor for turn based games, given by Equation~\ref{eqn:tu
 \label{fig:turn_cpre}
 \end{figure}
 
-This is illustrated in Figure~\ref{fig:turn_cpre}. The two dark states are winning and they form the set $X$ passed to $CPre$. $CPre$ returns state $s1$ in the winning set because it is a controllable state and there exists a transition into a winning state. State $s2$ is also winning because it is an uncontrollable state and all outgoing transitions go to winning states. Lastly, $s3$ is \emph{not} winning because it is uncontrollable and one of its outgoing transitions does not lead to a winning state.
+This is illustrated in Figure~\ref{fig:turn_cpre}. Assume that the two dark states are winning and they form the set $X$ passed to $CPre$. Solid lines represent controllable transitions and dashed lines represent uncontrollable transitions. $CPre$ returns state $s1$ in the winning set because it is a controllable state and there exists a transition into a winning state. State $s2$ is also winning because it is an uncontrollable state and all outgoing transitions go to winning states. Lastly, $s3$ is \emph{not} winning because it is uncontrollable and one of its outgoing transitions does not lead to a winning state.
 
 \subsubsection{Termite's controllable predecessor}
 \label{sec:termite_cpre}
@@ -322,17 +318,17 @@ The final controllable predecessor, $Cpre$, given in Equation~\ref{eqn:termite_c
 \label{fig:concurrent_cpre}
 \end{figure}
 
-This is illustrated in Figure~\ref{fig:concurrent_cpre}. Again, the two dark states are winning and they form the set $X$ passed to $CPre$. $CPre$ returns state $s1$ in the winning set because there exists a controllable transition into the winning set and all uncontrollable transitions also lead to the winning set. State $s2$ is \emph{not} winning because it does not have a controllable transition into the winning set. Lastly, $s3$ is \emph{not} winning because there exists an uncontrollable transition to a non-winning state.
+This is illustrated in Figure~\ref{fig:concurrent_cpre}. Again, assume that the two dark states are winning and they form the set $X$ passed to $CPre$. $CPre$ returns state $s1$ in the winning set because there exists a controllable transition into the winning set and all uncontrollable transitions also lead to the winning set. State $s2$ is \emph{not} winning because it does not have a controllable transition into the winning set. Lastly, $s3$ is \emph{not} winning because there exists an uncontrollable transition to a non-winning state.
 
-\subsection{Safety and reachability}
+\subsection{Solving safety and reachability games}
 
-We start with reachability as it is the most straightforward. Games are solved by finding the set of states from which player~1 can win, called the \emph{winning region} and denoted \win. If the winning region contains the set of initial states, then we know that player~1 can win from any state in the initial set and thus can win the game.
+We start with reachability as it is the simplest type of objective. Games are solved by finding the set of states from which player~1 can win, called the \emph{winning region} and denoted \win. If the winning region contains the set of initial states, then we know that player~1 can win from any state in the initial set and thus can win the game.
 
 According to Equation~\ref{eqn:reachobj}, a state is winning in a reachability game if there is some finite $i$ such that we can guarantee that after $i$ rounds of the game, execution will have, at least once, entered a state in $\reachobj$. 
 
 We can define the winning region inductively. It is obviously possible to reach the set $\reachobj$ from $\reachobj$ in 0 steps as we are already there. This is the base case. It is also possible to reach $\reachobj$ from $x \in S$ in $N + 1$ steps or fewer iff there exists $Y\subseteq 2^S$ such that it is possible to reach $\reachobj$ from all of $Y \subseteq 2^S$ in $N$ steps or fewer and $x \in CPre(Y)$.
 
-This suggests an algorithm to find the winning region. We start with $\reachobj$, apply \cpre\ to get the states winning in 1 step, combine with $\reachobj$ again to get the states reachable in 1 step or less, and then repeat. After $N$ iterations, we find the states winning in $N$ or less steps. The algorithm is given in Algorithm~\ref{a:reach} and the equivalent \mucalc formula is given in Equation~\ref{eqn:mu_reach}. Two questions remain: 
+This suggests an algorithm to find the winning region. We start with $\reachobj$, apply \cpre\ to get the states winning in 1 step, combine with $\reachobj$ again to get the states reachable in 1 step or less, and then repeat. After $N$ iterations, we find the states winning in $N$ or less steps. Two questions remain: 
 
 \begin{itemize}
     \item An algorithm must terminate, so, when should we stop iterating?
@@ -347,12 +343,13 @@ Thus, we will eventually reach a fixed point, and, this is when we should stop i
 
 Finally, to answer the question of whether the game is winning for player~1, we check if the winning region contains the initial state set. If it does, we return \emph{Yes}; otherwise, we return \emph{No}.
 
-Safety games are the dual of reachability games and are also solved by iterating the controllable predecessor. The algorithm for solving safety games is also the dual of the algorithm for solving reachability games and will not be given here. However, the \mucalc formula is given in Equation~\ref{eqn:mu_safe} and the algorithm can be deduced from this using Algorithm~\ref{a:mu_semantics}.
-
+The algorithm is given in Algorithm~\ref{a:reach} and the equivalent \mucalc (Section~\ref{sec:fixed_points}) formula is given in Equation~\ref{eqn:mu_reach}. 
 \begin{equation}
     \mathit{\reachFun}(T) = \mu Y. CPre(Y \vee T)
 \label{eqn:mu_reach}
 \end{equation}
+
+Safety games are the dual of reachability games and are also solved by iterating the controllable predecessor. The \mucalc formula for computing the winning region is given in Equation~\ref{eqn:mu_safe} and the algorithm can be deduced from this using Algorithm~\ref{a:mu_semantics}.
 
 \begin{equation}
 \mathit{\safeFun}(T) = \nu Y. CPre(Y \wedge T)
@@ -431,7 +428,7 @@ Solving a generalised \buchi\ game is similar to a \buchi\ game except that we f
 
 \subsection{GR(1)}
 
-Next, fairness is added. Consider a fair reachability game. An unfair region is a region that we can assume execution will leave, regardless of the loops it contains. The controllable predecessor is modified to create a fair controllable predecessor that takes this into account. Intuitively, the algorithm considers a set of unfair states to be winning if the only way out leads to an already winning state. To achieve this, we play a variation of a safety game where we can win if we stay indefinitely within the unfair set or upon exiting the unfair set we are immediately in the target set $T$. The procedure for the fair controllable predecessor is given in Algorithm~\ref{a:fair_cpre} and the equivalent \mucalc formula is given in Equation~\ref{eqn:mu_fair}. 
+Next, fairness is added. Consider a fair reachability game. An unfair region is a region that we can assume execution will leave, regardless of the loops it contains. The controllable predecessor is modified to create a fair controllable predecessor that takes this into account. Intuitively, the algorithm considers a set of unfair states to be winning if the only way out leads to an already winning state. To compute this set of states, we play a variation of a safety game where we can win if we stay indefinitely within the unfair set or upon exiting the unfair set we are immediately in the target set $T$. The procedure for the fair controllable predecessor is given in Algorithm~\ref{a:fair_cpre} and the equivalent \mucalc formula is given in Equation~\ref{eqn:mu_fair}. 
 
 \begin{algorithm}[t]
 \begin{algorithmic}
@@ -479,7 +476,7 @@ Using $\mathit{\fairCpreFun}$ as the controllable predecessor operator in the re
 
 Once we have solved a game and determined that it is winning, we can extract a strategy. In driver synthesis, the strategy is used to generate the driver. A strategy for a reachability game is a relation between states and labels for player~1 to play such that if player~1 sticks to this strategy, the game will eventually end up in the goal. Strategy extraction requires a straightforward modification to the game solving algorithm.
 
-When solving a reachability game, we discover the sets of states for which we can force execution into the goal in 1 step, 2 steps, etc. When extracting a strategy for a reachability game we need to record, for each iteration, how we got one step closer to the goal. The algorithm is given in Algorithm~\ref{alg:reach_strat}. 
+When solving a reachability game, we discover the sets of states for which we can force execution into the goal in 1 step, 2 steps, etc. When extracting a strategy for a reachability game we need to record, for each iteration, what labels we had to play to get one step closer to the goal. The algorithm is given in Algorithm~\ref{alg:reach_strat}. 
 
 The strategy relation is initialised to the empty set on line~\ref{l:rs:init}. Then, we perform an iteration of the controllable predecessor. This time we also use \textsc{CPre\_Strat} on line~\ref{l:rs:cs}, which computes a relation between the winning states discovered so far and the labels that take execution from these newly discovered states one step closer to the goal.
 
@@ -538,6 +535,7 @@ The algorithm for computing the strategy in a \buchi\ game is given in Algorithm
 \end{algorithm}
 
 \subsubsection{Generalised \buchi}
+\label{sec:genbuch}
 
 A generalised \buchi\ strategy must ensure that we can always get to any of the goals. If we compute, for each goal, the reachability strategy for the intersection of that goal and the generalised \buchi\ winning region, we get a strategy that takes us to that goal and, by keeping execution in the winning region, ensures that we can reach any of the other goals using their strategies. 
 
@@ -564,11 +562,11 @@ The algorithm for computing the strategy in a generalised \buchi\ game is given 
 
 \subsubsection{Fairness}
 
-To compute strategies for fair variants of reachability, \buchi\ and GR(1) games we use the same approach as solving them and introduce a modified controllable predecessor that takes fairness into account, called CPre\_Strat\_Fair. This modified controllable predecessor, in turn, is parameterised by the CPre and CPre\_Strat of the underlying game.
+To compute strategies for fair variants of reachability, \buchi\ and GR(1) games we introduce a modified controllable predecessor that takes fairness into account and returns winning moves along with winning states, called \code{CPre\_Strat\_Fair}. This modified controllable predecessor, in turn, is parameterised by the CPre and CPre\_Strat of the underlying game.
 
-The fair controllable predecessor must ensure that we can reach the target set assuming that an unfair condition is not forever true. Conceptually, it tries to keep execution within an unfair region (as a safety game would) for which the only way out takes us a step closer to the goal. 
+The fair controllable predecessor must ensure that we can reach the target set assuming that an unfair condition is not forever true. Conceptually, it tries to keep execution within an unfair region for which the only way out takes us a step closer to the goal. 
 
-The algorithm for computing the strategy in a fair reachability game is given in Algorithm~\ref{alg:fair_cpre_strat}. It essentially solves a safety game for $\neg\phi$ with the exception that it is possible to leave safe regions as long as you enter $T$. When a fixed point is reached on line~\ref{l:fcp:st} it uses CPre\_Strat to compute a strategy to either stay within the computed unfair region or enter the target set. This strategy is guaranteed to reach the target set as long as fairness if not violated.
+The algorithm for computing the strategy in a fair reachability game is given in Algorithm~\ref{alg:fair_cpre_strat}. It essentially solves a safety game for $\neg\phi$ with the exception that it is possible to leave safe regions as long as you enter $T$. When a fixed point is reached on line~\ref{l:fcp:st} it uses \code{CPre\_Strat} to compute a strategy to either stay within the computed unfair region or enter the target set. This strategy is guaranteed to reach the target set as long as fairness is not violated. This function may be used as a drop-in replacement for \code{CPre\_Strat} when the game is required to be fair.
 
 \begin{algorithm}
 \begin{algorithmic}[1]
@@ -609,26 +607,22 @@ The complement of a reachability game is a safety game with negated objective. T
     \neg\mathit{REACH} = \neg\nu Y. CPre_2(Y \wedge \neg T) = \mathit{SAFE}(\neg T) 
 \end{equation}
 
-Thus, the counterexample strategy for a reachability game is the strategy for a safety game with complemented objective and the other player's controllable predecessor. \todo{We dont actually give an algorithm for safety game strategy, so this is a bit useless, should I?.}
+Thus, the counterexample strategy for a reachability game is the strategy for a safety game with complemented objective and the other player's controllable predecessor. 
 
 \subsubsection{GR(1)}
 
-The formula for a GR(1) game and its complement are given below:
+The formula for the complement of a GR(1) game is given below. Its complement is given in Equation~\ref{eqn:mu_gr1} for comparison.
 
-\begin{equation}
-    GR1(Goals, Fairs) = \nu X. \bigwedge_{G \in Goals} \mu Y. \bigvee_{F \in Fairs} \nu Z. CPre_1((\neg F \wedge Z) \vee (G \wedge X) \vee Y)
-\end{equation}
+\begin{multline}
+    \neg GR1(Goals, Fairs) = \\ \mu X. \bigvee_{G \in Goals} \nu Y. \bigwedge_{F \in Fairs} \mu Z. CPre_2((F \vee Z) \wedge (\neg G \vee X) \wedge Y)
+\end{multline}
 
-\begin{equation}
-    \neg GR1(Goals, Fairs) = \mu X. \bigvee_{G \in Goals} \nu Y. \bigwedge_{F \in Fairs} \mu Z. CPre_2((F \vee Z) \wedge (\neg G \vee X) \wedge Y)
-\end{equation}
-
-The negation of a GR(1) objective is considerably more complex than a reachability objective. To ensure that player~1 cannot win a GR(1) game, player~2 must ensure that there is at least one goal that is only reached finitely many times, and each fairness condition is visited infinitely many times. 
+Intuitively, to ensure that player~1 cannot win a GR(1) game, player~2 must ensure that there is at least one goal that is only reached finitely many times, and each fairness condition is visited infinitely many times. 
 
 \section{Symbolic games}
 \label{sec:symbolic_games}
 
-The algorithm described so far appears very inefficient. Consider a reachability game. We are performing a backwards breadth-first search starting from $\reachobj$. If we were to implement it directly as described, we would need a set abstract datatype to represent the winning set. Some of the games that have been solved with Termite have upwards of $2^{80}$ states, even after abstraction. Clearly, explicitly representing the winning set will never succeed. 
+The algorithm described so far appears very inefficient. Consider a reachability game. We are performing a backwards breadth-first search starting from $\reachobj$. If we were to implement it directly as described, we would have to explicitly enumerate all winning states in the game. Some of the games that have been solved with Termite have upwards of $2^{80}$ states, even after abstraction. Clearly, explicitly representing the winning set will never succeed. 
 
 Identical problems are encountered in model checking. The breakthrough that revolutionised model checking was to represent state sets implicitly as a characteristic equation over state variables.
 
@@ -644,7 +638,7 @@ Sometimes, the variables that a characteristic formula depends on are made expli
 
 \subsection{Symbolic algorithms}
 
-We can redefine the game solving algorithms to use characteristic functions instead of explicit sets. The algorithms are superficially similar except they use conjunction and disjunction to modify sets instead of explicit set intersection and union. As an example, we convert the turn based controllable predecessor (Equation~\ref{eqn:turn_cpre}) to symbolic form in Equation~\ref{eqn:cpre_symb} and, we convert the simplest algorithm, determining the outcome of a reachability game to symbolic form, in Algorithm~\ref{a:symb_reach}.
+We can redefine the game solving algorithms to use characteristic functions instead of explicit sets by replacing conjunction and disjunction with set intersection and union. As an example, we convert the turn based controllable predecessor (Equation~\ref{eqn:turn_cpre}) to symbolic form in Equation~\ref{eqn:cpre_symb}. We convert the simplest algorithm, determining the outcome of a reachability game, to symbolic form in Algorithm~\ref{a:symb_reach}.
 
 \begin{equation}
 CPre(X) = \tau_1 \wedge \exists \symLabelVars. \forall \symStateVars'. \delta \rightarrow X' \vee \tau_2 \wedge \forall \symLabelVars. \forall \symStateVars'. \delta \rightarrow X' 
@@ -679,11 +673,11 @@ CPre(X) = \tau_1 \wedge \exists \symLabelVars. \forall \symStateVars'. \delta \r
 
 \subsection{Strategy generation}
 
-\todo{Symbolic strategy generation: should I bother?}
+The strategy and counterexample generation functions of Section~\ref{sec:strat_and_cex} can also be made symbolic by modifying them to use characteristic functions instead of explicit set manipulation.
 
 \subsection{Binary decision diagrams}
 
-A binary decision diagram is an efficient data structure for manipulating large propositional formulas. They are the symbolic data structure that is used in Termite.
+A binary decision diagram is an efficient data structure for manipulating large propositional formulas. They are the symbolic data structure that is used in Termite~\cite{Ryzhyk_WKLRSV_14}.
 
 \subsubsection{Binary decision trees}
 
@@ -694,7 +688,7 @@ A binary decision diagram is an efficient data structure for manipulating large 
 \label{fig:decis_tree}
 \end{figure}
 
-Figure~\ref{fig:decis_tree} shows a decision tree for the disjunction of two variables. The root node represents the disjunction function. The child nodes, or internal nodes, represent variables and the leaf nodes, or terminal nodes represent the outcome of the function. Terminal nodes are labelled either True or False. Given a valuation of X and Y, we can evaluate the function by starting at the root and taking the solid edge if the variable represented by the node is assigned to True in the valuation and taking the dashed edge if the value is assigned to False. 
+Figure~\ref{fig:decis_tree} shows a decision tree for the disjunction of two variables. The root node represents the entire function. The internal nodes represent variables and the leaf nodes, or terminal nodes, represent the outcome of the function. Terminal nodes are labelled either True or False. Given a valuation of X and Y, we can evaluate the function by starting at the root and taking the solid edge if the variable represented by the node is assigned to True in the valuation and taking the dashed edge if the value is assigned to False. 
 
 For example, in Figure~\ref{fig:decis_tree}, for the valuation $x=True$ and $y=False$, we start at the root node which is labelled x as x is this node's decision variable. Variable $X$ is assigned to True so we follow the solid edge to the next decision node which is labelled $Y$. $Y$ is assigned to false so we take the dashed edge and arrive at a terminal node whose value is 1, meaning that the function evaluates to 1 for this variable valuation.
 
@@ -737,15 +731,13 @@ Use of complement arcs has two important advantages:
     \item Complementation can be done in constant time, allowing De Morgan's laws to be used freely
 \end{itemize}
 
-The second guarantees that complementation is free in practice.
-
 Additionally, it can be shown that, if only the else arcs of internal nodes are ever complemented then canonicity can be preserved.
 
 \subsubsection{Conjunction and disjunction}
 
 BDDs are not usually built as decision trees and then reduced. Instead, they are built from the bottom up, starting with the terminal and variable nodes and combining these using conjunction, disjunction and negation.
 
-Conjunction and disjunction are computed using a straightforward recursive algorithm that will not be given here, but if the reader is interested, more information can be found in \cite{Bryant_86}. An important result is that, in the worst case, the procedure runs in time proportional to the product of the sizes of the two input BDDs. Furthermore, the size of the resulting BDD may be equal to the product of the sizes of the two input BDDs in the worst case. A strength of BDDs, however, is that this worst case rarely happens in practice. 
+Conjunction and disjunction are computed using a straightforward recursive algorithm that will not be given here, see \cite{Bryant_86}. An important result is that, in the worst case, the procedure runs in time proportional to the product of the sizes of the two input BDDs. Furthermore, the size of the resulting BDD may be equal to the product of the sizes of the two input BDDs in the worst case. A strength of BDDs, however, is that this worst case rarely happens in practice. 
 
 \subsubsection{Function composition and quantification}
 
@@ -759,7 +751,7 @@ Quantifications of the same type commute, so quantification with respect to a se
 
 The number of nodes in a BDD depends drastically on the ordering chosen for the variables. Therefore, the space occupied by the BDDs and the time spent performing operations on them also depends on the variable ordering. This directly affects the performance of game solving algorithms that use BDDs as the symbolic data structure. 
 
-Optimal variable orderings may be found using exact algorithms, but these are prohibitively expensive for BDDs with more than a few nodes. In practice heuristics are used which produce good, but not optimal orderings. One such heuristic is Ruddell's sifting algorithm \cite{Rudell_1993}.
+Optimal variable orderings may be found using exact algorithms, but these are prohibitively expensive for BDDs with more than a few nodes. In practice heuristics are used which produce good, but not optimal orderings. One such heuristic is Rudell's sifting algorithm \cite{Rudell_1993}.
 
-The CUDD BDD package performs \emph{dynamic variable ordering}, which means that once the number of BDD nodes the package knows about grows past a certain threshold, the package automatically performs the requested reordering algorithm on all BDDs that exist in the manager. Dynamic variable ordering is critical to the performance of game solving algorithms that utilise BDDs and therefore it is always enabled in Termite.
+The CUDD BDD package performs \emph{dynamic variable ordering}, which means that once the number of BDD nodes grows past a certain threshold, the package automatically performs the requested reordering algorithm on all BDDs that exist in the manager. Dynamic variable ordering is critical to the performance of game solving algorithms that utilise BDDs and therefore it is always enabled in Termite.
 
