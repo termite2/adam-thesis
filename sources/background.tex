@@ -45,9 +45,9 @@ Most operating systems are multithreaded, including the device drivers. Driver e
 
 In addition to bus-level drivers, the OS provides various services to device drivers. These include memory management, timing and synchronisation. Memory management includes allocating memory and support for memory mapped IO and DMA. Timer functionality includes both synchronous (thread delays) and asynchronous (callback) timers. Various synchronization primitives are also provided, but, given that Termite does not make any use of them, I do not discuss them further.
 
-\section{Formal intro}
+\section{Introduction to game formalisms}
 
-Termite's game formalism and synthesis algorithm build on considerable pre-existing work in the field of reactive synthesis which is presented in the following sections. I begin, in Section~\ref{sec:omega_regular}, with the definition of the $\omega$-regular languages and $\omega$-regular expressions which describe sets of infinite length sequences. Termite must respond to the environment continuously so I use certain subsets of the $\omega$-regular languages to specify game objectives.
+Termite's game formalism and synthesis algorithm build on considerable pre-existing work in the field of reactive synthesis which is presented in the following sections. I begin, in Section~\ref{sec:omega_regular}, with the definition of the $\omega$-regular languages and $\omega$-regular expressions which describe sets of infinite length sequences. Termite most respond to the environment continuously so I use certain subsets of the $\omega$-regular languages to specify game objectives.
 
 Next, in Section~\ref{sec:fixed_points}, I introduce a logic for describing fixed points. Evaluation of a fixed point formula returns a set of states. The winning set of states in a game with $\omega$-regular objectives can be described with a fixed point formula. Furthermore, there is a mechanical translation from a fixed point formula to an algorithm that evaluates it. Fixed-point formulas are thus a useful tool for defining $\omega$-regular objectives and describing the algorithms to compute winning regions and are used extensively throughout this chapter.
 
@@ -55,7 +55,7 @@ Section~\ref{sec:two_player} defines two player games and strategies - the centr
 
 Section~\ref{sec:intro_solving} presents the controllable predecessor, the must fundamental unit of game solving. It then uses this to present translations of the objectives to $\mu$-calculus formulas which, in turn, gives us algorithms to solve them.
 
-In addition to deciding whether there exists a correct driver for a set of specifications, Termite must synthesize a strategy which will be turned into driver code. In Section~\ref{sec:strat_and_cex} I modify the algorithms given in the previous section to return a strategy if the game is winnable. I also show how to generate a strategy for the opponent, called a counterexample, when the game is not winnable. Counterexamples are used extensively in Termite to aid in debugging faulty specifications.
+In addition to deciding whether there exists a correct driver for a set of specifications, Termite must synthesize a strategy which will be turned into driver code. In Section~\ref{sec:strat_and_cex2} I modify the algorithms given in the previous section to return a strategy if the game is winnable. I also show how to generate a strategy for the opponent, called a counterexample, when the game is not winnable. Counterexamples are used extensively in Termite to aid in debugging faulty specifications.
 
 Finally, Section~\ref{sec:symbolic_games} borrows symbolic techniques from model checking and applies them to games. Symbolic techniques, particularly the binary decision diagram data structure, revolutionised model checking. Instead of representing states explicitly, they are represented by a characteristic equation over state variables. This technique allowed model checkers and game solvers to scale well beyond what was possible previously.
 
@@ -96,6 +96,7 @@ Let $P$ be a set of propositions and $V$ be a set of variables. Then
 \end{itemize}
 
 \subsection{Semantics}
+\label{sec:musem}
 
 Given the tuple $\langle S, F \rangle$ where
 \begin{itemize}
@@ -343,7 +344,7 @@ Thus, we will eventually reach a fixed point, and, this is when we should stop i
 
 Finally, to answer the question of whether the game is winning for player~1, we check if the winning region contains the initial state set. If it does, we return \emph{Yes}; otherwise, we return \emph{No}.
 
-The algorithm is given in Algorithm~\ref{a:reach} and the equivalent \mucalc (Section~\ref{sec:fixed_points}) formula is given in Equation~\ref{eqn:mu_reach}. 
+The algorithm is given in Algorithm~\ref{a:reach} and the equivalent \mucalc (Section~\ref{sec:fixed_points}) formula is given in Equation~\ref{eqn:mu_reach}. Note that, for this to be a valid \mucalc\ formula, $T$ must be a proposition (Section~\ref{sec:musem}) and $CPre$ must be a monotonic function, itself expressed as a \mucalc\ formula.
 \begin{equation}
     \mathit{\reachFun}(T) = \mu Y. CPre(Y \vee T)
 \label{eqn:mu_reach}
@@ -469,6 +470,7 @@ Using $\mathit{\fairCpreFun}$ as the controllable predecessor operator in the re
 \end{multline}
 
 \section{Strategies and Counterexamples}
+\label{sec:strat_and_cex2}
 
 \subsection{Extracting strategies}
 
