@@ -1,7 +1,7 @@
 \chapter{Solving Games Efficiently}
 \label{ch:solving}
 
-We have a formalism for the driver synthesis problem as a game. A practical driver synthesis tool using the game formalism must be able to solve and find strategies for these games for real device and operating system specifications in a reasonable amount of time. The principle challenge of this work is creating a synthesis algorithm that scales well enough to handle the large state machines of real device and operating system specifications. 
+I have presented a formalism for the driver synthesis problem as a game. A practical driver synthesis tool using the game formalism must be able to solve and find strategies for these games for real device and operating system specifications in a reasonable amount of time. The principle challenge of this work is creating a synthesis algorithm that scales well enough to handle the large state machines of real device and operating system specifications. 
 
 The straightforward symbolic solver that uses BDDs as the symbolic data structure is remarkably efficient. In fact, it is the current state of the art in reactive synthesis. I will use this as the starting point for my description of Termite's game solver.
 
@@ -11,7 +11,7 @@ Next, I introduce abstraction, a technique to increase the scalability of the ba
 
 I give an abstraction-refinement algorithm that uses \emph{variable abstraction}, a technique for reducing the state space of the game by eliminating a subset of the state variables from the game. I then build on this to arrive at an algorithm that performs \emph{predicate abstraction}, a technique that, instead of representing the state space using state variables, represents relationships between state variables that capture key properties that are likely to be of importance in solving the game. This representation is usually far more compact. This is the synthesis algorithm that Termite uses.
 
-To simplify the presentation, with the exception of Section~\ref{sec:syntcomp}, we assume that all games are turn based.
+To simplify the presentation, with the exception of Section~\ref{sec:syntcomp}, I assume that all games are turn based.
 
 \section{Synthesis Competition}
 \label{sec:syntcomp}
@@ -37,7 +37,7 @@ An abstraction is a simplification of the original transition system. An abstrac
 
 One common use of an abstraction is in an abstraction-refinement loop. In an abstraction refinement loop, an initial simple abstraction is found and is solved. Then, the results of the abstraction are used to refine the abstraction, ie\. to build another system model that contains slightly more detail than the original abstraction. This is repeated in a loop until the original game is solved. It is often possible to solve the original game with a far less detailed abstraction that the original system. 
 
-Finding an abstraction that is simultaneously small and useful for making progress in solving the game is a difficult task and is what will be dealt with in the following sections. We start with earlier work on three valued abstraction refinement. 
+Finding an abstraction that is simultaneously small and useful for making progress in solving the game is a difficult task and is what will be dealt with in the following sections. I begin with earlier work on three valued abstraction refinement. 
 
 \subsection{Three valued abstraction refinement}
 \label{sec:three_val_abs_ref}
@@ -72,9 +72,9 @@ In the case when $\concrete{v} = \emptyset$ the abstract state $v$ is said to be
 \subsection{Algorithm}
 \label{sec:threeval_generic}
 
-In this section we present a modified version of the three-valued abstraction refinement technique of de~Alfaro and Roy~\cite{Alfaro_Roy_07}. To simplify the presentation, we focus on solving reachability games. 
+In this section I present a modified version of the three-valued abstraction refinement technique of de~Alfaro and Roy~\cite{Alfaro_Roy_07}. To simplify the presentation, I focus on solving reachability games. 
 
-We start by defining two versions of the abstraction operator: the \emph{may-abstraction} $\abstractm{}$ and the \emph{must-abstraction} $\abstractM{}$. For a set of concrete states $T \subseteq S$:
+I start by defining two versions of the abstraction operator: the \emph{may-abstraction} $\abstractm{}$ and the \emph{must-abstraction} $\abstractM{}$. For a set of concrete states $T \subseteq S$:
 
 \begin{equation}
 \abstractm{T} = \{v\in V\mid \concrete{v} \cap T \neq \emptyset\} 
@@ -88,7 +88,7 @@ Intuitively, this returns the set of abstract states which, when concretised, ov
 
 Intuitively, this returns the set of abstract states which, when concretised, are contained within the set to be abstracted.
 
-We say that an abstraction is \emph{precise} for a set $T\subseteq S$ if :
+We say that an abstraction is \emph{precise} for a set $T\subseteq S$ if:
 
 \begin{equation}
 \concrete{(\abstractm{T})} = \concrete{(\abstractM{T})}
@@ -180,7 +180,7 @@ Each time a refinement is made, $\concrete{W^M}$ grows. If the concrete state sp
 \section{Variable Abstraction}
 \label{sec:variable_abstraction}
 
-We now apply the three valued abstraction-refinement scheme to symbolic games (Section~\ref{sec:symbolic_games}). We describe an efficient instantiation of the three valued abstraction-refinement scheme for variable abstraction, a technique for reducing the state space of symbolic games by eliminating a subset of the state variables.
+Next, I apply the three valued abstraction-refinement scheme to symbolic games (Section~\ref{sec:symbolic_games}). I will describe an efficient instantiation of the three valued abstraction-refinement scheme for variable abstraction, a technique for reducing the state space of symbolic games by eliminating a subset of the state variables.
 
 The description of three valued abstraction refinement leaves a lot unspecified. In particular
 
@@ -214,7 +214,7 @@ a3: U := L;
 a3: V := True;
 
 \end{lstlisting}
-\caption{The game specification for our running example}
+\caption{The game specification for the running example}
 \label{fig:running_example}
 \end{figure}
 
@@ -228,13 +228,13 @@ Given the set $V_{\alpha}$, the corresponding abstraction (see Section~\ref{sec:
     \item $\concrete{a}$ is the set of concrete states for which the variables in $V_{\alpha}$ take the same values in both the concrete state and $a$ and all other variables are free to take any value.
 \end{itemize}
 
-This abstraction satisfies our two requirements for a valid abstraction (Section~\ref{sec:abstraction_def}). 
+This abstraction satisfies the two requirements for a valid abstraction (Section~\ref{sec:abstraction_def}). 
 
 \subsection{Initial abstraction}
 
 The initial abstraction, $V_{init}$, for a Boolean reachability game is created from only the variables that are mentioned in the goal. This ensures that the initial abstraction is \emph{precise} for the goal set.
 
-The initial abstraction of our running example is illustrated in figure~\ref{fig:abs_state_sp}. $V_{init} = \{X, Y\}$. The abstract states are illustrated by the solid squares. There is one state for each valuation of $X$ and $Y$, the variables that occur in the goal in our example. Each abstract state contains four concrete states, one for each valuation of the concrete variables that were dropped from the abstraction, $U$ and $V$. $\concrete{}$ is a function from valuations of $U$ and $V$ to the powerset of the set of valuations of all state variables. For example:
+The initial abstraction of the running example is illustrated in figure~\ref{fig:abs_state_sp}. $V_{init} = \{X, Y\}$. The abstract states are illustrated by the solid squares. There is one state for each valuation of $X$ and $Y$, the variables that occur in the goal in the example. Each abstract state contains four concrete states, one for each valuation of the concrete variables that were dropped from the abstraction, $U$ and $V$. $\concrete{}$ is a function from valuations of $U$ and $V$ to the powerset of the set of valuations of all state variables. For example:
 
 \begin{equation}
     \concrete{\langle T, T \rangle} = \{ \langle T, T, F, F \rangle, \langle T, T, F, T \rangle, \langle T, T, T, F \rangle, \langle T, T, T, T \rangle \}
@@ -260,9 +260,9 @@ Assuming that the transition relation for the concrete system is given as update
 
 However, there is the complication that these update functions may depend on additional variables that are not in $G$. Consider the update function for $Y$ in the running example. The next state value of $Y$ depends on $U$ which is not part of the abstract state space.
 
-To handle this, we introduce an additional set of variables, denoted $F$ (for \emph{free}, for reasons that will become apparent) for variables that are needed when computing the update functions but are not part of the abstract state space. In our running example, at this stage, $F=\{U\}$.
+To handle this, we introduce an additional set of variables, denoted $F$ (for \emph{free}, for reasons that will become apparent) for variables that are needed when computing the update functions but are not part of the abstract state space. In the running example, at this stage, $F=\{U\}$.
 
-Additionally, these update functions may depend on a subset of the label variables. In our running example, it is possible to set $U$ to the value of $L$, a label variable, and, each variable also implicitly depends on the $tag$ variable. These Boolean label variables that the update functions for state variables in $V_\alpha$ depend on are denoted $\Lambda$. Note that in our running example $U \notin V_\alpha$ initially, so initially $\Lambda$ is just $\{tag\}$.
+Additionally, these update functions may depend on a subset of the label variables. In the running example, it is possible to set $U$ to the value of $L$, a label variable, and, each variable also implicitly depends on the $tag$ variable. These Boolean label variables that the update functions for state variables in $V_\alpha$ depend on are denoted $\Lambda$. Note that in the running example $U \notin V_\alpha$ initially, so initially $\Lambda$ is just $\{tag\}$.
 
 We define the two controllable predecessors:
 
@@ -293,13 +293,13 @@ Given a valuation of a subset of the concrete state variables $V \subseteq C$ we
 \label{fig:f_partitioning}
 \end{figure}
 
-We refer to each set of states in the partitioning as a \emph{sub-state}. Figure~\ref{fig:f_partitioning} shows the partitioning induced by $F=\{U\} \cup V_{init}=\{X, Y\}$ in our running example.
+We refer to each set of states in the partitioning as a \emph{sub-state}. Figure~\ref{fig:f_partitioning} shows the partitioning induced by $F=\{U\} \cup V_{init}=\{X, Y\}$ in the running example.
 
 $Cpre_1^M$, by Equation~\ref{eqn:symb_cpre_M}, is the set of abstract states from which we can force execution into the target set from all sub-states induced by $F$. Since no variables in $C \setminus (V \cup F)$ can influence the next state of variables in $V$ \emph{we can ignore them} and conclude that $Cpre_1^M$ computes the set of abstract states such that for all concrete states within the abstract state, player~1 can force execution into the concretisation of the target set. This agrees with the definition of the abstract must controllable predecessor in Equation~\ref{eqn:def_cpre_M}.
 
 Dually, $Cpre_1^m$ computes the set of abstract states such that for some concrete state within the abstract state, player~1 can force execution into the concretisation of the target set. This agrees with the definition of the abstract may controllable predecessor in Equation~\ref{eqn:def_cpre_m}.
 
-In our running example our goal is $\langle X=True \land Y=True \rangle$. Consider the state $s = \langle X=True, Y=False \rangle$. $Y$ may be set to the value of $U$ by action $a_2$. As $U \in F$, it may be chosen by player~1 when computing $Cpre_1^m$. Player~1 may choose it to be $True$ and thus $s \in Cpre_1^m(goal)$. However, when computing $Cpre_1^M$, the environment gets to choose $U$ and it may choose $U=False$, and thus $s \notin Cpre_1^M(goal)$.
+In the running example the goal is $\langle X=True \land Y=True \rangle$. Consider the state $s = \langle X=True, Y=False \rangle$. $Y$ may be set to the value of $U$ by action $a_2$. As $U \in F$, it may be chosen by player~1 when computing $Cpre_1^m$. Player~1 may choose it to be $True$ and thus $s \in Cpre_1^m(goal)$. However, when computing $Cpre_1^M$, the environment gets to choose $U$ and it may choose $U=False$, and thus $s \notin Cpre_1^M(goal)$.
 
 \subsection{Solving the game}
 
@@ -309,9 +309,9 @@ Since $W^M$ is a subset of the true winning region, if $I \rightarrow W^M$ then 
 
 If none of the above termination conditions held then it is because our abstraction is not precise enough and must be refined.
 
-The may (light grey) and must (dark grey) winning regions of our example system are given in figure~\ref{fig:may_must_win}. All states are may winning, but the top states are not must winning. These are the states where $Y$ is not $True$, as prescribed by the goal expression. Intuitively, this is because $U$ is not part of the abstraction. The solving algorithm is aware that the value of $Y$ can be set to the value of $U$ but it is not aware that $U$ can be set to $True$ by action $a2$.
+The may (light grey) and must (dark grey) winning regions of the example system are given in figure~\ref{fig:may_must_win}. All states are may winning, but the top states are not must winning. These are the states where $Y$ is not $True$, as prescribed by the goal expression. Intuitively, this is because $U$ is not part of the abstraction. The solving algorithm is aware that the value of $Y$ can be set to the value of $U$ but it is not aware that $U$ can be set to $True$ by action $a2$.
 
-After solving, the initial state is not classified as either losing or must winning. In the next section, we attempt to refine the abstraction to remove the imprecision that prevented us from definitively classifying the initial state. 
+After solving, the initial state is not classified as either losing or must winning. In the next section, I show how to refine the abstraction to remove the imprecision that prevented us from definitively classifying the initial state. 
 
 \begin{figure}[t]
 \centering
@@ -355,13 +355,13 @@ We compute:
 
 \noindent to find the sub-states that are not must winning but have a transition to the must winning set. This is the characteristic formula of the sub-states on the may-must boundary that are winning and are thus are part of a candidate state for splitting.
 
-$Cpre_1^F(W^M)$ for our running example is illustrated as the dark states in Figure~\ref{fig:var_refinement}. The sub-states in the top half satisfy Equation~\ref{eqn:edge}.
+$Cpre_1^F(W^M)$ for the running example is illustrated as the dark states in Figure~\ref{fig:var_refinement}. The sub-states in the top half satisfy Equation~\ref{eqn:edge}.
 
 We extract a large prime implicant from this characteristic function in line~\ref{a:ra:extract_prime}, an efficient operation with BDDs. We also extract the variables that occur in this prime that are not in $V_\alpha$ and call them $V_{pi} \subseteq F$. 
 
-Notice that if we add the variables in $V_{pi}$ to $V_\alpha$, the abstraction induced by $V_\alpha$ is now precise enough to exactly represent the states in the implicant. These states are winning. This means that if we iterate the controllable predecessor one more time, we will at least discover that this implicant is winning, in addition to $W^M$. Thus, our refinement has grown the must winning set. In practice, refining the abstraction in this way usually discovers many more winning states than just the implicant. We call adding a variable to $V_\alpha$ \emph{promoting} the variable. We promote each variable in $V_{pi}$ on line~\ref{a:ra:promote}.
+Notice that if we add the variables in $V_{pi}$ to $V_\alpha$, the abstraction induced by $V_\alpha$ is now precise enough to exactly represent the states in the implicant. These states are winning. This means that if we iterate the controllable predecessor one more time, we will at least discover that this implicant is winning, in addition to $W^M$. Thus, our refinement has grown the must winning set. In practice, refining the abstraction in this way usually discovers many more winning states than just the implicant. Adding a variable to $V_\alpha$ is called \emph{promoting} the variable. We promote each variable in $V_{pi}$ on line~\ref{a:ra:promote}.
 
-Returning to our example, one implicant of Equation~\ref{eqn:edge} is $\{X=1, Y=0, U=1\}$. $V_{pi}$ for this implicant is $\{U\}$. If we add $U$ to $V_\alpha$ we arrive at an abstraction that allows us to classify the initial state as must winning next time the game is solved. Thus, the game is winning. Notice that this algorithm allowed us to determine the game outcome without adding the variable $V$ to the abstraction. 
+Returning to the example, one implicant of Equation~\ref{eqn:edge} is $\{X=1, Y=0, U=1\}$. $V_{pi}$ for this implicant is $\{U\}$. If we add $U$ to $V_\alpha$ we arrive at an abstraction that allows us to classify the initial state as must winning next time the game is solved. Thus, the game is winning. Notice that this algorithm allowed us to determine the game outcome without adding the variable $V$ to the abstraction. 
 
 \begin{figure}[t]
 \centering
@@ -537,7 +537,7 @@ that is precise for $T$, $I$, and $\tau_i$.
 \subsection{Arbitrary $\omega$-regular games}
 \label{sec:omega_reg}
 
-We generalise the algorithm to games specified by $\mu$-calculus formulas in prefix normal form, ie, formulas of the form:
+In this section, I generalise the algorithm to games specified by $\mu$-calculus formulas in prefix normal form, i.e.\ formulas of the form:
 
 \begin{equation}
 \nu X. \mu Y. \ldots \phi(X, Y, \ldots)
