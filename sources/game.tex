@@ -4,9 +4,13 @@ In the following sections I formalise the device driver synthesis problem using 
 
 The driver synthesis problem is formalised as a \emph{two-player game}~\cite{Thomas_95} between the driver and its environment. The game is played over a finite automaton that represents all possible states and behaviours of the system. Transitions of the automaton are classified into \emph{controllable} transitions triggered by the driver and \emph{uncontrollable} transitions triggered by the device or OS. A winning strategy for the driver in the game corresponds to a correct driver implementation. If, on the other hand, a winning strategy does not exist, this means that there exists no specification-conforming driver implementation.
 
-Two-player games naturally capture the essence of the driver synthesis problem: the driver must enforce a certain subset of system behaviours while having only partial control over the system. The game-based approach leads to a precise mathematical formulation of the problem and enables us to apply theoretical results and algorithms from game theory to driver synthesis.
+Two-player games naturally capture the essence of the driver synthesis problem: the driver must enforce a certain subset of system behaviours while having only partial control over the system. The game-based approach leads to a precise mathematical formulation of the problem and enables us to apply theoretical results and algorithms from game theory to driver synthesis. Before diving into the details of our game-based approach to drivers, I illustrate it using simple example.
 
-Figure~\ref{f:game} illustrates the concept using a trivial game automaton that models the core of our running example. Controllable and uncontrollable transitions of the automaton are shown with solid and dashed arrows respectively.  The goal of the driver in the game is to infinitely often visit the initial state, labelled \src{G}, which represents the situation when the driver does not have any outstanding requests.  After getting a \src{send} request from the OS, the driver must write data and command registers to start the data transfer.  Writing the command register first may trigger a hardware send event before the driver has a chance to write the data register.  As a result, wrong data value gets sent, taking the game into an error state \src{E}.  Hence, state $s_4$ is losing for the driver.  To avoid this state, the correct strategy for the driver is to play \src{write\_data} in state $s_2$, followed by \src{write\_cmd}.  In $s_5$ the driver must remain idle until the environment executes the \src{evt\_send} transition.
+Figure~\ref{f:game} illustrates the concept using a trivial game automaton. The automaton captures the interactions between the driver, the device and the OS where the device is a simple network controller. The driver receives requests from the OS to transfer data over the serial line and acknowledges the completion of each request by calling an acknowledgement function. 
+
+Controllable and uncontrollable transitions of the automaton are shown with solid and dashed arrows respectively.  The goal of the driver in the game is to infinitely often visit the initial state, labelled \src{G}, which represents the situation when the driver does not have any outstanding requests.  After getting a \src{send} request from the OS, the driver must write data and command registers to start the data transfer.  Writing the command register first may trigger a hardware send event before the driver has a chance to write the data register.  As a result, wrong data value gets sent, taking the game into an error state \src{E}.  Hence, state $s_4$ is losing for the driver.  To avoid this state, the correct strategy for the driver is to play \src{write\_data} in state $s_2$, followed by \src{write\_cmd}.  In $s_5$ the driver must remain idle until the environment executes the \src{evt\_send} transition.
+
+In this example, there are two different ways in which the driver can reach the goal; however, the one corresponding to the bottom half of the diamond in Figure~\ref{f:game} is not safe because of the uncontrollable transition to the error state from state \code{S4}. This trivial example emphasizes that a sound driver synthesis methodology must recognise the partially controllable nature of the system. 
 
 \begin{figure}[t]
     \center
@@ -16,8 +20,7 @@ Figure~\ref{f:game} illustrates the concept using a trivial game automaton that 
 \end{figure}
 
 \section{The Players}
-
-To formalise the driver synthesis problem using games, the first thing that needs to be defined is the players:
+In this Chapter, I show that two-player games offer a natural way to capture the non-determinism of the environment. To formalise the driver synthesis problem using games, the first thing that needs to be defined is the players:
 
 \begin{itemize}
     \item Player~1 is the driver. 
@@ -26,11 +29,11 @@ To formalise the driver synthesis problem using games, the first thing that need
 
 \section{GR(1) based formalism}
 
-In the following sections, I attempt to formalise the driver synthesis problem using the simplest game - the reachability game - and analyse its shortcomings. I show that extending the formalism to GR(1) objectives, as used in Termite, overcomes these shortcomings.
+In the following sections, I first attempt to formalise the driver synthesis problem using the simplest game - the reachability game - and analyse its shortcomings. I show that extending the formalism to GR(1) objectives overcomes these shortcomings.
 
 \subsection{Reachability}
 
-As a concrete example, a crude formalism for driver synthesis could be created using only a reachability game. Consider, for example, figure~\ref{fig:reach}, which shows the state machine for a game to control a hypothetical network controller. Execution begins in the leftmost state where the OS may initiate a network transfer by choosing the `send' label. The goal of the game is the rightmost state (labelled `G' and with a double circle) as this is the point where player 1 has completed the request. So, to win, player 1 (who controls the transitions with solid lines) must ensure that execution of the state machine reaches the goal. 
+A crude formalism for driver synthesis could be created using only a reachability game. Consider, for example, figure~\ref{fig:reach}, which shows the state machine for a game to control a hypothetical network controller. Execution begins in the leftmost state where the OS may initiate a network transfer by choosing the `send' label. The goal of the game is the rightmost state (labelled `G' and with a double circle) as this is the point where player 1 has completed the request. So, to win, player 1 (who controls the transitions with solid lines) must ensure that execution of the state machine reaches the goal. 
 
 \begin{figure}
 \centering
@@ -51,9 +54,9 @@ This simplistic formalism for driver synthesis has several shortcomings that wil
 
 \subsection{\buchi}
 
-Consider a simplified version of the previous network controller that does not have a command register. Instead, writing to the data register triggers future transmission of the byte. However, there are two ways of writing to the data register. One is a standard register write. The other also performs the register write and then schedules a self destruct sequence to happen immediately after the byte is transmitted. The state machine for this device is shown in figure~\ref{fig:buchi}. The goal, in this case, is the set $\{S3, S5\}$ corresponding to the state after completion of the send request. The problem is that, unless you only ever want to send one byte, this goal does not capture the required behaviour. For example, a valid strategy for the reachability game with objective $\{S3, S5\}$ is to take the bottom branch of the specification, putting the device in a state where it is not possible to transmit another packet. One could easily work around this problem by specifying only ${S3}$ as the goal, but this breaks composition of the specifications (Section~\ref{sec:composition}).
+Consider a modified version of the previous network controller that does not have a command register. Instead, writing to the data register triggers future transmission of the byte. However, there are two ways of writing to the data register. One is a standard register write. The other also performs the register write and then schedules a self destruct sequence to happen immediately after the byte is transmitted. The state machine for this device is shown in figure~\ref{fig:buchi}. The goal, in this case, is the set $\{S3, S5\}$ corresponding to the state after completion of the send request. The problem is that, unless you only ever want to send one byte, this goal does not capture the required behaviour. For example, a valid strategy for the reachability game with objective $\{S3, S5\}$ is to take the bottom branch of the specification, putting the device in a state where it is not possible to transmit another packet. In conclusion, a strategy that ensures that execution enters the goal once is not guaranteed to do so again; but, real drivers are required to repeatedly satisfy requests. One could easily work around this problem by specifying only ${S3}$ as the goal, but this breaks composition of the specifications (Section~\ref{sec:composition}).
 
-The solution is to modify the objective of the game. Instead of being able to reach the goal once, the driver should be able to reach the goal an infinite number of times. Or, equivalently, the driver must always be able to reach the goal again. This is a \buchi\ game.
+The solution is to modify the objective of the game. Instead of being able to reach the goal once, the driver should be able to reach the goal an infinite number of times. Or, equivalently, the driver must always be able to reach the goal again. This is a \buchi\ game with $\buchiobj = \{S3, S5\}$ (see Section~\ref{sec:buchi_def}).
 
 \begin{figure}
 \centering
@@ -65,11 +68,11 @@ The solution is to modify the objective of the game. Instead of being able to re
 \subsection{Fairness}
 \label{sec:game_fairness}
 
-Consider another modification of the simplified network device without a self destruct sequence, but with the ability to check that noone is using the communication medium prior to transmitting. The state machine of this device is given in figure~\ref{fig:fair}. After the user requests data transmission by writing to the data register, it executes a loop that checks if the medium is free, and if so, it performs the transmission. 
+Consider another modification of the last example without a self destruct sequence, but with the ability to check that noone is using the communication medium prior to transmitting. The state machine of this device is given in figure~\ref{fig:fair}. After the user requests data transmission by writing to the data register, the device executes a loop that checks if the medium is free, and if so, it performs the transmission. 
 
 If this is posed as a reachability game with goal state $G$, then the game is not winnable. The device may stay in the loop forever as it is never guaranteed to exit. Such a behaviour should not prevent a driver from being synthesised providing that the developer has good reason to believe that the loop will eventually exit. Looping forever can be seen as a invalid behaviour and we want to synthesise a driver for this system providing the invalid behaviour does not occur. 
 
-These behaviours are eliminated with fairness conditions (Section~\ref{sec:fairness}). Fairness conditions are sets of states which we guarantee execution will eventually leave. These are referred to as unfair states. In the example, the unfair states are the set $\{S2, S3\}$. The fairness condition says that execution will eventually leave the unfair set once it is entered, and the only way of doing this is through the $evt\_send$ transition, so the game becomes winning.
+These behaviours are eliminated with fairness conditions (Section~\ref{sec:fairness}). Fairness conditions are sets of states which we guarantee execution will eventually leave. These are referred to as unfair states. In the example, the unfair states are the set $\{S2, S3\}$ i.e.\ $FAIR=\{S2, S3\}$ (see Section~\ref{sec:fairness}). The fairness condition says that execution will eventually leave the unfair set once it is entered, and the only way of doing this is through the $evt\_send$ transition, so the game becomes winning.
 
 \begin{figure}[t]
 \centering
@@ -80,22 +83,33 @@ These behaviours are eliminated with fairness conditions (Section~\ref{sec:fairn
 
 \subsection{GR(1)}
 
-Termite allows multiple goals as real drivers may be required to meet multiple objectives. Additionally, Termite allows multiple fairness conditions as real drivers may have multiple `looping' behaviours that need to be ruled out.
+Termite allows multiple goals as real drivers may be required to meet multiple objectives. As an example, consider a driver for a simple serial port that must send and receive bytes. The requirements of our driver can be expressed with two goals: 
 
-The combination of multiple fairness and multiple \buchi\ objectives is a GR(1) objective (Section~\ref{sec:gr1}). Intuitively a GR(1) objective is satisfied if player~1 can always force execution to reach any goal provided that it does not get stuck forever in some unfair set of states. GR(1) objectives are used in Termite as the Termite team and I have found that in practice they are sufficient to express the requirements of drivers.
+\begin{itemize}
+    \item $G1$ consists of all states where the driver has no outstanding bytes to send.
+    \item $G2$ consists of all states where there are no pending received bytes that the driver has not yet acknowledged to the operating system. 
+\end{itemize}
+
+It may appear that the two goals can be combined into one goal $G = G1 \cap G2$ where both objectives are simultaneously satisfied. However, this does not work. Consider a correct driver that successfully responds to send requests and byte arrivals eventually, i.e.\ $G1$ and $G2$ are always eventually satisfied, but not necessarily at the same time. Such a driver would win the game with two separate objectives. However, when playing a game with the single goal $G = G1 \cap G2$ it is possible for the environment to arrange for a new byte to arrive just as one is transmitted, i.e.\ just as $G1$ is entered, execution leaves $G2$. This makes the game unwinnable as it is never possible to enter their intersection, even though our driver does behave correctly and eventually services all requests. In summary, to specify correctness of a driver with multiple requirements, and not make the game unreasonably difficult for the driver to win, we need multiple goals. 
+
+Termite also allows multiple fairness conditions as real drivers may have multiple `looping' behaviours that need to be ruled out. As with goals, these cannot be combined into a single fairness condition.
+
+The combination of multiple fairness and multiple \buchi\ objectives is a GR(1) objective (Section~\ref{sec:gr1}). Intuitively a GR(1) objective is satisfied if player~1 can always force execution to reach any goal provided that it does not get stuck forever in some unfair set of states. GR(1) objectives are used in Termite as the Termite team and I have found that in practice they are sufficient to express the requirements of drivers. 
+
+In summary, game objectives in Termite consist of multiple fairness conditions that capture the guarantees made by the environment and multiple goals that correspond to the functions that we expect the driver to perform. These are combined in a GR(1) game over the state space of the specifications.
 
 \section{Device and OS specifications and synchronisation}
 \label{sec:composition}
 
 A core concept of Termite is the separation of device and operating system specifications. This allows us to reuse the same device specification with different OS specifications as well as reusing the same OS specification with different devices. Games so far have been defined to have a single state machine that contains all of the states of the system as well as all of the actions. In Termite, the description of the operating system is decoupled from the device to be controlled and then these are combined to form a state machine before synthesis.
 
-Both the device and OS specifications are given as state machines. In Termite, they are defined symbolically in TSL (Termite specification language) (Appendix~\ref{ch:tsl_ref}). Each specification has its own set of state variables that it must supply update functions for. There is also a global set of label variables which each specification may also refer to in its state update functions. The actual update functions are provided by the TSL compiler which generates them from a high level C-like language. In this section, we work at the level of state machines and not the TSL they are generated from.
+Both the device and OS specifications are given as symbolic state machines. Each specification has its own set of state variables that it must supply update functions for. There is also a global set of label variables which each specification may also refer to in its state update functions. The actual update functions are generated by the TSL compiler from a high level C-like language. In this section, we work at the level of state machines and not the TSL they are generated from.
 
 I give an example system specification to illustrate its decomposition into separate OS and device specifications. 
 
 \subsection{State Machines}
 
-Figure~\ref{fig:dev_spec} gives the example device specification. The labelled circles are states. Arrows represent transitions between states. Solid arrows are controllable transitions whereas dashed arrows are uncontrollable, as described in Section~\ref{sec:termite_cpre}. Each transition is labelled by at least one event. Conceptually, these events trigger the transitions. All events for which there are no outgoing transitions do not change the state, i.e.\ they are self loops and are not shown in the interest of keeping the diagrams concise. The short arrow with no source state indicates the initial state. There may be more than one initial state, in which case the initial state is chosen non-deterministically by the environment.
+Figure~\ref{fig:dev_spec} gives the example device specification. As before, solid arrows are controllable transitions whereas dashed arrows are uncontrollable, as described in Section~\ref{sec:termite_cpre}. Each transition is labelled by at least one event. Conceptually, these events trigger the transitions. All events for which there are no outgoing transitions do not change the state, i.e.\ they are self loops and are not shown in the interest of keeping the diagrams concise. The short arrow with no source state indicates the initial state. There may be more than one initial state, in which case the initial state is chosen non-deterministically by the environment.
 
 \subsection{Device Specification}
 
@@ -116,6 +130,7 @@ This device model is equivalent to a Mealy machine as shown in Figure~\ref{fig:d
 \caption{Device specification}
 \label{fig:dev_spec_mealy}
 \end{subfigure}
+\caption{Device specifications}
 \end{figure}
 
 \subsection{OS specification}
@@ -134,17 +149,18 @@ This device model is equivalent to a Mealy machine as shown in Figure~\ref{fig:d
 \caption{OS specification}
 \label{fig:os_spec_mealy}
 \end{subfigure}
+\caption{OS specifications}
 \end{figure}
 
 The operating system specification, given in Figure~\ref{fig:os_spec} is like a test harness for the driver. It specifies which requests the driver may receive (e.g.\ to send a notification) and how it must respond (e.g.\ by eventually sending the requested notification). It is simply another state machine, like the device specification, but it may also have goals.
 
 The goal state, state \code{O2}, is the state that a correct driver will eventually force the OS specification to be in. It is possible to specify multiple goal states, in which case the driver must force execution into any goal state.
 
-The OS state machine starts off in the \code{osIdle} state. From there, if a \code{classSent} event is triggered by the device state machine, then the device must have sent a notification without the OS ever having requested one. This is an error, so the OS state machine transitions to the \code{osError} state. There is no way that the OS could have known that this event happened as it does not monitor the device notification output, so, the OS specification does not represent the way that the OS behaves in reality. These events that do not correspond to real interactions but are used to enforce correctness are called \emph{virtual events}. Responding to virtual events in this way is how the OS specification guarantees correctness of the system. 
+The OS state machine starts off in the \code{O0} state. From there, if a \code{classSent} event is triggered by the device state machine, then the device must have sent a notification without the OS ever having requested one. This is an error, so the OS state machine transitions to the \code{O3} state. There is no way that the OS could have known that this event happened as it does not monitor the device notification output, so, the OS specification does not represent the way that the OS behaves in reality. These events that do not correspond to real interactions but are used to enforce correctness are called \emph{virtual events}. Responding to virtual events in this way is how the OS specification defines correct behaviour of the system.
 
 There is nothing special about the error state, however, we have constructed the state machine in such a way that the error state is a dead end and it is not possible to reach the goal from that state.
 
-If a \code{devSndReq} event happens, the OS transitions into the \code{devRequested} state. From there, when a \code{classSent} event happens, the OS specification transitions into the goal state as this time the \code{classSent} event was expected. 
+If a \code{devSndReq} event happens, the OS transitions into the \code{O1} state. From there, when a \code{classSent} event happens, the OS specification transitions into the goal state as this time the \code{classSent} event was expected. 
 
 We can see from the OS specification that it is the job of the driver to ensure that a \code{devSendReq} event is eventually followed by \code{classSent} event. However, a \code{classSent} event can only be issued by the device, not the driver. The driver can, however, force the device to issue a \code{classSent} event indirectly in response to a \code{devSendReq} event. 
 
@@ -169,5 +185,6 @@ We combine the device and OS specifications by executing them concurrently. We d
 \caption{Combined specification}
 \label{fig:combined_spec_mealy}
 \end{subfigure}
+\caption{Combined specifications}
 \end{figure}
 
