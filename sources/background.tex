@@ -47,17 +47,21 @@ In addition to bus-level drivers, the OS provides various services to device dri
 
 \section{Introduction to game formalisms}
 
-Termite's game formalism and synthesis algorithm build on considerable pre-existing work in the field of reactive synthesis which is presented in the following sections. I begin, in Section~\ref{sec:omega_regular}, with the definition of the $\omega$-regular languages and $\omega$-regular expressions which describe sets of infinite length sequences. Termite must respond to the environment continuously so I use certain subsets of the $\omega$-regular languages to specify game objectives.
+Termite's game formalism and synthesis algorithm build on considerable pre-existing work in the field of reactive synthesis which is presented in the following sections. I begin, in Sections~\ref{sec:omega_regular} and \ref{sec:two_player} with introducing the notion of $\omega$-regular games.  Section~\ref{sec:omega_regular} introduces $\omega$-regular languages and $\omega$-regular expressions offer a natural formalism for reasoning about reactive systems, i.e., systems that continuously interact with their environment, such as device drivers.  
+%In Termite, $\omega$-regular languages are used to specify requirements for correct driver behaviour.
+Section~\ref{sec:two_player} defines two player $\omega$-regular games, i.e., games whose objectives are expressed using $\omega$-regular languages.  Starting from the simplest kinds of games, it eventually builds up to GR(1) games - the kind of games used by Termite. Definitions for this and the following sections are given in \cite{Gradel} and \cite{Thomas_95}. GR(1) games are discussed in depth in \cite{Piterman_PS_06}.
 
-Next, in Section~\ref{sec:fixed_points}, I introduce a logic for describing fixed points of functions. Evaluation of a fixed point formula returns a set of states. The winning set of states in a game with $\omega$-regular objectives can be described with a fixed point formula. Furthermore, there is a mechanical translation from a fixed point formula to an algorithm that evaluates it. Fixed-point formulas are thus a useful tool for defining $\omega$-regular objectives and describing the algorithms to compute winning regions and are used extensively throughout this chapter.
+Sections~\ref{sec:fixed_points} and \ref{sec:intro_solving} introduce algorithms for solving two-player games, i.e., determining whether one of the players can meet its objective.  I first define a logic for describing fixed points of functions in Section~\ref{sec:fixed_points}.  Next, in Section~\ref{sec:intro_solving}, I introduce the controllable predecessor operator, the fundamental building block of all game solving algorithms used in this thesis.  I then put the two together by presenting translations of $\omega$-regular game objectives to fixed point formulas over the controllable predecessor operator. The solution of a game can then be obtained by evaluating the fixed point formula.
 
-Section~\ref{sec:two_player} defines two player games and strategies - the central formalisms of Termite. It then defines several types of objectives (which are themselves $\omega$-regular languages), eventually building up to GR(1) games - the kind of objective used by Termite. Definitions for this and the following sections are given in \cite{Gradel} and \cite{Thomas_95}. GR(1) games are discussed in depth in \cite{Piterman_PS_06}.
+%This, in turn, gives us algorithms for solving games, since a fixed point formula can be mechanically translates from a fixed point formula to an algorithm that evaluates it, .
 
-Section~\ref{sec:intro_solving} presents the controllable predecessor, the must fundamental unit of game solving. It then uses this to present translations of the objectives to \mucalc formulas which, in turn, gives us algorithms to solve them.
+%The winning set of states in a game with an $\omega$-regular objective can be described with a fixed point formula. Furthermore, there is a mechanical translation from a fixed point formula to an algorithm that evaluates it. Fixed-point formulas are thus a useful tool for defining $\omega$-regular objectives and describing the algorithms to compute winning regions.  It then uses this to present translations of the objectives to \mucalc formulas which, in turn, gives us algorithms to solve them.
+%
+%Section~\ref{sec:intro_solving} presents the controllable predecessor operator, the fundamental building block of all game solving algorithms used in this thesis. It then uses this to present translations of the objectives to \mucalc formulas which, in turn, gives us algorithms to solve them.
 
 In addition to deciding whether there exists a correct driver for a set of specifications, Termite must synthesize a strategy which will be turned into driver code. In Section~\ref{sec:strat_and_cex2} I modify the algorithms given in the previous section to return a strategy if the game is winnable. I also show how to generate a strategy for the opponent, called a counterexample, when the game is not winnable. Counterexamples are used extensively in Termite to aid in debugging faulty specifications.
 
-Finally, Section~\ref{sec:symbolic_games} borrows symbolic techniques from model checking and applies them to games. Symbolic techniques, particularly the binary decision diagram data structure, revolutionised model checking. Instead of representing states explicitly, they are represented by a characteristic equation over state variables. This technique allowed model checkers and game solvers to scale well beyond what was possible previously. Binary decision diagrams and the algorithms that operate on them are given in \cite{Bryant_86}. Symbolic model checking is discussed in depth in \cite{Burch_symbolic} and \cite{McMillan_thesis}.
+Finally, Section~\ref{sec:symbolic_games} borrows symbolic techniques from model checking and applies them to games. The idea of symbolic game solving it to represent sets of states using characteristic equations over state variables rather than by enumerating them explicitly. This technique allows game solvers to scale well beyond what was possible previously. Binary decision diagrams and the algorithms that operate on them are given in \cite{Bryant_86}. Symbolic model checking is discussed in depth in \cite{Burch_symbolic} and \cite{McMillan_thesis}.
 
 \section{$\omega$-regular languages}
 \label{sec:omega_regular}
@@ -70,85 +74,6 @@ The $\omega$-regular languages extend the regular languages to infinite length s
 \end{itemize}
 
 Elements of $A^\omega$ are obtained by concatenating words from $A$ infinitely many times. Intuitively, $\omega$-regular languages are similar to regular languages but with an additional $\omega$ operator that concatenates words from the regular language infinitely many times.
-
-\section{Fixed points}
-\label{sec:fixed_points}
-
-\subsection{Syntax}
-
-This section defines a logic with fixed points capable of expressing greatest and least solutions of fixed point equations $X = f(X)$ where $f$ is a monotone function. The set of formulas in this logic is defined as follows:
-
-Let $P$ be a set of propositions and $V$ be a set of variables. Then
-
-\begin{itemize}
-    \item each proposition $p \in P$ is a formula
-    \item if $\phi$ and $\psi$ are formulas then $\phi \wedge \psi$ is a formula
-    \item if $\phi$ is a formula then $\neg \phi$ is a formula
-    \item if $\phi$ is a formula and $Z$ a variable then $\nu Z.\phi$ is a formula provided that every free occurrence of $Z$ in $\phi$ occurs under an even number of negations
-    \item if $\phi$ is a formula and $Z$ is a variable then $\forall Z. \phi$ is a formula
-\end{itemize}
-
-\noindent Given these definitions, we also have:
-\begin{itemize}
-    \item $\phi \vee \psi$ meaning $\neg (\phi \wedge \psi)$
-    \item $\mu Z. \phi$ meaning $\neg \nu Z. \neg \phi [Z := \neg Z]$ where $\phi[Z := \neg Z]$ means substituting $\neg Z$ for all free occurrences of $Z$ in $\phi$
-    \item $\exists Z. \phi$ meaning $\neg \forall Z. \neg \phi$
-\end{itemize}
-
-\subsection{Semantics}
-\label{sec:musem}
-
-Given the tuple $\langle S, F \rangle$ where
-\begin{itemize}
-    \item S is the set of states
-    \item $F : P \rightarrow 2^S$ maps each proposition to the set of states where the proposition is true
-\end{itemize}
-
-\noindent A \mucalc formula is interpreted as follows:
-\begin{itemize}
-    \item $p$ holds in the set of states $F(p)$
-    \item $\phi \wedge \psi$ holds in the set of states where both $\phi$ and $\psi$ hold
-    \item $\neg \phi$ holds in every state where $\phi$ does not hold 
-    \item $\nu Z. \phi$ holds in any set of states $T$ such that when the variable $Z$ is set to $T$ in $\phi$ then $\phi$ holds for all of $T$. It is the greatest fixpoint of $\phi$.
-    \item $\forall X. \phi$ holds when $\phi$ holds for all possible values of $X$.
-\end{itemize}
-
-\subsection{From \mucalc formulas to algorithms}
-
-It is straightforward to convert a \mucalc formula into an algorithm that returns the set of states for which the formula holds.
-
-Greatest and least fixed points are computed by iteration. To compute the greatest fixed point of a function $f(x)$ i.e. $\nu X. f(X)$ we iterate $f$ starting with the universal set. As $f$ is monotonic, the result is guaranteed to shrink or stay the same on each iteration. Furthermore, if the set of states, $S$ is finite, this iteration must eventually converge to some set as $S$ being finite prevents the result from shrinking forever. 
-
-The algorithm for computing the set of states for which a \mucalc formula holds is given in Algorithm~\ref{a:mu_semantics}. It assumes the existence of an abstract set datatype that supports set union, complementation and equality checking.
-
-\begin{algorithm}
-\begin{algorithmic}
-
-\Function{MuSemantics}{$\phi$}
-    \If {$\phi = p$} 
-        \State\Return $F(p)$
-    \ElsIf {$\phi = \psi \vee \rho$}
-        \State\Return $\Call{MuSemantics}{\psi} \cup \Call{MuSemantics}{\rho}$
-    \ElsIf {$\phi = \neg \psi$}
-        \State\Return $S - \Call{MuSemantics}{\psi}$
-    \ElsIf {$\phi = \forall X. \psi$}
-    \State\Return $\{ s \in S \; | \; \forall x. \; s \in \Call{MuSemantics}{\psi[X:=x]} \}$
-    \ElsIf {$\phi = \nu X. \psi$}
-        \State $Z \gets S$
-        \Loop
-            \State $Z' \gets \Call{MuSemantics}{\psi[X:=Z]}$
-            \If {$Z' = Z$}
-                \State\Return $Z$
-            \EndIf
-            \State $Z \gets Z'$
-        \EndLoop
-    \EndIf
-\EndFunction
-
-\end{algorithmic}
-\caption{MuSemantics, given a \mucalc formula, returns the set of states that satisfy the formula.}
-\label{a:mu_semantics}
-\end{algorithm}
 
 \section{Two player games}
 \label{sec:two_player}
@@ -234,6 +159,87 @@ Perfect information $\omega$-regular games are \emph{determined}. That is, the w
 This is known as a \emph{counterexample strategy}. It is a strategy for player~2 which ensures that player~1 cannot satisfy their objective. In the case of perfect information safety, reachability and \buchi\ games, if there exists a counterexample strategy (or, equivalently if the game is not winnable for player~1) then there exists a counterexample strategy that only depends on the current state. This is a function $\pi_2 : \tau_2 \rightarrow L$ that associates any player~2 state with a label for player~2 to play. 
 
 Again, in the case of generalised \buchi\ and GR(1) games, the counterexample strategy may depend on an additional finite state: $\pi_1 : \tau_2 \times \sigma \rightarrow L \times \sigma$.
+
+
+
+\section{Fixed points}
+\label{sec:fixed_points}
+
+\subsection{Syntax}
+
+This section defines a logic with fixed points capable of expressing greatest and least solutions of fixed point equations $X = f(X)$ where $f$ is a monotone function. The set of formulas in this logic is defined as follows:
+
+Let $P$ be a set of propositions and $V$ be a set of variables. Then
+
+\begin{itemize}
+    \item each proposition $p \in P$ is a formula
+    \item if $\phi$ and $\psi$ are formulas then $\phi \wedge \psi$ is a formula
+    \item if $\phi$ is a formula then $\neg \phi$ is a formula
+    \item if $\phi$ is a formula and $Z$ a variable then $\nu Z.\phi$ is a formula provided that every free occurrence of $Z$ in $\phi$ occurs under an even number of negations
+    \item if $\phi$ is a formula and $Z$ is a variable then $\forall Z. \phi$ is a formula
+\end{itemize}
+
+\noindent Given these definitions, we also have:
+\begin{itemize}
+    \item $\phi \vee \psi$ meaning $\neg (\phi \wedge \psi)$
+    \item $\mu Z. \phi$ meaning $\neg \nu Z. \neg \phi [Z := \neg Z]$ where $\phi[Z := \neg Z]$ means substituting $\neg Z$ for all free occurrences of $Z$ in $\phi$
+    \item $\exists Z. \phi$ meaning $\neg \forall Z. \neg \phi$
+\end{itemize}
+
+\subsection{Semantics}
+\label{sec:musem}
+
+Given the tuple $\langle S, F \rangle$ where
+\begin{itemize}
+    \item S is the set of states
+    \item $F : P \rightarrow 2^S$ maps each proposition to the set of states where the proposition is true
+\end{itemize}
+
+\noindent A \mucalc formula is interpreted as follows:
+\begin{itemize}
+    \item $p$ holds in the set of states $F(p)$
+    \item $\phi \wedge \psi$ holds in the set of states where both $\phi$ and $\psi$ hold
+    \item $\neg \phi$ holds in every state where $\phi$ does not hold 
+    \item $\nu Z. \phi$ holds in any set of states $T$ such that when the variable $Z$ is set to $T$ in $\phi$ then $\phi$ holds for all of $T$. It is the greatest fixpoint of $\phi$.
+    \item $\forall X. \phi$ holds when $\phi$ holds for all possible values of $X$.
+\end{itemize}
+
+\subsection{From \mucalc formulas to algorithms}
+
+It is straightforward to convert a \mucalc formula into an algorithm that returns the set of states for which the formula holds.
+
+Greatest and least fixed points are computed by iteration. To compute the greatest fixed point of a function $f(x)$ i.e. $\nu X. f(X)$ we iterate $f$ starting with the universal set. As $f$ is monotonic, the result is guaranteed to shrink or stay the same on each iteration. Furthermore, if the set of states, $S$ is finite, this iteration must eventually converge to some set as $S$ being finite prevents the result from shrinking forever. 
+
+The algorithm for computing the set of states for which a \mucalc formula holds is given in Algorithm~\ref{a:mu_semantics}. It assumes the existence of an abstract set datatype that supports set union, complementation and equality checking.
+
+\begin{algorithm}
+\begin{algorithmic}
+
+\Function{MuSemantics}{$\phi$}
+    \If {$\phi = p$} 
+        \State\Return $F(p)$
+    \ElsIf {$\phi = \psi \vee \rho$}
+        \State\Return $\Call{MuSemantics}{\psi} \cup \Call{MuSemantics}{\rho}$
+    \ElsIf {$\phi = \neg \psi$}
+        \State\Return $S - \Call{MuSemantics}{\psi}$
+    \ElsIf {$\phi = \forall X. \psi$}
+    \State\Return $\{ s \in S \; | \; \forall x. \; s \in \Call{MuSemantics}{\psi[X:=x]} \}$
+    \ElsIf {$\phi = \nu X. \psi$}
+        \State $Z \gets S$
+        \Loop
+            \State $Z' \gets \Call{MuSemantics}{\psi[X:=Z]}$
+            \If {$Z' = Z$}
+                \State\Return $Z$
+            \EndIf
+            \State $Z \gets Z'$
+        \EndLoop
+    \EndIf
+\EndFunction
+
+\end{algorithmic}
+\caption{MuSemantics, given a \mucalc formula, returns the set of states that satisfy the formula.}
+\label{a:mu_semantics}
+\end{algorithm}
 
 \section{Solving games}
 \label{sec:intro_solving}
