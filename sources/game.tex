@@ -1,4 +1,5 @@
 \chapter{Synthesis as a Game}
+\label{ch:game_formalism}
 
 In the following sections I formalise the device driver synthesis problem using games. I show that GR(1) games are sufficient to capture the required properties of drivers.
 
@@ -82,6 +83,7 @@ These behaviours are eliminated with fairness conditions (Section~\ref{sec:fairn
 \end{figure}
 
 \subsection{GR(1)}
+\label{sec:games_gr1}
 
 Termite allows multiple goals as real drivers may be required to meet multiple objectives. As an example, consider a driver for a simple serial port that must send and receive bytes. The requirements of our driver can be expressed with two goals: 
 

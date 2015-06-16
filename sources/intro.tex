@@ -60,8 +60,9 @@ I evaluated \termite by synthesising drivers for several I/O devices representat
     \item Synthesis algorithm running time and memory usage.
     \item Ease of creation and debugging of the specifications.
 \end{itemize}
+I conclude that for typical embedded devices automatic driver synthesis is practical. 
 
-We conclude that for typical embedded devices automatic driver synthesis is practical. The biggest limitation of Termite, however, is that it cannot synthesize code to perform DMA. Such code must be manually written. We did this for our case studies where it was required and we were able to synthesize the rest of the driver independently. However, this limitation makes the use of Termite less appealing for devices such as gigabit ethernet controllers where the majority of driver writing effort goes into handling DMA.
+Device driver synthesis technology is still in its early days and, as such, has several important limitations.  Most notably, \termite does not currently support synthesis or verification of code for managing direct memory access (DMA) queues.  This code must be written manually and is treated by \termite as an external API invoked by the driver. This limitation makes the use of Termite less appealing for devices such as gigabit ethernet controllers where the majority of driver writing effort goes into handling DMA. As another example, in certain situations, explained in Chapter~\ref{ch:userguided} Section~\ref{s:user-guided}, \termite is unable to produce correct code without user assistance; however it is able to verify the correctness of user-provided code.  We discuss limitations of \termite in more detail in Chapter~\ref{ch:userguided} Section~\ref{s:limitations}.
 
 This dissertation makes two contributions in the field of practical device driver synthesis:
 \begin{enumerate}

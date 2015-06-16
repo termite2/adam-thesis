@@ -81,6 +81,7 @@ Elements of $A^\omega$ are obtained by concatenating words from $A$ infinitely m
 Two-player games are a useful formalism for reactive synthesis. Many problems in electronic design automation, industrial automation, software synthesis and robotics can be formalised as a game. In particular, the driver synthesis problem can be formalised as a game, and, this is the formalism around which Termite is built. Here, I present the fundamentals of two player games. 
 
 \subsection{Formalism}
+\label{sec:intro_formal}
 
 A two player game is played by player~1 against its opponent, player~2. It consists of a possibly infinite state space $S$ on which the game is played. The game is always in some state $s \in S$ called the \emph{current state}. The game progresses from state to state according to a transition relation, $\delta \subseteq S \times L \times S$ where $S$ is the set of states and $L$ is a set of labels. A transition $t \in S \times L \times S$ is allowed in the game iff $t \in \delta$. 
 
@@ -95,6 +96,7 @@ A game proceeds in an infinite sequence of rounds, starting from some initial st
 A \emph{strategy} for player~$i$ is a function $\pi_i : S^* \times \tau_i \rightarrow L$ that, in any player~$i$ state, associates the history of the game with a label to play. The set of initial states $I$ and a player~$i$ strategy $\pi_i$ determines a set $Outcomes_i(I, \pi_i)$ of paths $s_0, s_1, s_2, \ldots $ such that $s_0 \in I$ and $s_{k+1} = \delta(s_k, \pi_i(s_0,\ldots,s_k))$ when $s_k \in \tau_i$ and $s_{k+1} = \delta(s_k, l)$ for some $l$ when $s_k \in \tau_{\overline{i}}$.  Given an objective $\Phi \subseteq S^\omega$ we say that state $s \in S$ is winning for player $i$ if there is a strategy $\pi_i$ such that $Outcomes_i({s}, \pi_i) \subseteq \Phi$. That is, if, by picking suitable labels, they can force the path to be within the set of winning sequences. An arbitrary set of infinite sequences is an extremely general, but not practically useful, way of defining an objective. In the following sections we will consider some more restricted objectives that have practical uses.
 
 \subsection{Safety and reachability}
+\label{sec:back_safety}
 
 The two simplest objectives are safety and reachability. A safety objective is defined by a set $\safeobj \subseteq S$ that player 1 must force the game to stay within, regardless of the labels that player 2 picks. Formally, a run is safe if 
 

@@ -1,11 +1,27 @@
 \chapter{User guided synthesis}
 \label{ch:userguided}
 
-This chapter formalises the device driver synthesis problem using two player games. It then presents the Termite device driver synthesis toolkit which builds on this formalism to create a practical driver synthesis tool.
+This chapter presents the Termite device driver synthesis toolkit which builds on the game formalism of Chapter~\ref{ch:game_formalism} to create a practical driver synthesis tool.
+
+One for the main challenges of driver synthesis is to enable developers to create drivers through a well-defined, predictable sequence of steps. In this chapter, we address this challenge through three key design objectives:
+\begin{itemize}
+    \item Ease of developing specifications for driver synthesis.
+    \item Ease of debugging synthesis errors due to incorrect specifications.
+    \item Enabling the benefits of automation without sacrificing the flexibility of conventional driver development.  
+\end{itemize}
+    
+Termite addresses the first objective through a high-level specification language whose syntax and semantics are close to those of familiar imperative programming languages like C.  In addition, it facilitates the development of modular specifications and thus enables a high degree of specification reuse. Termite addresses the second objective by developing powerful debugging techniques that help the developer identify and fix specification defects through well-defined process, similar to how conventional debuggers help troubleshoot implementation errors.  Finally, Termite's methodology strikes the balance between automation and flexibility by generating driver code in a user guided fashion, where the user can interactively alter or amend automatically generated code, while the synthesis tool verifies user changes on the fly.
 
 \section{Introduction}\label{sec:user_guided_intro}
 
-\subsection{Overview of \termite} Figure~\ref{f:termite} gives an overview of the driver synthesis process, described in detail in the rest of this chapter.  \termite takes three specifications as its inputs: a device model that simulates software-visible device behaviour, an OS model that specifies the software interface between the driver and the OS, and a driver template that contains driver entry point declarations and, optionally, their partial implementation to be completed by \termite.
+\subsection{Overview of \termite} Figure~\ref{f:termite} gives an overview of the driver synthesis process, described in detail in the rest of this chapter.  \termite takes four specifications as its inputs: 
+
+\begin{itemize}
+    \item a device model that simulates software-visible device behaviour, 
+    \item an OS model that specifies the software interface between the driver and the OS, 
+    \item a driver template that contains driver entry point declarations and, optionally, their partial implementation to be completed by \termite
+    \item and, a device class specification that declares the interfaces that the operating system and device supply for a specific class of devices.
+\end{itemize}
 
 \begin{figure}
     \center
@@ -13,7 +29,7 @@ This chapter formalises the device driver synthesis problem using two player gam
     \caption{\termite synthesis workflow.}\label{f:termite}
 \end{figure}
 
-Given these specifications, driver synthesis proceeds in two steps.  The first step is carried out fully automatically by the \termite game-based synthesis engine, which computes \emph{the most general strategy} for the driver---a data structure that compactly represents all possible correct driver implementations.  This step encapsulates the computationally expensive part of synthesis.  At the second step, the most general strategy is used by the \termite code generator to construct one specific driver implementation in C with the help of interactive input from the user.
+Given these specifications, driver synthesis proceeds in two steps.  The first step is carried out fully automatically by the \termite game-based synthesis engine, which computes \emph{the most general strategy} for the driver---a relation $strat \subseteq S \times L$ (\ref{sec:intro_formal}) that represents all possible correct driver implementations.  This step encapsulates the computationally expensive part of synthesis.  At the second step, the most general strategy is used by the \termite code generator to construct one specific driver implementation in C with the help of interactive input from the user.
 
 The synthesis engine may establish that, due to a defect in one of the input specifications, there does not exist a specification-compliant driver implementation.  In this case, it produces an explanation of the failure, which can be analysed with the help of the \termite debugger tool in order identify and correct the defect.
 
@@ -37,10 +53,7 @@ The synthesis engine may establish that, due to a defect in one of the input spe
 %        
 %        Next we look under the hood
 
-\subsection{Limitations of \termite}  The device driver synthesis technology is still in its early days and, as such, has several important limitations.  Most notably, \termite does not currently support synthesis or verification of code for managing direct memory access (DMA) queues.  This code must be written manually and is treated by \termite as an external API invoked by the driver.  As another example, in certain situations, explained in Section~\ref{s:user-guided}, \termite is unable to produce correct code without user assistance; however it is able to verify the correctness of user-provided code.  We discuss limitations of \termite in more detail in Section~\ref{s:limitations}.
-
 \section{Specifications}
-
 \label{s:specifications}
 
 Input to \termite consists of the three specifications, which model the complete system consisting of the driver, the device, and the OS, shown in Figure~\ref{f:actions}.  The OS and device models simulate the execution environment of the driver and specify constraints on correct driver behaviour.  The device model simulates software-visible device behaviour.  The OS model serves as a workload generator that issues I/O requests to the driver and accepts request completions in a way consistent with real OS behaviour.
@@ -59,7 +72,7 @@ Finally, the driver template contains a partial driver implementation to be comp
 
 All specifications are written using the \termite Specification Language (\tsl).  In line with our goal of making synthesis as close to the conventional driver development workflow as possible, \tsl is designed as a dialect of C with additional constructs for use in synthesis.  The full specification of the \tsl language is given in Appendix~\ref{ch:tsl_ref}. We introduce relevant features of \tsl throughout this section.
 
-We minimise the amount of work needed to develop specifications for every synthesised driver by maximising the reuse of specifications.  In particular, \termite allows the use of existing device specifications developed by hardware designers in driver synthesis.  It does this by providing a compiler from the modelling language used for the existing specification to \tsl. This is explained in Section~\ref{sec:device_model}, however, we do not use this tool to generate the specifications used in the evaluation section (Section~\ref{s:eval}).
+We minimise the amount of work needed to develop specifications for every synthesised driver by maximising the reuse of specifications.  In particular, \termite allows the use of existing device specifications developed by hardware designers in driver synthesis as discussed in Section~\ref{sec:device_model}.
 
 Furthermore, the OS specification for the driver can be derived from a generic specification for a class of similar devices (e.g., network or storage).  Thus we expect that additional per-driver effort will consist of: 
 \begin{enumerate}
@@ -78,9 +91,9 @@ While the transaction-level modelling technology is relatively new, TLMs are alr
 
 Existing TLMs created by hardware designers can be used with minor modifications (explained in Section~\ref{s:virt}) for driver synthesis.  Model reuse dramatically reduces the effort involved in synthesising a driver and is therefore crucial to practical success of driver synthesis.  By reusing an existing model, we also reuse the effort invested by hardware designers into testing and debugging the model throughout the hardware design cycle, thus making driver synthesis less susceptible to specification bugs.  Finally, since TLMs are created early in the hardware design cycle, TLM-based driver synthesis can be carried out early as well, thus removing driver development from the critical path to product delivery.
 
-TLMs are written in high-level hardware description languages like SystemC and DML\@.  In order to use these models in driver synthesis, we need to convert them to \tsl.  This translation can be performed automatically, and we are currently working on a DML-to-\tsl compiler.  Since this work is not yet complete, device models used in the experimental section of this paper are either manually translated from existing TLMs or written from scratch using TLM modelling style guidelines~\cite{dml_ug}.
-
 Unfortunately, few TLMs are publicly available at the moment, which means that driver synthesis must be performed by  device vendors in-house.  However this is likely to change in the future.  A TLM does not expose internal implementation details of the device and is therefore not part of sensitive IP\@.  At the same time, there exist strong incentives for manufacturers to make device TLMs available to third-party vendors to test their software and hardware products for compatibility with the given device.
+
+TLMs are written in high-level hardware description languages like SystemC and DML\@.  In order to use these models in driver synthesis, we need to convert them to \tsl.  This translation can be performed automatically, and we are currently working on a DML-to-\tsl compiler. This work is not yet complete and is not a contribution of this thesis. Therefore device models used in the experimental section of this paper are either manually translated from existing TLMs or written from scratch using TLM modelling style guidelines~\cite{dml_ug}.
 
 \subsubsection{Running example}
 
@@ -207,7 +220,7 @@ We keep the specification concise by modelling the state of the driver-OS interf
 \subsection{Connecting device and OS models}
 \label{s:virt}
 
-In addition to simulating I/O requests to the driver, the OS model also specifies the semantics of each request in terms of device-internal events that must occur in order to complete the requested I/O operation.  In our running example, after the OS invokes the \src{send} method of the driver and before the driver acknowledges completion of the request, the device must attempt to send the requested data over the serial line.  This requirement establishes a connection between the device and OS models and must be specified explicitly in order to enable \termite to generate a driver implementation that correctly handles the OS request.  Note that we only need to specify \emph{which} hardware events must occur, but not \emph{how} the driver generates them.
+In addition to simulating I/O requests to the driver, the OS model also specifies the semantics of each request in terms of device-internal events that must occur in order to complete the requested I/O operation.  In the running example, after the OS invokes the \src{send} method of the driver and before the driver acknowledges completion of the request, the device must attempt to send the requested data over the serial line.  This requirement establishes a connection between the device and OS models and must be specified explicitly in order to enable \termite to generate a driver implementation that correctly handles the OS request.  Note that we only need to specify \emph{which} hardware events must occur, but not \emph{how} the driver generates them.
 
 In order to develop such specifications, we need a way to refer to relevant state and behaviour of the device from the OS model.  At the same time, in order to maximise specification reuse, we would like to keep the OS specification device-independent.  To reconcile these conflicting requirements, we introduce a \emph{virtual interface} between the device and OS model.  This interface consists of callbacks used by the device model to notify the OS model about important hardware events.  The virtual interface does not represent real runtime interactions between the device and the OS, but serves as part of the correctness specification.
 
@@ -215,9 +228,9 @@ We define a virtual interface for each class of devices.  Such \emph{device-clas
 
 \subsubsection{Running example}
 
-In our example, we define a device-class interface consisting of two virtual callbacks: \src{evt\_send} and \src{ev\_send\_failed}, invoked respectively when the device successfully transmits and fails to transmit a byte.  These callbacks are invoked in lines~\ref{f:ex_dev:l:cb_succ} and~\ref{f:ex_dev:l:cb_fail} of the device model.  The \src{evt\_send} handler is shown in line~\ref{f:ex_os:l:send_cb} of the OS model.  The assertion in line~\ref{f:ex_os:l:assert} specifies that the send event is only allowed to occur if there is an outstanding send request in progress and the value being sent is the same as the one requested by the OS\@.  We reset the \src{inprogress} flag to false in line~\ref{f:ex_os:l:inprogress}, thus marking the current request as completed; line~\ref{f:ex_os:l:success} sets the \src{success} flag to true, thus indicating that the transfer completed without an error.  The \src{evt\_send\_fail} handler is identical, except that it sets the \src{success} flag to false.  The flags are checked by the \src{send\_ack} method, which asserts that the driver is only allowed to acknowledge a completed request (\src{!inprogress}) that has not been acknowledged yet (\src{!acked}) and that the completion status reported by the driver must match the one recorded in the \src{success} flag.
+In the example, I define a device-class interface consisting of two virtual callbacks: \src{evt\_send} and \src{ev\_send\_failed}, invoked respectively when the device successfully transmits and fails to transmit a byte.  These callbacks are invoked in lines~\ref{f:ex_dev:l:cb_succ} and~\ref{f:ex_dev:l:cb_fail} of the device model.  The \src{evt\_send} handler is shown in line~\ref{f:ex_os:l:send_cb} of the OS model.  The assertion in line~\ref{f:ex_os:l:assert} specifies that the send event is only allowed to occur if there is an outstanding send request in progress and the value being sent is the same as the one requested by the OS\@.  I reset the \src{inprogress} flag to false in line~\ref{f:ex_os:l:inprogress}, thus marking the current request as completed; line~\ref{f:ex_os:l:success} sets the \src{success} flag to true, thus indicating that the transfer completed without an error.  The \src{evt\_send\_fail} handler is identical, except that it sets the \src{success} flag to false.  The flags are checked by the \src{send\_ack} method, which asserts that the driver is only allowed to acknowledge a completed request (\src{!inprogress}) that has not been acknowledged yet (\src{!acked}) and that the completion status reported by the driver must match the one recorded in the \src{success} flag.
 
-In this example we use C-style assertions to rule out invalid system behaviours.  Assertions alone do not fully capture requirements for a correct driver behaviour.  For example, a driver that remains idle does not violate any assertions.  Hence, we need to specify requirements for the driver to make forward progress.  We introduce such requirements into the model in the form of \emph{goal conditions}, that must hold \emph{infinitely often} in any run of the system.  For example, a goal may require that the driver is infinitely often in an idle state with no outstanding requests from the OS\@.  The OS can force the driver out of the goal by issuing a new I/O request.  To satisfy the goal condition, the driver must return to the goal state by completing the request.  Line~\ref{f:ex_os:l:goal} in Figure~\ref{f:ex_os} defines such a goal condition that holds whenever the \src{acked} flag is set, i.e., the driver has no unacknowledged send requests.
+In this example I use C-style assertions to rule out invalid system behaviours.  An assertion is equivalent to a safety condition~\ref{sec:back_safety}. Assertions alone do not fully capture requirements for a correct driver behaviour. For example, a driver that remains idle does not violate any assertions. Hence, I need to specify requirements for the driver to make forward progress.  I introduce such requirements into the model in the form of \emph{goal conditions}, that must hold \emph{infinitely often} in any run of the system.  These are GR(1) goals as described in Section~\ref{sec:gr1} and Section~\ref{sec:games_gr1}. For example, a goal may require that the driver is infinitely often in an idle state with no outstanding requests from the OS\@.  The OS can force the driver out of the goal by issuing a new I/O request.  To satisfy the goal condition, the driver must return to the goal state by completing the request.  Line~\ref{f:ex_os:l:goal} in Figure~\ref{f:ex_os} defines such a goal condition that holds whenever the \src{acked} flag is set, i.e., the driver has no unacknowledged send requests.
 
 \subsection{Driver template}
 
@@ -247,6 +260,7 @@ endtemplate
 Figure~\ref{f:ex_drv} shows the driver template for the running example consisting of a single \src{send} entry point invoked by the OS\@.  The ellipsis in line~\ref{f:ex_drv:l:magic} represent a location for inserting synthesised code and are part of \tsl syntax.  We refer to such locations as \emph{controllable placeholders}. 
 
 \section{\tsl compiler}
+\label{sec:tsl_compiler}
 
 In order to compute the most general driver strategy as a solution of a two-player game, we must first convert input \tsl specifications into a game automaton.  This conversion is performed by the \tsl compiler.
 
@@ -290,7 +304,7 @@ In addition to goal conditions, a \tsl specification also contains assertions, w
 \section{User-guided code generation}
 \label{s:user-guided}
 
-The set of input \tsl specifications is fed into the \termite synthesis engine, which then automatically computes the most general strategy for the driver.  Given a state of the system, the most general strategy determines the set of all valid driver actions in this state.  The most general strategy is used by the \termite code generator to produce a driver implementation in C in a user-guide fashion.
+The set of input \tsl specifications is fed into the \termite synthesis engine (Chapter~\ref{ch:solving}), which then automatically computes the most general strategy (Section~\ref{sec:intro_formal}) for the driver.  Given a state of the system, the most general strategy determines the set of all valid driver actions in this state.  The most general strategy is used by the \termite code generator to produce a driver implementation in C in a user-guide fashion.
 
 \subsection{Motivation}
 
@@ -425,11 +439,11 @@ In the simplest case, there exists a winning action that is available from all s
 \label{eqn:simple_strat}
 \end{equation}
 
-This returns the set of labels which are part of the strategy for all states in the current state set. If the set is not empty, the Termite IDE the picks one of these at random as the autocompletion suggestion. If it is empty, the Termite IDE falls back to the more computationally expensive heuristic described in the next section.
+This returns the set of labels which are part of the strategy for all states in the current state set. If the set is not empty, the Termite IDE picks one of these at random as the autocompletion suggestion. If it is empty, the Termite IDE falls back to the more computationally expensive heuristic described in the next section.
 
 \subsection{Smarter label picking}
 
-While the above heuristic is straightforward and cheap, is it often unsatisfactory in practice. As an example, consider a current state set containing two states: $s_1$ and $s_2$. Suppose there is no label which is in the winning strategy for both states, but there is a label in the winning strategy for $s_1$ and it does not take $s_2$ further away from the goal. Such an action is a good candidate for an auto completion, however it will not be found by the first heuristic.
+While the above heuristic is straightforward and cheap, it is often unsatisfactory in practice. As an example, consider a current state set containing two states: $s_1$ and $s_2$. Suppose there is no label which is in the winning strategy for both states, but there is a label in the winning strategy for $s_1$ and it does not take $s_2$ further away from the goal. Such an action is a good candidate for an auto completion, however it will not be found by the first heuristic.
 
 Our more general label picking algorithm works as follows: we find the greatest distance (N) of any state in $stateSet$ from the goal and then we look up two sets (which were computed and saved symbolically during synthesis).
 
@@ -438,7 +452,7 @@ Our more general label picking algorithm works as follows: we find the greatest 
     \item and, the set of states at distance $N-1$, denoted $win_{N-1}$.
 \end{itemize}
 
-We define two constraints on the label, all computable symbolically, and pick a label that satisfies all two constraints by taking their conjunction.
+We define two constraints on the label, all computable symbolically, and pick a label that satisfies both constraints by taking their conjunction.
 
 When played, the label must:
 
@@ -447,7 +461,7 @@ When played, the label must:
     \item move execution in $win_N$ to $win_{N-1}$.
 \end{itemize}
 
-These requirements ensure that each time a label is picked in this way, the maximum distance to the goal of states in $stateSet$ decreases. Thus, repeatedly picking actions in this way ensures that we eventually get to the goal and is therefore a sound method of picking auto completions. Note that even though execution is guaranteed to reach the goal, the label picked may not be part of the strategy for all states in $stateSet$.
+These requirements ensure that each time a label is picked in this way, the maximum distance to the goal of states in $stateSet$ decreases. Thus, repeatedly picking actions in this way ensures that we eventually get to the goal and is therefore a sound method of picking auto completions. Note that even though execution is guaranteed to reach the goal, the label picked may not be part of the strategy for all states in $stateSet$, as, by definition, a strategy is required to take execution closer to the goal and this may not be the case for states at less than the maximum distance to the goal.
 
 \subsection{Splitting states}
 
@@ -531,7 +545,7 @@ We found that a good heuristic is to choose the label which results in the simpl
 
 An important practical issue in game-based synthesis is the complexity of diagnosing synthesis failures due to defects in the input specifications.  In the event that \termite fails to solve the game, the user needs to trace the failure back to the specification defect.  However, the failure does not carry any information about the defect, which makes the problem harder to resolve.
 
-In \termite we propose a new approach to troubleshooting synthesis failures based on the use of \emph{counterexample strategies}.  A counterexample strategy is a strategy on behalf of the environment that prevents the driver from winning the game.  It is obtained by solving the \emph{dual game}, where, in order to win, the environment must permanently force the game out of one of the goal regions.  A winning strategy in the dual game is guaranteed to exist whenever solving of the primary game fails.
+In \termite we propose a new approach to troubleshooting synthesis failures based on the use of \emph{counterexample strategies}.  A counterexample strategy is a strategy on behalf of the environment that prevents the driver from winning the game.  It is obtained by solving the \emph{dual game}, where, in order to win, the environment must permanently force the game out of one of the goal regions.  A winning strategy in the dual game is guaranteed to exist whenever solving of the primary game fails (Section~\ref{sec:strat_and_cex}).
 
 By exploring the counterexample strategy, the user can identify the defect in the input specification.  This is similar to the use of counterexamples in software verification, where for each discovered bug the verification tool generates a counterexample trace that triggers the bug.  However, a counterexample strategy cannot in the general case be represented by a single execution trace, as the choice of spoiling moves for the environment depends on the actions performed by the driver.
 
@@ -571,7 +585,7 @@ Drivers execute in a concurrent OS environment and must handle invocations from 
 
 \section{Implementation}
 
-We implemented all components of the Termite toolkit, including the TSL compiler, the game solver, the counterexample debugger, the user-guided code generator, and the TSL-to-C compiler, in the Haskell programming language.  Our implementation uses the CUDD BDD library for efficient symbolic manipulations over booleen relations, and the Z3 SMT solver for satisfiability queries over the theory of bit vectors, as described in Chapter~\ref{ch:solving} and~\cite{Walker_Ryzhyk_14}.  Termite is publicly available under the BSD license and can be downloaded from the project website \texttt{\url{http://termite2.org}}. The version of \termite presented here consists of 30,000 lines of code.  The estimated overall project effort is 10 person years. 
+All components of Termite that have been described in this chapter have been implemented in the Haskell programming language. I implemented the game solver (Chapter~\ref{ch:solving}), counterexample extractor (Section~\ref{s:debug}) and code generation algorithms (Section~\ref{sec:heuristic_codegen}). My supervisor, Dr Leonid Ryzhyk, implemented the TSL compiler (Section~\ref{sec:tsl_compiler}), the graphical counterexample explorer (Section~\ref{s:debug}), the user-guided code generator (Section~\ref{s:user-guided}), and the TSL-to-C compiler.  Our implementation uses the CUDD BDD library for efficient symbolic manipulations over Booleen relations, and the Z3 SMT solver for satisfiability queries over the theory of bit vectors, as described in Chapter~\ref{ch:solving} and~\cite{Walker_Ryzhyk_14}.  Termite is publicly available under the BSD license and can be downloaded from the project website \texttt{\url{http://termite2.org}}. The version of \termite presented here consists of 30,000 lines of code.  
 
 \section{Evaluation}
 \label{s:eval}
@@ -601,7 +615,7 @@ Table~\ref{t:size} summarises the size, in lines of code, of device and OS model
         STM SPI      & 73  & 244    & 24          & 64  \\
         exynos SPI   & 88  & 239    & 40          & 183 \\
         exynos I2C   & 146 & 180    & 79          & 211 \\
-        RT clock     & 118 & 252    & 84          & 183 \\
+        DS12887      & 118 & 252    & 84          & 183 \\
         IDE          & 188 & 480    & 94\footnote{Excluding 36 lines of manually written code that manipulates the DMA descriptor table.} & 474 \\
         \hline
     \end{tabular}
@@ -631,7 +645,7 @@ Table~\ref{t:perf} summarises the performance of the \termite game solver in our
         STM SPI        & 68  (389)                   & 29      & 63     & 67        & 31 \\
         exynos SPI     & 83  (933)                   & 31      & 72     & 25        & 44 \\
         exynos I2C     & 65  (303)                   & 21      & 56     & 45        & 96 \\
-        RT clock       & 92  (810)                   & 25      & 74     & 56        & 127 \\
+        DS12887       & 92  (810)                   & 25      & 74     & 56        & 127 \\
         IDE            & 114 (1333)                  & 42      & 105    & 285       & 778 \\
         \hline
     \end{tabular}
@@ -657,15 +671,15 @@ The final column of Table~\ref{t:perf} shows the time that it took \termite to v
 %example in under 1 second.
 
 \subsection{User-guided code generation and debugging} 
-We evaluate the key contribution of this paper, namely the user-guided debugging and code generation technique.  Each line of code in a \termite-generated driver originates from one of three sources: it can be 
+We evaluate the user-guided debugging and code generation technique.  Each line of code in a \termite-generated driver originates from one of three sources: it can be 
 \begin{enumerate} 
     \item synthesised automatically by the tool, 
     \item developed offline and given to \termite as part of the driver template, or 
     \item added or modified by the user during an interactive code generation session.  
 \end{enumerate}
-A perfect synthesis tool, capable of generating a complete driver fully automatically while producing code that meets all non-functional requirements, would eliminate the need for manual code altogether.  We do not believe that such a tool is feasible in the near future.  We therefore explore the tradeoffs that arise when using our current, imperfect, tool.  In particular, we would like to empirically characterise situations when the user can rely on the synthesiser to automatically produce near-optimal code, and when they are better off completely or partially implementing certain functionality manually.  These tradeoffs are likely to change as the tool improves.
+A perfect synthesis tool, capable of generating a complete driver fully automatically while producing code that meets all non-functional requirements, would eliminate the need for manual code altogether.  We do not believe that such a tool is feasible in the near future.  We therefore explore the tradeoffs that arise when using our current, imperfect, tool.  In particular, we empirically characterise situations when the user can rely on the synthesiser to automatically produce near-optimal code, and when they are better off completely or partially implementing certain functionality manually.  These tradeoffs are likely to change as the tool improves.
 
-Based on our experience so far, automatic synthesis is most helpful in generating code that performs device configuration or starts a data transfer.  This code may involve a long sequence of commands to the device, which must be issued in the right order and with correct arguments.  The synthesis algorithm of \termite proved more effective at doing this than human developers, producing correct code that only requires minimal cosmetic changes in most cases.  For example, Figure~\ref{f:screenshot_write} shows a screenshot of \termite with a synthesised implementation of the IDE driver \src{write()} function, which starts a data transfer to the device.  The function writes request parameters into appropriate device data registers and sets bit fields in command registers to prepare the device for data transfer.  One deficiency in this auto-generated implementation is that it uses absolute values instead of symbolic constants for bit fields.
+Based on our experience so far, automatic synthesis is most helpful in generating code that performs device configuration or starts a data transfer.  This code may involve a long sequence of commands to the device, which must be issued in the right order and with correct arguments.  The synthesis algorithm of \termite proved more effective at doing this than human developers, producing correct code that only requires minimal cosmetic changes in most cases.  For example, Figure~\ref{f:screenshot_write} shows a screenshot of \termite with a synthesised implementation of the IDE driver \src{write()} function, which starts a data transfer to the device.  The function writes request parameters into appropriate device data registers and sets bit fields in command registers to prepare the device for data transfer.  One deficiency in this auto-generated implementation, and one area of future improvement, is that it uses absolute values instead of symbolic constants for bit fields.
 
 As another example of suboptimal synthesised code, consider the following synthesised fragment:
 
@@ -694,7 +708,7 @@ os.ack_packet(packet_data[9:9],
 \end{tsllisting}
 \vspace{5mm}
 
-\noindent While both issues can, and will, be addressed by an improved code generation algorithm, our experience shows that unaccounted corner cases will arise occasionally.  Therefore, the ability to manually modify synthesised code without sacrificing correctness is crucial for a practical synthesis tool.
+\noindent While both issues can be addressed by an improved code generation algorithm, our experience shows that unaccounted corner cases will arise occasionally.  Therefore, the ability to manually modify synthesised code without sacrificing correctness is crucial for a practical synthesis tool.
 
 Limitations of \termite are most noticeable in synthesising interrupt handler code responsible for processing I/O completions.  This involves querying device state to determine which operations completed and with what status, reporting results to the OS, and clearing interrupt status registers.  Since \termite does not support grey-box synthesis, it can not generate this code automatically and instead produces code that directly accesses device-internal state (see Section~\ref{s:user-guided}).  \termite correctly reports such situations and allows the user to mitigate them by manually editing synthesised code.  In practice, however, we found it easier to develop most of the interrupt handler logic offline, as part of the driver template, and rely on \termite to (a) establish correctness of this code and (b) extend it to a complete implementation.
 
