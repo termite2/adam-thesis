@@ -445,40 +445,57 @@ This returns the set of labels which are part of the strategy for all states in 
 
 While the above heuristic is straightforward and cheap, it is often unsatisfactory in practice. As an example, consider a current state set containing two states: $s_1$ and $s_2$. Suppose there is no label which is in the winning strategy for both states, but there is a label in the winning strategy for $s_1$ and it does not take $s_2$ further away from the goal. Such an action is a good candidate for an auto completion, however it will not be found by the first heuristic.
 
-Our more general label picking algorithm works as follows: we find the greatest distance (N) of any state in $stateSet$ from the goal and then we look up two sets (which were computed and saved symbolically during synthesis).
+Our more general label picking algorithm works as follows: we choose a label such that if it is played from $stateSet$, the maximum distance to the goal of states in $stateSet$ decreases. Thus, repeatedly picking actions in this way ensures that we eventually get to the goal and is therefore a sound method of picking auto completions. 
 
-\begin{itemize}
-    \item the set of states at distance $N$, denoted $win_N$,
-    \item and, the set of states at distance $N-1$, denoted $win_{N-1}$.
-\end{itemize}
+We find the greatest distance (N) of any state in $stateSet$ from the goal and then we look up the set $win_{N-1}$, the set of states at distance $N-1$ from the goal. This set was computed and saved symbolically during synthesis. In order to ensure that the maximum distance to the goal decreases we pick labels according to this formula:
 
-We define two constraints on the label, all computable symbolically, and pick a label that satisfies both constraints by taking their conjunction.
+\begin{equation}
+    \forall s, s' \: (stateSet \land \delta) \rightarrow win_{N-1}
+\end{equation}
 
-When played, the label must:
+This set of labels is computed symbolically. We pick any label from this set.
 
-\begin{itemize}
-    \item keep execution in $win_{N-1}$ for states within $stateSet \cap win_{N-1}$, and
-    \item move execution in $win_N$ to $win_{N-1}$.
-\end{itemize}
-
-These requirements ensure that each time a label is picked in this way, the maximum distance to the goal of states in $stateSet$ decreases. Thus, repeatedly picking actions in this way ensures that we eventually get to the goal and is therefore a sound method of picking auto completions. Note that even though execution is guaranteed to reach the goal, the label picked may not be part of the strategy for all states in $stateSet$, as, by definition, a strategy is required to take execution closer to the goal and this may not be the case for states at less than the maximum distance to the goal.
+Note that even though execution is guaranteed to reach the goal, the label picked may not be part of the strategy for all states in $stateSet$, as, by definition, a strategy is required to take execution closer to the goal and this may not be the case for states at less than the maximum distance from the goal.
 
 \subsection{Splitting states}
 
 Lastly, suppose that there is no action found by the first two heuristics. In this case we recursively split $stateSet$ by finding a subset $a \subset stateSet$ from which there is a winning action for all of $a$ and splitting this out in C code using an \emph{if-statement}. What remains of $stateSet$ is recursively split enough times that there is a suitable label to play from each partition. This is guaranteed to eventually happen because $stateSet$ in finite and in practice only one or two splits are needed.
 
-We describe how the condtion for this if-statement is computed. There exists at least one winning label from each state in the current set, as they are all winning. However, there does not exist a single label which is winning for all states in the current set. Our heuristic to find a large subset of $stateSet$ for which there does exist a single winning label is as follows:
+We describe how the condition for this if-statement is computed. There exists at least one winning label from each state in the current set, as they are all winning. However, there does not exist a single label which is winning for all states in the current set. Our heuristic to find a large subset of $stateSet$ for which there does exist a single winning label is as follows:
 
 \begin{enumerate}
     \item Enumerate labels that are winning in some state in $stateSet$.
-    \item Compute the set where each label is part of the strategy.
-    \item Compute a small condition (a BDD) over state variables that distinguishes this set from the rest of $stateSet$.
-    \item Choose the condition that is the simplest (measured by BDD size) and return this and the corresponding lablel.
+    \item For each label, compute the set where that label is part of the strategy.
+    \item For each set, Compute a small condition (a BDD) over state variables that distinguishes this set from the rest of $stateSet$.
+    \item Choose the condition that is the simplest (measured by BDD size) and return this and the corresponding label.
 \end{enumerate}
 
 \subsubsection{Enumerating winning labels}
 
-In practice, the first step is infeasible, however. Games in Termite have labels over 100 bits in size so this would require enumerating over $2^{100}$ labels. However, many of these labels are equivalent as certain combinations of bits are dont-care. We use the $availableLabels$ algorithm (Algorithm~\ref{alg:available_labels}) to enumerate labels that are equivalent given the current set and transition relation.
+We need to build a mapping from labels $l$ that win in at least one state in $stateSet$ to the subset $\sigma \in stateSet$ where the label is winning, i.e.\ where $\forall s \in \sigma . \; l \in Strat(s)$. This potentially requires enumerating all winning labels in $stateSet$. In practice this is infeasible, as games in Termite have labels over 100 variables in size so this could potentially involve enumerating over $2^{100}$ labels. 
+
+The label in a game must contain the union of all variables that can influence any transition. So, in practice, most transitions depend on only a small subset of the label variables. For example, consider a controllable register write. A label variable is needed to specify the actual value written. But on any uncontrollable transition, or a controllable transition that is not a register write, this variable is unneeded. It does not influence the next state and is effectively a `dont-care' variable.
+
+We therefore would like to compute an equivalence class over labels such that equivalent labels behave identically within $stateSet$. More precisely, we say that labels $l_1$ and $l_2$ are equivalent if:
+
+\begin{equation}
+    \forall s \in stateSet. \; \delta(s, l_1) = \delta(s, l_2)
+\end{equation}
+
+\begin{algorithm}
+\begin{algorithmic}
+
+\Function{availableLabels}{$s, u, l, s', strategy, stateSet$}
+    \State $winning \gets \exists \: s \: u \: s'. \: strategy \land stateSet$
+    \State\Return$\Call{enumerate}{l, s \cup s', \delta \land stateSet \land winning}$
+\EndFunction
+
+\end{algorithmic}
+\caption{The \textsc{availableLabels} function}
+\label{alg:available_labels}
+\end{algorithm}
+
+This is formalised by the $availableLabels$ algorithm (Algorithm~\ref{alg:available_labels}) which enumerates labels that are equivalent given the current set and transition relation. Importantly, this enumeration is performed symbolically and the number of iterations is equal to the number of equivalence classes, which, in practice, is small.
 
 This algorithm invokes two other algorithms: $genPair$ (Algorithm~\ref{alg:gen_pair}) and $enumerate$ (Algorithm~\ref{alg:enumerate}), both of which deserve some explanation. 
 
@@ -497,7 +514,7 @@ This algorithm invokes two other algorithms: $genPair$ (Algorithm~\ref{alg:gen_p
 \label{alg:gen_pair}
 \end{algorithm}
 
-$genPair$, given two sets of variables ($X$ and $Y$) and a relation $rel \subseteq valuations(X) \times valuations (Y)$, extracts a single valuation $v$ of $X$ from the relation. It then determines the set of valuations of $Y$, $img$, that are related to $v$. Finally, it determines the set of valuations of $X$ that relate to exactly this set, $genX$. 
+$genPair$, given two sets of variables ($X$ and $Y$) and a relation $rel \subseteq valuations(X) \times valuations (Y)$, extracts a single valuation $v$ of $X$ from the relation. It then determines the image of of $Y$, $img$, under the relation. Finally, it determines the set of valuations of $X$ whose image is exactly this set, denoted $genX$. 
 
 \begin{algorithm}
 \begin{algorithmic}
@@ -519,26 +536,19 @@ $genPair$, given two sets of variables ($X$ and $Y$) and a relation $rel \subset
 
 $enumerate$, given two sets of variables ($X$ and $Y$) and a relation over valuations of these variables repeatedly extracts pairs of related sets from the relation using $genPair$, erasing the $X$ valuations from the relation each time so that they are not chosen again. It computes $P \subseteq 2^{valuations(X)} \times 2^{valuations(Y)}$, such that for $\langle A, B \rangle \in P$, any $a \in A$ is related to each $b \in B$ and nothing more. Furthermore, all of the $A$ sets are disjoint and their union is the set of all $X$ valuations that satisfy the relation.
 
-Finally, $availableLabels$ uses $enumerate$ to enumerate labels with different behaviours in the current $stateSet$. It does this by restricting the transition relation to transitions that originate from states in $stateSet$ and treating this as a relation between $l$ and $\langle s, s' \rangle$. This works because equivalent labels will result in the same $\langle s, s' \rangle$ relation, i.e.\ the same state transition, thus calling $enumerate$ with this relation and these variables will enumerate sets of equivalent labels in the current state.
-
-\begin{algorithm}
-\begin{algorithmic}
-
-\Function{availableLabels}{$s, u, l, s', strategy, stateSet$}
-    \State $winning \gets \exists \: s \: u \: s'. \: strategy \land stateSet$
-    \State\Return$\Call{enumerate}{l, s \cup s', \delta \land stateSet \land winning}$
-\EndFunction
-
-\end{algorithmic}
-\caption{The \textsc{availableLabels} function}
-\label{alg:available_labels}
-\end{algorithm}
+Finally, $availableLabels$ (Algorithm~\ref{alg:available_labels}) uses $enumerate$ to enumerate labels with different behaviours in the current $stateSet$. It does this by restricting the transition relation to transitions that originate from states in $stateSet$ and treating this as a relation between $l$ and $\langle s, s' \rangle$. This works because equivalent labels will result in the same $\langle s, s' \rangle$ relation, i.e.\ the same state transition, thus calling $enumerate$ with this relation and these variables will enumerate sets of equivalent labels in the current state.
 
 \subsubsection{Computing the condition}
 
-We compute an if condition over state variables that distinguishes the states where the label is winning from the rest of $stateSet$ using the $liCompaction$ function. This function, provided by the CUDD library, minimises a condition BDD given a care set so that it returns the correct value within the care set and is undefined otherwise. Our condition BDD is the set of states from which the winning label is available and our care set is $stateSet$. Since we are only applying the if condition in one of the states in $stateSet$, this is the only set where it needs to be accurate. 
+We compute an if condition over state variables that distinguishes the states where the label is winning from the rest of $stateSet$. The condition should be small as that corresponds to simple code and is likely to be closer to what a human programmer would write. To find a simple condition, we use the `leaf identifying compaction' function of~\cite{Hong} which is denoted $liCompact$ from now in. This function minimises a condition BDD given a care set so that it returns the correct value within the care set and is undefined otherwise~\cite{Hong}. Specifically, given a condition, $condition$ and a care set $careSet$, $liCompact$ computes a BDD $minimalCond$ such that:
 
-We found that a good heuristic is to choose the label which results in the simplest if condition, where a simple condition has a small BDD representation. The size of a BDD can be conveniently calculated using the function $dagSize$ from the CUDD library. 
+\begin{equation}
+    careSet \land minimalCond = careSet \land condition
+\end{equation}
+
+\noindent and such that $minimalCond$ is as small as possible, where size is measured in number of bdd nodes. Exact minimisation is NP-complete so it is a heuristic approximation.
+
+Our condition BDD is the set of states from which the winning label is available and our care set is $stateSet$. Since we are only applying the if condition in one of the states in $stateSet$, this is the only set where it needs to be accurate. 
 
 \section{Counterexample guided debugging}
 \label{s:debug}
