@@ -7,17 +7,17 @@ The driver synthesis problem is formalised as a \emph{two-player game}~\cite{Tho
 
 Two-player games naturally capture the essence of the driver synthesis problem: the driver must enforce a certain subset of system behaviours while having only partial control over the system. The game-based approach leads to a precise mathematical formulation of the problem and enables us to apply theoretical results and algorithms from game theory to driver synthesis. Before diving into the details of our game-based approach to drivers, I illustrate it using simple example.
 
-Figure~\ref{f:game} illustrates the concept using a trivial game automaton. The automaton captures the interactions between the driver, the device and the OS where the device is a simple network controller. The driver receives requests from the OS to transfer data over the serial line and acknowledges the completion of each request by calling an acknowledgement function. 
+Figure~\ref{f:game} illustrates the concept using a trivial game automaton. The automaton captures the interactions between the driver, the device and the OS where the device is a simple network controller. The OS may request that the driver transfer data over the serial line. 
 
-Controllable and uncontrollable transitions of the automaton are shown with solid and dashed arrows respectively.  The goal of the driver in the game is to infinitely often visit the initial state, labelled \src{G}, which represents the situation when the driver does not have any outstanding requests.  After getting a \src{send} request from the OS, the driver must write data and command registers to start the data transfer.  Writing the command register first may trigger a hardware send event before the driver has a chance to write the data register.  As a result, wrong data value gets sent, taking the game into an error state \src{E}.  Hence, state $s_4$ is losing for the driver.  To avoid this state, the correct strategy for the driver is to play \src{write\_data} in state $s_2$, followed by \src{write\_cmd}.  In $s_5$ the driver must remain idle until the environment executes the \src{evt\_send} transition.
+Controllable and uncontrollable transitions of the automaton are shown with solid and dashed arrows respectively.  The goal of the driver in the game is to visit the goal state, labelled \src{G}, which represents the situation when the driver has completed the request. After getting a \src{send} request from the OS, the driver must write data and command registers to start the data transfer.  Writing the command register first may trigger a hardware send event before the driver has a chance to write the data register.  As a result, wrong data value gets sent, taking the game into an error state \src{E}.  Hence, state $s_4$ is losing for the driver.  To avoid this state, the correct strategy for the driver is to play \src{write\_data} in state $s_2$, followed by \src{write\_cmd}.  In $s_5$ the driver must remain idle until the environment executes the \src{evt\_send} transition.
 
 In this example, there are two different ways in which the driver can reach the goal; however, the one corresponding to the bottom half of the diamond in Figure~\ref{f:game} is not safe because of the uncontrollable transition to the error state from state \code{S4}. This trivial example emphasizes that a sound driver synthesis methodology must recognise the partially controllable nature of the system. 
 
-\begin{figure}[t]
-    \center
-    \includegraphics[width=0.7\linewidth]{imgs/game.pdf}
-    \caption{A simple two-player game.}
-    \label{f:game}
+\begin{figure}
+\centering
+\includegraphics[width=0.85\linewidth]{diagrams/reachGame.pdf}
+\caption{A simple two player game}
+\label{f:game}
 \end{figure}
 
 \section{The Players}
@@ -34,24 +34,7 @@ In the following sections, I first attempt to formalise the driver synthesis pro
 
 \subsection{Reachability}
 
-A crude formalism for driver synthesis could be created using only a reachability game. Consider, for example, figure~\ref{fig:reach}, which shows the state machine for a game to control a hypothetical network controller. Execution begins in the leftmost state where the OS may initiate a network transfer by choosing the `send' label. The goal of the game is the rightmost state (labelled `G' and with a double circle) as this is the point where player 1 has completed the request. So, to win, player 1 (who controls the transitions with solid lines) must ensure that execution of the state machine reaches the goal. 
-
-\begin{figure}
-\centering
-\includegraphics[width=0.85\linewidth]{diagrams/reachGame.pdf}
-\caption{Reachability game for simple network device}
-\label{fig:reach}
-\end{figure}
-
-The network device has two 8-bit registers, command (abbreviated cmd) and data. Writing 0x01 to the command register starts the transfer, and eventually whatever is in the data register gets written out to the network. Note that the actual sending of the data is an uncontrollable event. 
-
-The correct sequence to win the game, therefore, is to write to the data register and then to the control register after the OS performs a send request. This takes us to state `S5' where the only move by player 2 is `evt\_send' taking us to the goal. 
-
-If the command register is written first and then the data register there is potential for the environment to play the `evt\_send' label before the data is written, potentially resulting in the wrong data being sent. This is the transition that terminates in the `E' state (for error). The `E' state is a dead end, so it is not possible to reach the goal. 
-
-So, if player 1 takes the top half of the diamond (i.e.\ writes data before command) then it will be guaranteed to reach the goal and the reachability game is winning for player 1. The strategy to reach the goal tells us the sequence of labels the driver must play to get to the goal. In principle, this could be turned into a driver for the simple network device.
-
-This simplistic formalism for driver synthesis has several shortcomings that will be dealt with in the following sections.
+As a first approximation, one may state the objective for the driver as a reachability game with $REACH=\{G\}$ where $G$ can only by reached by completing a request. The introductory example at the start of this chapter does exactly that. However, the simplistic reachability objectives has several shortcomings that will be dealt with in the following sections.
 
 \subsection{\buchi}
 
