@@ -56,7 +56,7 @@ The synthesis engine may establish that, due to a defect in one of the input spe
 \section{Specifications}
 \label{s:specifications}
 
-Input to \termite consists of the three specifications, which model the complete system consisting of the driver, the device, and the OS, shown in Figure~\ref{f:actions}.  The OS and device models simulate the execution environment of the driver and specify constraints on correct driver behaviour.  The device model simulates software-visible device behaviour.  The OS model serves as a workload generator that issues I/O requests to the driver and accepts request completions in a way consistent with real OS behaviour.
+Input to \termite consists of the four specifications, which model the complete system consisting of the driver, the device, and the OS as well as defining the interface between them, shown in Figure~\ref{f:actions}.  The OS and device models simulate the execution environment of the driver and specify constraints on correct driver behaviour.  The device model simulates software-visible device behaviour.  The OS model serves as a workload generator that issues I/O requests to the driver and accepts request completions in a way consistent with real OS behaviour.
 
 \begin{figure}
     \center
@@ -76,7 +76,7 @@ We minimise the amount of work needed to develop specifications for every synthe
 
 Furthermore, the OS specification for the driver can be derived from a generic specification for a class of similar devices (e.g., network or storage).  Thus we expect that additional per-driver effort will consist of: 
 \begin{enumerate}
-    \item inserting device-class callbacks in appropriate locations of the device model and 
+    \item inserting device-class callbacks (the TSL way of emitting device class events) in appropriate locations of the device model and 
     \item extending the OS specification to support device-specific features missing in the  generic OS specification.
 \end{enumerate}
 
@@ -222,9 +222,9 @@ We keep the specification concise by modelling the state of the driver-OS interf
 
 In addition to simulating I/O requests to the driver, the OS model also specifies the semantics of each request in terms of device-internal events that must occur in order to complete the requested I/O operation.  In the running example, after the OS invokes the \src{send} method of the driver and before the driver acknowledges completion of the request, the device must attempt to send the requested data over the serial line.  This requirement establishes a connection between the device and OS models and must be specified explicitly in order to enable \termite to generate a driver implementation that correctly handles the OS request.  Note that we only need to specify \emph{which} hardware events must occur, but not \emph{how} the driver generates them.
 
-In order to develop such specifications, we need a way to refer to relevant state and behaviour of the device from the OS model.  At the same time, in order to maximise specification reuse, we would like to keep the OS specification device-independent.  To reconcile these conflicting requirements, we introduce a \emph{virtual interface} between the device and OS model.  This interface consists of callbacks used by the device model to notify the OS model about important hardware events.  The virtual interface does not represent real runtime interactions between the device and the OS, but serves as part of the correctness specification.
+In order to develop such specifications, we need a way to refer to relevant state and behaviour of the device from the OS model.  At the same time, in order to maximise specification reuse, we would like to keep the OS specification device-independent.  To reconcile these conflicting requirements, we use the techniques introduced in Section~\ref{sec:composition}. We introduce a \emph{virtual interface} between the device and OS model.  This interface consists of callbacks used by the device model to notify the OS model about important hardware events.  The virtual interface does not represent real runtime interactions between the device and the OS, but serves as part of the correctness specification. 
 
-We define a virtual interface for each class of devices.  Such \emph{device-class} interfaces are both device and OS-independent.  The device-class interface can be extended with additional device-specific callbacks as required to specify a driver for a particular device.
+We define a virtual interface for each class of devices.  Such \emph{device-class} interfaces are both device and OS-independent.  The device-class interface can be extended with additional device-specific callbacks as required to specify a driver for a particular device. 
 
 \subsubsection{Running example}
 
@@ -377,7 +377,7 @@ In principle, it is also possible to synthesise a driver implementation that han
 The final step of the code generation process translates the synthesised driver implementation to C.  This is a trivial line-by-line translation.  We expect this translation to become unnecessary in the future as our ongoing work on the \tsl syntax aims to make the synthesised subset of \tsl a strict subset of C.
 
 \subsection{Maintaining synthesised code~~} 
-Device driver development is not a one-off task: following the initial implementation, drivers are routinely modified toimplement additional functionality, adapt to the changing OS interface or support new device features.
+Device driver development is not a one-off task: following the initial implementation, drivers are routinely modified to implement additional functionality, adapt to the changing OS interface or support new device features.
 
 The user-guided code generation method naturally supports such incremental maintenance. Since \termite uses \tsl as both its input and output language;  a completely or partially synthesised driver can be given as input to \termite, along with modified versions of the device and OS models.
 
