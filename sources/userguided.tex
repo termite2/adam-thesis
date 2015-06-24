@@ -327,6 +327,7 @@ In the first approximation, the generator algorithm is quite simple: given a sou
 In the following section, I walk through code generation of the \code{send()} function of the running example to demonstrate, at a high level, how Termite generates code and verifies manually written code. For a demonstration of using Termite to generate code for a real driver, including screenshots, see Appendix~\ref{ch:worked_example}.
 
 \subsection{Running Example}
+\label{sec:codegen_running_example}
 
 When running the generator on the running example, it automatically generates the code in Figure~\ref{f:ex_gen_send} for the \src{send} function (line~\ref{f:ex_drv:l:send} of the device template, Figure~\ref{f:ex_drv}).
 
@@ -351,9 +352,7 @@ This implementation correctly starts the data transfer by writing the value to b
 
 If the developer is happy with the generated implementation, then the process ends here. If not, the user is free to modify the generated code and re-run Termite to verify this code. As an example, the user may swap lines~\ref{f:ex_synt:l:dat} and \ref{f:ex_synt:l:cmd} and re-run Termite. This new implementation is invalid as, since the \code{cmd} register is written before the data register, the wrong data may be sent. Termite catches this error and reports that the game is no longer winnable for the driver. The user may then use the debugging methods of Section~\ref{s:debug} and the cause of their error will become clear. If, on the other hand, the user's modifications had been correct then termite would have reported that synthesis was successful and the user may continue the code generation process.
 
-Note that the generated code refers to the \src{dev.reg\_cmd} and \src{os.success} variables.  These variables model internal device and OS state respectively and cannot be directly accessed by the driver.  This example illustrates an important limitation of \termite---it assumes a white-box model of the system, where every state variable is visible to the driver.  Ideally, we would like to synthesise an implementation that automatically infers the values of important unobservable variables.  In this case, the value of the command register can be obtained by the driver by executing the \src{read\_cmd} action.  Furthermore, the value of the \src{os.success} variable is correlated with the completion status of the last transfer, which can be obtained by reading the device status register.
-
-While \termite currently cannot produce such an implementation automatically, it implements a pragmatic tradeoff that helps the user build and validate a correct implementation with modest manual effort.  The code generator warns the user that the auto-generated code accesses  private variables of the device and OS templates.  This prompts the user to provide a functionally equivalent valid implementation, replacing the \src{wait} statement with a polling loop and using the \src{read\_status} method to check transfer status, as shown in Figure~\ref{f:ex_man_send}.
+Note that the generated code refers to the \src{dev.reg\_cmd} and \src{os.success} variables.  These variables model internal device and OS state respectively and cannot be directly accessed by the driver.  This example illustrates an important limitation of \termite---it assumes a white-box model of the system, where every state variable is visible to the driver. We work around this by allowing the user to manually replace the code that refers to unaccessible variables with equivalent code that does not. In this case, value of the command register can be obtained by the driver by executing the \src{read\_cmd} action.  Furthermore, the value of the \src{os.success} variable is correlated with the completion status of the last transfer, which can be obtained by reading the device status register. The user edited code is given in Figure~\ref{f:ex_man_send} and will be verified by Termite in a subsequent run. This limitation and how we work around it is discussed in Section~\ref{sec:lim_white_box}.
 
 \begin{figure}
 \begin{tsllisting}
@@ -372,9 +371,7 @@ void send(uint8 v){
 \label{f:ex_man_send}
 \end{figure}
 
-The verifier automatically checks the resulting implementation and confirms that it satisfies the input specification.
-
-Note that in this example we have synthesised code that correctly handles device errors.  This was possible, as the input device specification correctly captures device failure modes (namely, transmission failure) and the OS specification describes how the driver must report errors to the OS (via the \src{status} argument of the completion callback).
+Note that in this example we have synthesised code that correctly handles device errors.  This was possible, as the input device specification correctly captures device failure modes (namely, transmission failure) and the OS specification allows for such errors and describes how the driver must report errors to the OS (via the \src{status} argument of the completion callback).
 
 In principle, it is also possible to synthesise a driver implementation that handles device and OS failures \emph{not} captured in the specifications: since the synthesis tool knows all possible valid environment behaviours, it can easily detect invalid behaviours and handle them gracefully.  Automatic synthesis of such \emph{hardened} device drivers is a promising direction of future research.
 
@@ -579,11 +576,22 @@ The tool supports a number of features aimed at making the debugging process as 
 
 The core of a device driver entails translating I/O requests from the OS into sequences of low-level device commands and responses. Termite focuses on synthesising driver logic that performs these functions, and this is where game-based synthesis really shines, as it helps to implement tedious and error-prone logic with minimal manual effort and without bugs. However, there are several real world aspects of device driver creation that are not handled as gracefully by the game based approach.
 
-In Section~\ref{s:user-guided}, I described one limitation of \termite, namely the lack of support for grey-box synthesis.  In this section I discuss other limitations, which, I hope, will help define the agenda for continuing research in driver synthesis.
+In this section I discuss the limitations of Termite, which, I hope, will help define the agenda for continuing research in driver synthesis.
 
 \subsection{Direct Memory Access}
 
 Most importantly, \termite does not currently support automatic synthesis of direct memory access (DMA) management code.  Many modern devices transfer data directly to and from main memory, where it is buffered in data structures such as circular buffers and linked lists.  These data structures can have very large or infinite state spaces and cannot be easily modelled within the finite state machine-based framework of \termite.  Efficient synthesis for DMA requires enhancing the synthesis algorithm to use a more compact representation of DMA data structures, which is the focus of our ongoing research.  At this time, code for manipulating DMA data structures must be written manually.  This code is not interpreted or verified by \termite.  For example, we used this approach to synthesise a DMA-capable IDE disk driver (Section~\ref{s:eval}).
+
+\subsection{White Box Assumption}
+\label{sec:lim_white_box}
+
+Termite synthesizes strategies and generates code assuming a white box model of the system, where every state variable is visible to the driver. This was illustrated in Section~\ref{sec:codegen_running_example} where the generated driver code referred to the \src{dev.reg\_cmd} and \src{os.success} variables. Termite is unable to automatically infer the values of these unobservable variables. In the common case, as illustrated in Section~\ref{sec:codegen_running_example} the values of these variables may be inferred by the driver by reading device registers.
+
+Returning to the example, ideally, we would like to synthesise an implementation that automatically infers the values of important unobservable variables. The value of the command register can be obtained by the driver by executing the \src{read\_cmd} action.  Furthermore, the value of the \src{os.success} variable is correlated with the completion status of the last transfer, which can be obtained by reading the device status register.
+
+While \termite currently cannot produce such an implementation automatically, it implements a pragmatic tradeoff that helps the user build and validate a correct implementation with modest manual effort.  The code generator warns the user that the auto-generated code accesses private variables of the device and OS templates.  This prompts the user to provide a functionally equivalent valid implementation, replacing the \src{wait} statement with a polling loop and using the \src{read\_status} method to check transfer status, as shown in Figure~\ref{f:ex_man_send}.
+
+The verifier automatically checks the resulting implementation and confirms that it satisfies the input specification.
 
 \subsection{Boilerplate Code}
 
