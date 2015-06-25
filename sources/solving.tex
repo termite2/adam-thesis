@@ -3,20 +3,20 @@
 
 I have presented a formalism for the driver synthesis problem as a game. A practical driver synthesis tool using the game formalism must be able to solve and find strategies for these games for real device and operating system specifications in a reasonable amount of time. The principle challenge of this work is creating a synthesis algorithm that scales well enough to handle the large state machines of real device and operating system specifications. 
 
-The straightforward symbolic solver that uses BDDs as the symbolic data structure is remarkably efficient. In fact, it is the current state of the art in reactive synthesis. I will use this as the starting point for my description of Termite's game solver.
-
-I begin by describing my entry to the reactive synthesis competition in 2014, appropriately named "Simple BDD Solver". This solver won the sequential realisability category.
+The straightforward symbolic solver that uses BDDs as the symbolic data structure is remarkably efficient. In fact, it is the current state of the art in reactive synthesis. I will use this as the starting point for my description of Termite's game solver.  Specifically, I begin by describing my entry to the reactive synthesis competition in 2014, appropriately named "Simple BDD Solver". This solver won the sequential realisability category.
 
 Next, I introduce abstraction, a technique to increase the scalability of the basic symbolic algorithm by reducing the effective size of the state space that the algorithm must operate on. The cost of reducing the size of the state space is that the abstracted game is represented with less precision and is often not precise enough to solve the original game. To counter this, the abstraction needs to be \emph{refined}, i.e.\ the precision of the abstraction needs to be increased. This is performed in an \emph{abstraction-refinement loop}. Ideally, this loop results in an abstraction just precise enough to solve the game, but coarse enough that solving it is tractable.
 
-I give an abstraction-refinement algorithm that uses \emph{variable abstraction}, a technique for reducing the state space of the game by eliminating a subset of the state variables from the game. I then build on this to arrive at an algorithm that performs \emph{predicate abstraction}, a technique that, instead of representing the state space using state variables, represents relationships between state variables that capture key properties that are likely to be of importance in solving the game. This representation is usually far more compact. This is the synthesis algorithm that Termite uses.
+I give an abstraction-refinement algorithm that uses \emph{variable abstraction}, a technique for reducing the state space of the game by eliminating a subset of the state variables from the game. I then build on this to arrive at the main contribution of this chapter---an abstraction-refinement algorithm that performs \emph{predicate abstraction}.  Instead of representing the state space using state variables, the algorithm represents relationships between state variables that capture key properties that have been found to be of importance in solving the game. This representation is usually far more compact than variable abstraction. 
+
+%This is the synthesis algorithm that Termite uses.
 
 To simplify the presentation, with the exception of Section~\ref{sec:syntcomp}, I assume that all games are turn based.
 
 \section{Synthesis Competition}
 \label{sec:syntcomp}
 
-The Reactive Synthesis Competition is a competition for reactive synthesis tools inspired by competitions in other fields such as the SAT competition and the Hardware Model Checking Competition. The competition had four tracks:
+The Reactive Synthesis Competition~\cite{} is a competition for reactive synthesis tools inspired by competitions in other fields such as the SAT competition~\cite{} and the Hardware Model Checking Competition~\cite{}. The competition had four tracks:
 \begin{itemize}
     \item Sequential realisability
     \item Parallel realisability
