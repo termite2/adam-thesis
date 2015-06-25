@@ -28,7 +28,7 @@ In this Chapter, I show that two-player games offer a natural way to capture the
     \item Player~2 is the environment, which consists of the device to be controlled as well as the operating system.
 \end{itemize}
 
-\section{GR(1) based formalism}
+\section{GR(1) Based Formalism}
 \label{sec:gr1_formalism}
 
 In the following sections, I first attempt to formalise the driver synthesis problem using the simplest game - the reachability game - and analyse its shortcomings. I show that extending the formalism to GR(1) objectives overcomes these shortcomings.
@@ -84,7 +84,7 @@ The combination of multiple fairness and multiple \buchi\ objectives is a GR(1) 
 
 In summary, game objectives in Termite consist of multiple fairness conditions that capture the guarantees made by the environment and multiple goals that correspond to the functions that we expect the driver to perform. These are combined in a GR(1) game over the state space of the specifications.
 
-\section{Device and OS specifications and synchronisation}
+\section{Device and OS Specifications and Synchronisation}
 \label{sec:composition}
 
 A core concept of Termite is the separation of device and operating system specifications. This allows us to reuse the same device specification with different OS specifications as well as reusing the same OS specification with different devices. Games so far have been defined to have a single state machine that contains all of the states of the system as well as all of the actions. In Termite, the description of the operating system is decoupled from the device to be controlled and then these are combined to form a state machine before synthesis.

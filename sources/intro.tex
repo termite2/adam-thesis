@@ -11,7 +11,7 @@ Automatic driver synthesis was proposed in earlier work on the Termite-1 project
     \item The scalability of the Termite-1 synthesis algorithm was severely limited, which made synthesis of drivers for real-world devices intractable. Termite-1 got around the problem by using carefully crafted simplified device specifications, which is acceptable in a proof-of-concept prototype, but not in a practical tool. Addressing this issue is the second major contribution of this dissertation.
 \end{itemize}
 
-\section{Game based formalism}
+\section{Game Based Formalism}
 
 The key step towards addressing the above challenges is to capture the driver synthesis problem using a precise mathematical formalism.  In this work, I develop the first precise mathematical formulation of the driver synthesis problem.  This enables us to apply theoretical results and algorithmic techniques from game theory to driver synthesis.  Following the approach proposed by Termite-1, I treat the driver synthesis problem as a two-player game between the driver and its environment, comprised of the device and the OS\@. Each player has a set of \emph{moves} available to it. The driver's moves are called the \emph{controllable} moves, while the environment's moves are \emph{uncontrollable}. The driver's moves, for example, may consist of the set of device register writes that it can perform. The game is played on a large state machine that describes the behaviour of the device and operating system. At any instant, one state is the \emph{current state} and play progresses from state to state by following edges labelled with the set of moves. 
 
@@ -94,6 +94,6 @@ This dissertation makes three contributions in the field of reactive synthesis:
     \item I evaluate the algorithm by implementing it as part of the Termite driver synthesis toolkit~\cite{Ryzhyk_WKLRSV_14} and using it to synthesise drivers for complex real-world devices.  Our algorithm efficiently solves games with very large state spaces, which is impossible without using abstraction or using simpler forms of abstraction.
 \end{enumerate}
 
-\section{Chapter outline}
+\section{Chapter Outline}
 
 The rest of this dissertation is structured as follows. Chapter~\ref{ch:background} provides the necessary background information on game solving. Chapter~\ref{ch:userguided} presents our user guided device driver synthesis tool and methodology and, finally, Chapter~\ref{ch:solving} presents our scalable synthesis algorithm.

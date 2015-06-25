@@ -45,7 +45,7 @@ Most operating systems are multithreaded, including the device drivers. Driver e
 
 In addition to bus-level drivers, the OS provides various services to device drivers. These include memory management, timing and synchronisation. Memory management includes allocating memory and support for memory mapped IO and DMA. Timer functionality includes both synchronous (thread delays) and asynchronous (callback) timers. Various synchronization primitives are also provided, but, given that Termite does not make any use of them, I do not discuss them further.
 
-\section{Introduction to game formalisms}
+\section{Introduction to Game Formalisms}
 
 Termite's game formalism and synthesis algorithm build on considerable pre-existing work in the field of reactive synthesis which is presented in the following sections. I begin, in Sections~\ref{sec:omega_regular} and \ref{sec:two_player} with introducing the notion of $\omega$-regular games.  Section~\ref{sec:omega_regular} introduces $\omega$-regular languages and $\omega$-regular expressions offer a natural formalism for reasoning about reactive systems, i.e., systems that continuously interact with their environment, such as device drivers.  
 %In Termite, $\omega$-regular languages are used to specify requirements for correct driver behaviour.
@@ -63,7 +63,7 @@ In addition to deciding whether there exists a correct driver for a set of speci
 
 Finally, Section~\ref{sec:symbolic_games} borrows symbolic techniques from model checking and applies them to games. The idea of symbolic game solving it to represent sets of states using characteristic equations over state variables rather than by enumerating them explicitly. This technique allows game solvers to scale well beyond what was possible previously. Binary decision diagrams and the algorithms that operate on them are given in \cite{Bryant_86}. Symbolic model checking is discussed in depth in \cite{Burch_symbolic} and \cite{McMillan_thesis}.
 
-\section{$\omega$-regular languages}
+\section{$\omega$-regular Languages}
 \label{sec:omega_regular}
 
 The $\omega$-regular languages extend the regular languages to infinite length sequences. An $\omega$-regular language is a set of sequences of symbols of infinite length. An $\omega$-regular language has the form:
@@ -75,7 +75,7 @@ The $\omega$-regular languages extend the regular languages to infinite length s
 
 Elements of $A^\omega$ are obtained by concatenating words from $A$ infinitely many times. Intuitively, $\omega$-regular languages are similar to regular languages but with an additional $\omega$ operator that concatenates words from the regular language infinitely many times.
 
-\section{Two player games}
+\section{Two Player Games}
 \label{sec:two_player}
 
 Two-player games are a useful formalism for reactive synthesis. Many problems in electronic design automation, industrial automation, software synthesis and robotics can be formalised as a game. In particular, the driver synthesis problem can be formalised as a game, and, this is the formalism around which Termite is built. Here, I present the fundamentals of two player games. 
@@ -164,7 +164,7 @@ Again, in the case of generalised \buchi\ and GR(1) games, the counterexample st
 
 
 
-\section{Fixed points}
+\section{Fixed Points}
 \label{sec:fixed_points}
 
 \subsection{Syntax}
@@ -243,7 +243,7 @@ The algorithm for computing the set of states for which a \mucalc formula holds 
 \label{a:mu_semantics}
 \end{algorithm}
 
-\section{Solving games}
+\section{Solving Games}
 \label{sec:intro_solving}
 
 Given a game and an objective there are two questions we can ask:
@@ -630,7 +630,7 @@ The formula for the complement of a GR(1) game is given below. Its complement is
 
 Intuitively, to ensure that player~1 cannot win a GR(1) game, player~2 must ensure that there is at least one goal that is only reached finitely many times, and each fairness condition is visited infinitely many times. 
 
-\section{Symbolic games}
+\section{Symbolic Games}
 \label{sec:symbolic_games}
 
 The algorithm described so far appears very inefficient. Consider a reachability game. We are performing a backwards breadth-first search starting from $\reachobj$. If we were to implement it directly as described, we would have to explicitly enumerate all winning states in the game. Some of the games that have been solved with Termite have upwards of $2^{80}$ states, even after abstraction. Clearly, explicitly representing the winning set will never succeed. 

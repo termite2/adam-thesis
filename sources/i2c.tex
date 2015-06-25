@@ -12,7 +12,7 @@ We start with the operating system specification. This gives us the interface th
     \item The master ends the transaction by sending a stop bit.
 \end{enumerate}
 
-\section{Driver template}
+\section{Driver Template}
 
 Our driver interface provides three functions, \code{send\_address()}, \code{send\_data()} and \code{send\_stop()}, one for each phase. In C code, the driver may be used like so:
 \begin{figure}
@@ -75,7 +75,7 @@ Ignoring the rest of the specification for now, we will attempt to synthesise th
     \label{fig:driver_tab_gen}
 \end{figure}
 
-\section{Master write}
+\section{Master Write}
 \label{a:sec_master_write}
 
 \subsection{OS specification}

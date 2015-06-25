@@ -12,7 +12,7 @@ This chapter presents preexisting work that aims to solve at least one of these 
 
 Related work on scalable synthesis algorithms is presented before it is built upon in Sections~\ref{sec:three_val_abs_ref} and~\ref{sec:approx_three_val} of Chapter~\ref{ch:solving}.
 
-\section{Driver reliability}
+\section{Driver Reliability}
 Preexisting work for improving driver reliability fall into two groups: static analysis and runtime fault isolation.
 
 \subsection{Static analysis}
@@ -48,7 +48,7 @@ Shadow drivers~\cite{Swift_ABL_04} are an extension of Nooks where all communica
 
 The Nooks approach suffers from the high complexity of the isolation and recovery infrastructure. In order to synchronise data structures outside the nook, as well as validate data passed through the interface and timing, the isolation manager must have in-depth knowledge of the kernel API. Additionally, the shadow driver, when replaying events to restart the failed driver, must mimic the semantics of the entire OS API during this time. Lastly, all communication must be translated by the isolation manager. As drivers frequently make calls to the rest of the kernel, this imposes considerable overhead.
 
-\section{Driver synthesis}
+\section{Driver Synthesis}
 
 Driver synthesis counters both problems with device drivers: reliability and required developer effort. Driver synthesis techniques fall into three groups:
 \begin{itemize}

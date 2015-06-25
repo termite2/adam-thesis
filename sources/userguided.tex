@@ -259,7 +259,7 @@ endtemplate
 
 Figure~\ref{f:ex_drv} shows the driver template for the running example consisting of a single \src{send} entry point invoked by the OS\@.  The ellipsis in line~\ref{f:ex_drv:l:magic} represent a location for inserting synthesised code and are part of \tsl syntax.  I refer to such locations as \emph{controllable placeholders}. 
 
-\section{\tsl compiler}
+\section{\tsl Compiler}
 \label{sec:tsl_compiler}
 
 In order to compute the most general driver strategy as a solution of a two-player concurrent game (Section~\ref{sec:termite_cpre}), Termite must first convert input \tsl specifications into a game structure (Section~\ref{sec:intro_formal}). This means that we must define the set of states, labels, initial states and the transition relation. This conversion is performed by the \tsl compiler.
@@ -301,7 +301,7 @@ Finally, the TSL compiler needs to generate the game objective $\Phi$. It uses G
         
 In addition to goal conditions, a \tsl specification also contains assertions, which must never be violated.  Assertions are modelled using an auxiliary Boolean state variable $\varepsilon$, which is set to true whenever an assertion is violated and remains true forever after.  An extra constraint $\varepsilon=false$ is added to each accepting set $B_i$.  An assertion violation permanently takes the game out of $B_i$, and therefore can not occur in any winning run of the game.
 
-\section{User-guided code generation}
+\section{User-guided Code Generation}
 \label{s:user-guided}
 
 The set of input \tsl specifications is fed into the \termite synthesis engine (Chapter~\ref{ch:solving}), which then automatically computes the most general strategy (Section~\ref{sec:intro_formal}) for the driver.  Given a state of the system, the most general strategy determines the set of all valid driver actions in this state.  The most general strategy is used by the \termite code generator to produce a driver implementation in C in a user-guide fashion.
@@ -424,7 +424,7 @@ This example illustrates how \termite supports incremental changes to the driver
 \subsection{Instrumenting synthesised code~~} 
 \termite does not automatically instrument synthesised code for debugging, logging, accounting, etc.  However, the user can add such instrumentation manually.  \termite interprets such code as no-ops and, as with any manual code, never makes any modifications to it.
 
-\section{Heuristic code generation}
+\section{Heuristic Code Generation}
 \label{sec:heuristic_codegen}
 
 Termite acts as an advanced auto-complete by suggesting lines of code for the driver. These suggestions are obtained using the symbolic strategy generated in the synthesis phase. Termite keeps track of the possible set of states that the system may be in at each line of code in the graphical IDE and uses this along with the strategy to generate a suggestion. 
@@ -551,7 +551,7 @@ I next compute an if condition over state variables that distinguishes the state
 
 The condition BDD is the set of states from which the winning label is available and the care set is $stateSet$. Since I am only applying the if condition in one of the states in $stateSet$, this is the only set where it needs to be accurate. 
 
-\section{Counterexample guided debugging}
+\section{Counterexample Guided Debugging}
 \label{s:debug}
 
 An important practical issue in game-based synthesis is the complexity of diagnosing synthesis failures due to defects in the input specifications.  In the event that \termite fails to solve the game, the user needs to trace the failure back to the specification defect.  However, the failure does not carry any information about the defect, which makes the problem harder to resolve.
