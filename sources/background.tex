@@ -331,6 +331,7 @@ The final controllable predecessor, $Cpre$, given in Equation~\ref{eqn:termite_c
 This is illustrated in Figure~\ref{fig:concurrent_cpre}. Again, assume that the two dark states are winning and they form the set $X$ passed to $CPre$. $CPre$ returns state $s1$ in the winning set because there exists a controllable transition into the winning set and all uncontrollable transitions also lead to the winning set. State $s2$ is \emph{not} winning because it does not have a controllable transition into the winning set. Lastly, $s3$ is \emph{not} winning because there exists an uncontrollable transition to a non-winning state.
 
 \subsection{Solving safety and reachability games}
+\label{sec:back_solving_reach}
 
 We start with reachability as it is the simplest type of objective. Games are solved by finding the set of states from which player~1 can win, called the \emph{winning region} and denoted \win. If the winning region contains the set of initial states, then we know that player~1 can win from any state in the initial set and thus can win the game.
 
