@@ -9,26 +9,7 @@ Next, I introduce abstraction, a technique to increase the scalability of the ba
 
 I give an abstraction-refinement algorithm that uses \emph{variable abstraction}, a technique for reducing the state space of the game by eliminating a subset of the state variables from the game. I then build on this to arrive at the main contribution of this chapter---an abstraction-refinement algorithm that performs \emph{predicate abstraction}.  Instead of representing the state space using state variables, the algorithm represents relationships between state variables that capture key properties that have been found to be of importance in solving the game. This representation is usually far more compact than variable abstraction. 
 
-%This is the synthesis algorithm that Termite uses.
-
 To simplify the presentation, with the exception of Section~\ref{sec:syntcomp}, I assume that all games are turn based.
-
-\section{Synthesis Competition}
-\label{sec:syntcomp}
-
-The Reactive Synthesis Competition~\cite{} is a competition for reactive synthesis tools inspired by competitions in other fields such as the SAT competition~\cite{} and the Hardware Model Checking Competition~\cite{}. The competition had four tracks:
-\begin{itemize}
-    \item Sequential realisability
-    \item Parallel realisability
-    \item Sequential synthesis
-    \item Parallel synthesis
-\end{itemize}
-
-The tools were required to solve safety games given in an extension of the AIGER format \cite{aiger}. 
-
-Entrants in the synthesis categories were required to produce an implementation of a controller that enforced the safety condition, also given in extended AIGER format. Entrants in the realisability category were only required to determine if the safety game was winnable.
-
-The Synthesis Competition was run as a satellite event to the CAV conference and Kurt Godel medals in silver were awarded to the winners of each category.
 
 \input{syntcomp}
 
@@ -856,6 +837,7 @@ With these operators we create a new approximate abstraction-refinement scheme g
 \end{algorithm}
 
 \section{Abstraction-Refinement for Predicate Abstraction}
+\label{sec:abs_ref_pred_abs}
 
 The goal of the following sections is to create a symbolic version of algorithm~\ref{alg:approx_three_val} adapted to predicate abstraction.
 

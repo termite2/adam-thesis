@@ -1,5 +1,12 @@
+\section{Symbolic Solver}
+\label{sec:syntcomp}
+
+The starting point for the design of an efficient game solver is the standard BDD-based symbolic algorithm of Section~\ref{sec:back_symbolic_alg}. The basic algorithm admits a number of optimisations. As I will show in Section~\ref{sec:}, these optimisations significantly improve the performance of the algorithm, but not enough to synthesize even simple device drivers. Yet, this optimised symbolic algorithm is used inside the abstraction-refinement loop to solve the abstract games produced at every refinement iteration. I therefore describe each of them below.
+
+For the rest of this chapter, with the exception of Section~\ref{sec:omega_reg}, I will focus on reachability objectives. In Section~\ref{sec:omega_reg} I generalise the solution to GR(1) objectives. 
+
 \subsection{Overview}
-Simple BDD Solver is a substantial simplification of the solver that was developed for the Termite adapted to safety games given in the AIGER format. It performs realisability checking and does not synthesise a strategy. It uses the standard backwards symbolic algorithm to compute the winning set of states as a greatest fixed point. Binary decision diagrams (BDDs) are used to symbolically represent sets and relations. In particular, it computes:
+Following Section~\ref{sec:back_symbolic_alg}, the standard BDD-based symbolic algorithm computes:
 
 \begin{equation}
 \label{eqn:mu}
@@ -8,23 +15,56 @@ Simple BDD Solver is a substantial simplification of the solver that was develop
 
 \noindent where $U$ is the set of valuations of uncontrollable inputs, $C$ is the set of valuations of controllable inputs, and $S$ is the set of valuations of state variables. Given a set $X$, $X'$ denotes the next state copy of $X$. $\sigma$ is the safety condition and $\delta$ is the transition relation.
 
-\subsection{Implementation}
-The solver is written in the Haskell functional programming language. It uses the CUDD \cite{cudd} package for binary decision diagram manipulation and the Attoparsec Haskell package for fast parsing. Altogether, the solver, AIGER parser, compiler and command line argument parser are just over 300 lines of code. The code is available online at: \path{https://github.com/adamwalker/syntcomp}.
 
 \subsection{Optimisations}
 \label{sec:syntcomp_optimisations}
 
 The optimisations that I have used, in approximate order of importance, are:
 \begin{itemize}
-    \item dynamic variable reordering using the sifting algorithm \cite{Rudell_1993}
-    \item partitioned transition relations \cite{Burch_91}
-    \item direct substitution with \textsc{Cudd\_VectorCompose}
-    \item dereference unused BDDs as soon as possible
-    \item rearrange the computed formula to avoid creating large BDDs
-    \item simultaneous conjunction and quantification with \textsc{Cudd\_BddAndAbstract}
-    \item terminate early where possible
-    \item an abstraction-refinement loop
+    \item Dynamic variable reordering using the sifting algorithm \cite{Rudell_1993}
+    \item Partitioned transition relations \cite{Burch_91}
+    \item Direct substitution with \textsc{Cudd\_VectorCompose}
+    \item Dereference unused BDDs as soon as possible
+    \item Rearrange the computed formula to avoid creating large BDDs
+    \item Simultaneous conjunction and quantification with \textsc{Cudd\_BddAndAbstract}
+    \item Terminate early where possible
 \end{itemize}
+
+\subsubsection{Dynamic variable ordering}
+I do not try to find a good static variable ordering at the start and instead rely on the sifting algorithm provided by the CUDD package for finding good variable orderings dynamically. In my experience, the sifting algorithm provides the best tradeoff between the quality of the resulting ordering and time taken to find it. I enable sifting at the start so that is is active during both compilation and solving. I did not modify any of the default parameters to the sifting algorithm.
+
+\subsubsection{Partitioned transition relations}
+I do not compute the transition relation as a monolithic BDD defined over current state, input variables and next state. This would likely be very large and slow down the algorithm considerably. Instead, I keep it in a conjunctively partitioned form with one partition for each next state variable. I can do this because the next state value of any state variable depends only on the current and input variables and not any other next state variables.
+
+Furthermore, the next state value of any state variable is deterministic. This means that it can be represented directly as a function of the current state and input variables. I use a BDD defined over current state and input variables to represent this function. The transition relation becomes a list of BDDs, one for each state variable, each of which only depends on current state and input variables. 
+
+To compute the implication, $\forall S'. (\delta(S, U, C, S') \rightarrow X')$, I use the CUDD function \textsc{Cudd\_VectorCompose} as shown in algorithm \ref{alg:syntcomp_cpre} on line 1 to substitute each update function into X. This avoids building the monolithic transition relation and, importantly, it avoids having to ever declare a next state copy of each state variable in the BDD manager. 
+
+\subsubsection{Dereferencing dead BDDs}
+I dereference BDDs that are no longer needed as soon as possible. Each live BDD node is processed during reordering and counted when the algorithm checks to see if the total BDD size in the manager is reduced. These unused BDDs should not count toward the total node count that is used to evaluate an ordering, and, the time that is spent reordering them and counting them is wasted. In the interest of clarity, BDD dereferencing is not shown in algorithms \ref{alg:syntcomp_cpre} and \ref{alg:syntcomp}.
+
+\subsubsection{Rearranging the formula}
+\begin{equation}
+\label{eqn:mu2}
+\nu X. \forall U. \exists C. (\forall S'. (\delta(S, U, C, S') \rightarrow X') \wedge \sigma(S, U, C))
+\end{equation}
+
+We can arrange equation \ref{eqn:mu} to move the conjunction with the safety condition outside of the innermost universal quantification, as shown in equation \ref{eqn:mu2}, as the safety condition does not depend on the next state variables. This avoids building the potentially large BDD of the conjunction.
+
+\subsubsection{Simultaneous conjunction and quantification}
+I perform simultaneous conjunction and quantification wherever possible. The existential quantification is performed at the same time as conjunction with the safety condition using \textsc{Cudd\_BddAndAbstract} on line~2 of Algorithm~\ref{alg:syntcomp_cpre}. This avoids building the potentially large BDD representing the conjunction.
+
+\subsubsection{Early termination}
+I terminate early when possible. As we are computing a greatest fixed point, we start with the universal set and progressively shrink it to find the winning region. Each time we shrink the winning region, we check that is it still a superset of the initial set. If it is not, we know there is no way we can win as the winning set only shrinks as the algorithm progresses. We use the function \textsc{Cudd\_bddLeq} on line~4 of Algorithm~\ref{alg:syntcomp} for this purpose as it allows us to efficiently check that one BDD implies another without constructing the BDD of the implication.
+
+\subsection{Implementation}
+I developed two implementations that incorporate all of the above optimisations. The first implementation is used by Termite inside the abstraction refinement loop in order to solve abstract games (Section~\ref{sec:abs_ref_pred_abs}). The second solver was developed for the reactive synthesis competition. 
+
+The Reactive Synthesis Competition~\cite{} is a competition for reactive synthesis tools inspired by competitions in other fields such as the SAT competition~\cite{} and the Hardware Model Checking Competition~\cite{}. The competition had four tracks: sequential realisability, parallel realisability, sequential synthesis and parallel synthesis. The tools were required to solve safety games given in an extension of the AIGER format \cite{aiger}. Entrants in the synthesis categories were required to produce an implementation of a controller that enforced the safety condition, also given in extended AIGER format. Entrants in the realisability category were only required to determine if the safety game was winnable, not to produce a strategy.
+
+Two different implementations were required because the synthesis competition requires a different controllable predecessor to driver synthesis (Section~\ref{sec:termite_cpre}), and, modifications to allow for predicate abstraction were necessary for Termite (Section~\ref{sec:abs_ref_pred_abs}).
+
+The synthesis competition solver is written in the Haskell functional programming language. It uses the CUDD \cite{cudd} package for binary decision diagram manipulation and the Attoparsec Haskell package for fast parsing. Altogether, the solver, AIGER parser, compiler and command line argument parser are just over 300 lines of code. The code is available online at: \path{https://github.com/adamwalker/syntcomp}.
 
 \begin{algorithm}
 \caption{Controllable predecessor}
@@ -66,35 +106,8 @@ The optimisations that I have used, in approximate order of importance, are:
 \end{algorithmic}
 \end{algorithm}
 
-The optimised algorithm is given in Algorithm~\ref{alg:syntcomp}. It calls the optimised controllable predecessor defined in Algorithm~\ref{alg:syntcomp_cpre}.
-
-\subsubsection{Dynamic variable ordering}
-I do not try to find a good static variable ordering at the start and instead rely on the sifting algorithm provided by the CUDD package for finding good variable orderings dynamically. In my experience, the sifting algorithm provides the best tradeoff between the quality of the resulting ordering and time taken to find it. I enable sifting at the start so that is is active during both compilation and solving. I did not modify any of the default parameters to the sifting algorithm.
-
-\subsubsection{Partitioned transition relations}
-I do not compute the transition relation as a monolithic BDD defined over current state, input variables and next state. This would likely be very large and slow down the algorithm considerably. Instead, I keep it in a conjunctively partitioned form with one partition for each next state variable. I can do this because the next state value of any state variable depends only on the current and input variables and not any other next state variables.
-
-Furthermore, the next state value of any state variable is deterministic. This means that it can be represented directly as a function of the current state and input variables. I use a BDD defined over current state and input variables to represent this function. The transition relation becomes a list of BDDs, one for each state variable, each of which only depends on current state and input variables. 
-
-To compute the implication, $\forall S'. (\delta(S, U, C, S') \rightarrow X')$, I use the CUDD function \textsc{Cudd\_VectorCompose} as shown in algorithm \ref{alg:syntcomp_cpre} on line 1 to substitute each update function into X. This avoids building the monolithic transition relation and, importantly, it avoids having to ever declare a next state copy of each state variable in the BDD manager. 
-
-\subsubsection{Dereferencing dead BDDs}
-I dereference BDDs that are no longer needed as soon as possible. Each live BDD node is processed during reordering and counted when the algorithm checks to see if the total BDD size in the manager is reduced. These unused BDDs should not count toward the total node count that is used to evaluate an ordering, and, the time that is spent reordering them and counting them is wasted. In the interest of clarity, BDD dereferencing is not shown in algorithms \ref{alg:syntcomp_cpre} and \ref{alg:syntcomp}.
-
-\subsubsection{Rearranging the formula}
-\begin{equation}
-\label{eqn:mu2}
-\nu X. \forall U. \exists C. (\forall S'. (\delta(S, U, C, S') \rightarrow X') \wedge \sigma(S, U, C))
-\end{equation}
-
-We can arrange equation \ref{eqn:mu} to move the conjunction with the safety condition outside of the innermost universal quantification, as shown in equation \ref{eqn:mu2}, as the safety condition does not depend on the next state variables. This avoids building the potentially large BDD of the conjunction.
-
-\subsubsection{Simultaneous conjunction and quantification}
-I perform simultaneous conjunction and quantification wherever possible. The existential quantification is performed at the same time as conjunction with the safety condition using \textsc{Cudd\_BddAndAbstract} on line~2 of Algorithm~\ref{alg:syntcomp_cpre}. This avoids building the potentially large BDD representing the conjunction.
-
-\subsubsection{Early termination}
-I terminate early when possible. As we are computing a greatest fixed point, we start with the universal set and progressively shrink it to find the winning region. Each time we shrink the winning region, we check that is it still a superset of the initial set. If it is not, we know there is no way we can win as the winning set only shrinks as the algorithm progresses. We use the function \textsc{Cudd\_bddLeq} on line~4 of Algorithm~\ref{alg:syntcomp} for this purpose as it allows us to efficiently check that one BDD implies another without constructing the BDD of the implication.
+The optimised algorithm is given in Algorithm~\ref{alg:syntcomp}. It calls the optimised controllable predecessor suitable for the synthesis competition defined in Algorithm~\ref{alg:syntcomp_cpre}.
 
 \subsection{Evaluation}
-Simple BDD solver failed when the BDDs representing the winning sets, or the intermediate BDDs in the controllable predecessor computation grew too large. Additionally, it failed when a large number of iterations was required to determine the outcome, such as the benchmarks with a large counter. However, it generally performed well compared to the other solvers entered in the competition as a result of the optimisations presented in this section.
+Simple BDD solver failed when the BDDs representing the winning sets, or the intermediate BDDs in the controllable predecessor computation grew too large. Additionally, it failed when a large number of iterations was required to determine the outcome, such as the benchmarks with a large counter. However, it generally performed well compared to the other solvers entered in the competition as a result of the optimisations presented above.
 

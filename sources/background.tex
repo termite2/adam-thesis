@@ -649,6 +649,7 @@ Likewise, $\delta$ is specified by a formula in $\forms(\symStateVars \bigcup \s
 Sometimes, the variables that a characteristic formula depends on are made explicit. For example, the transition relation may be written as $\delta(\Sigma, \Lambda, \Sigma')$.
 
 \subsection{Symbolic algorithms}
+\label{sec:back_symbolic_alg}
 
 We can redefine the game solving algorithms to use characteristic functions instead of explicit sets by replacing conjunction and disjunction with set intersection and union. As an example, we convert the turn based controllable predecessor (Equation~\ref{eqn:turn_cpre}) to symbolic form in Equation~\ref{eqn:cpre_symb}. We convert the simplest algorithm, determining the outcome of a reachability game, to symbolic form in Algorithm~\ref{a:symb_reach}.
 
