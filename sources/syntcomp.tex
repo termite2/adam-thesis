@@ -9,12 +9,18 @@ For the rest of this chapter, with the exception of Section~\ref{sec:omega_reg},
 Following Section~\ref{sec:back_symbolic_alg}, the standard BDD-based symbolic algorithm computes:
 
 \begin{equation}
-\label{eqn:mu}
-\nu X. \forall U. \exists C. \forall S'. ((\delta(S, U, C, S') \rightarrow X') \wedge \sigma(S, U, C))
+\label{eqn:mu_syntcomp}
+\mu X. Cpre(X \lor REACH)
 \end{equation}
 
-\noindent where $U$ is the set of valuations of uncontrollable inputs, $C$ is the set of valuations of controllable inputs, and $S$ is the set of valuations of state variables. Given a set $X$, $X'$ denotes the next state copy of $X$. $\sigma$ is the safety condition and $\delta$ is the transition relation.
+The controllable predecessor is specific to the type of game being solved. The Termite controllable predecessor is given in Section~\ref{sec:termite_cpre}. I give the controllable predecessor for the synthesis competition below as it is simpler than Termite's and is used in the discussion of optimisations below.
 
+\begin{equation}
+\label{eqn:cpre_syntcomp}
+Cpre(X) = \forall U. \exists C. \forall S'. (\delta(S, U, C, S') \rightarrow X')
+\end{equation}
+
+\noindent where $U$ is the set of valuations of uncontrollable inputs, $C$ is the set of valuations of controllable inputs, and $S$ is the set of valuations of state variables. Given a set $X$, $X'$ denotes the next state copy of $X$ and $\delta$ is the transition relation.
 
 \subsection{Optimisations}
 \label{sec:syntcomp_optimisations}
@@ -25,7 +31,6 @@ The optimisations that I have used, in approximate order of importance, are:
     \item Partitioned transition relations \cite{Burch_91}
     \item Direct substitution with \textsc{Cudd\_VectorCompose}
     \item Dereference unused BDDs as soon as possible
-    \item Rearrange the computed formula to avoid creating large BDDs
     \item Simultaneous conjunction and quantification with \textsc{Cudd\_BddAndAbstract}
     \item Terminate early where possible
 \end{itemize}
@@ -42,14 +47,6 @@ To compute the implication, $\forall S'. (\delta(S, U, C, S') \rightarrow X')$, 
 
 \subsubsection{Dereferencing dead BDDs}
 I dereference BDDs that are no longer needed as soon as possible. Each live BDD node is processed during reordering and counted when the algorithm checks to see if the total BDD size in the manager is reduced. These unused BDDs should not count toward the total node count that is used to evaluate an ordering, and, the time that is spent reordering them and counting them is wasted. In the interest of clarity, BDD dereferencing is not shown in algorithms \ref{alg:syntcomp_cpre} and \ref{alg:syntcomp}.
-
-\subsubsection{Rearranging the formula}
-\begin{equation}
-\label{eqn:mu2}
-\nu X. \forall U. \exists C. (\forall S'. (\delta(S, U, C, S') \rightarrow X') \wedge \sigma(S, U, C))
-\end{equation}
-
-We can arrange equation \ref{eqn:mu} to move the conjunction with the safety condition outside of the innermost universal quantification, as shown in equation \ref{eqn:mu2}, as the safety condition does not depend on the next state variables. This avoids building the potentially large BDD of the conjunction.
 
 \subsubsection{Simultaneous conjunction and quantification}
 I perform simultaneous conjunction and quantification wherever possible. The existential quantification is performed at the same time as conjunction with the safety condition using \textsc{Cudd\_BddAndAbstract} on line~2 of Algorithm~\ref{alg:syntcomp_cpre}. This avoids building the potentially large BDD representing the conjunction.
