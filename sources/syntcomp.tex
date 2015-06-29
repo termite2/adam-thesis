@@ -64,12 +64,12 @@ Two different implementations were required because the synthesis competition re
 The synthesis competition solver is written in the Haskell functional programming language. It uses the CUDD \cite{cudd} package for binary decision diagram manipulation and the Attoparsec Haskell package for fast parsing. Altogether, the solver, AIGER parser, compiler and command line argument parser are just over 300 lines of code. The code is available online at: \path{https://github.com/adamwalker/syntcomp}.
 
 \begin{algorithm}
-\caption{Controllable predecessor}
+\caption{Syntcomp Controllable predecessor}
 \label{alg:syntcomp_cpre}
 
 \begin{algorithmic}
 
-\Function{CPre}{$target$}
+\Function{CPre}{$C, U, \sigma, target$}
 
     \State $substituted \gets \Call{Cudd\_VectorCompose}{target, \delta}$
     \State $safeSub     \gets \Call{Cudd\_bddAndAbstract}{C, \sigma, substituted}$
@@ -82,20 +82,24 @@ The synthesis competition solver is written in the Haskell functional programmin
 \end{algorithm}
 
 \begin{algorithm}
-\caption{Simple BDD Solver}
+\caption{Syntcomp symbolic solver}
 \label{alg:syntcomp}
 
 \begin{algorithmic}
 
 \Function{Solve}{$\sigma, init, \delta, C, U$}
 
-    \State $win \gets \Call{Cudd\_ReadLogicOne}{}$
+    \State $win \gets \Call{Cudd\_ReadZero}{}$
     \Loop
-        \State $res \gets \Call{CPre}{res}$
-        \State $win \gets \Call{Cudd\_bddLeq}{init, res}$
+        \State $res' \gets \Call{CPre}{C, U, \sigma, res \lor \neg \sigma}$
+        \State $win  \gets \Call{Cudd\_bddLeq}{init, res'}$
         \If{$\neg win$} 
             \State \Return $False$
         \EndIf
+        \If{$res = res'$} 
+            \State \Return $True$
+        \EndIf
+        \State $res \gets res'$
     \EndLoop
 
 \EndFunction
