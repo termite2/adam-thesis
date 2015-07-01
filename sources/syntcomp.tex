@@ -1,17 +1,19 @@
 \section{Symbolic Solver}
 \label{sec:syntcomp}
 
-The starting point for the design of an efficient game solver is the standard BDD-based symbolic algorithm of Section~\ref{sec:back_symbolic_alg}. The basic algorithm admits a number of optimisations. As I will show in Section~\ref{sec:syntcomp_eval}, these optimisations significantly improve the performance of the algorithm, but not enough to synthesize even simple device drivers. Yet, this optimised symbolic algorithm is used inside the abstraction-refinement loop to solve the abstract games produced at every refinement iteration. I therefore describe each of them below.
+The starting point for the design of an efficient game solver is the standard BDD-based symbolic algorithm of Section~\ref{sec:back_symbolic_alg}. This standard symbolic algorithm forms the basis of my entry to the Reactive Synthesis competition, named `Simple BDD Solver'. The basic algorithm admits a number of optimisations. As I will show in Section~\ref{sec:syntcomp_eval}, these optimisations significantly improve the performance of the algorithm, but not enough to synthesize even simple device drivers. Yet, this optimised symbolic algorithm is used inside the abstraction-refinement loop of Termite to solve the abstract games produced at every refinement iteration. I therefore describe each of them below.
 
-For the rest of this chapter, with the exception of Section~\ref{sec:omega_reg}, I will focus on reachability objectives. In Section~\ref{sec:omega_reg} I generalise the solution to GR(1) objectives. 
+This section focuses on safety games, as required for the synthesis competition. However, all of the optimisations presented here apply equally to reachability games and to the GR(1) games used in Termite. 
 
 \subsection{Overview}
 Following Section~\ref{sec:back_symbolic_alg}, the standard BDD-based symbolic algorithm computes:
 
 \begin{equation}
 \label{eqn:mu_syntcomp}
-\mu X. Cpre(X \lor REACH)
+\nu X. Cpre(X \lor \sigma)
 \end{equation}
+
+\noindent where $\sigma$ is the safety condition.
 
 The controllable predecessor is specific to the type of game being solved. The Termite controllable predecessor is given in Section~\ref{sec:termite_cpre}. I give the controllable predecessor for the synthesis competition below as it is simpler than Termite's and is used in the discussion of optimisations below.
 
@@ -28,33 +30,35 @@ Cpre(X) = \forall U. \exists C. \forall S'. (\delta(S, U, C, S') \rightarrow X')
 The optimisations that I have used, in approximate order of importance, are:
 \begin{itemize}
     \item Dynamic variable reordering using the sifting algorithm \cite{Rudell_1993}
-    \item Partitioned transition relations \cite{Burch_91}
-    \item Direct substitution with \textsc{Cudd\_VectorCompose}
     \item Dereference unused BDDs as soon as possible
+    \item Partitioned transition relations \cite{Burch_91} and direct substitution with \textsc{Cudd\_VectorCompose}
     \item Simultaneous conjunction and quantification with \textsc{Cudd\_BddAndAbstract}
     \item Terminate early where possible
 \end{itemize}
 
+The optimised algorithm (Algorithm~\ref{alg:syntcomp}) and controllable predecessor (Algorithm~\ref{alg:syntcomp_cpre}) are given in the implementation section (Section~\ref{sec:syntcomp_impl}).
+
 \subsubsection{Dynamic variable ordering}
-I do not try to find a good static variable ordering at the start and instead rely on the sifting algorithm provided by the CUDD package for finding good variable orderings dynamically. In my experience, the sifting algorithm provides the best tradeoff between the quality of the resulting ordering and time taken to find it. I enable sifting at the start so that is is active during both compilation and solving. I did not modify any of the default parameters to the sifting algorithm.
+I do not try to find a good static variable ordering at the start and instead rely on the sifting algorithm provided by the CUDD package for finding good variable orderings dynamically. In my experience, the sifting algorithm provides the best tradeoff between the quality of the resulting ordering and time taken to find it. I enable sifting at the start so that it is active during both compilation and solving. I did not modify any of the default parameters to the sifting algorithm.
+
+\subsubsection{Dereferencing dead BDDs}
+I dereference BDDs that are no longer needed as soon as possible. Each live BDD node is processed during reordering and counted when the algorithm checks to see if the total BDD size in the manager is reduced. These unused BDDs should not count toward the total node count that is used to evaluate an ordering, and, the time that is spent reordering them and counting them is wasted. 
 
 \subsubsection{Partitioned transition relations}
 I do not compute the transition relation as a monolithic BDD defined over current state, input variables and next state. This would likely be very large and slow down the algorithm considerably. Instead, I keep it in a conjunctively partitioned form with one partition for each next state variable. I can do this because the next state value of any state variable depends only on the current and input variables and not any other next state variables.
 
 Furthermore, the next state value of any state variable is deterministic. This means that it can be represented directly as a function of the current state and input variables. I use a BDD defined over current state and input variables to represent this function. The transition relation becomes a list of BDDs, one for each state variable, each of which only depends on current state and input variables. 
 
-To compute the implication, $\forall S'. (\delta(S, U, C, S') \rightarrow X')$, I use the CUDD function \textsc{Cudd\_VectorCompose} as shown in algorithm \ref{alg:syntcomp_cpre} on line 1 to substitute each update function into X. This avoids building the monolithic transition relation and, importantly, it avoids having to ever declare a next state copy of each state variable in the BDD manager. 
-
-\subsubsection{Dereferencing dead BDDs}
-I dereference BDDs that are no longer needed as soon as possible. Each live BDD node is processed during reordering and counted when the algorithm checks to see if the total BDD size in the manager is reduced. These unused BDDs should not count toward the total node count that is used to evaluate an ordering, and, the time that is spent reordering them and counting them is wasted. In the interest of clarity, BDD dereferencing is not shown in algorithms \ref{alg:syntcomp_cpre} and \ref{alg:syntcomp}.
+To compute the implication, $\forall S'. (\delta(S, U, C, S') \rightarrow X')$, I use the CUDD function \textsc{Cudd\_VectorCompose} as shown in algorithm \ref{alg:syntcomp_cpre} on line~\ref{l:vc} to substitute each update function into X. This avoids building the monolithic transition relation and, importantly, it avoids having to ever declare a next state copy of each state variable in the BDD manager. 
 
 \subsubsection{Simultaneous conjunction and quantification}
-I perform simultaneous conjunction and quantification wherever possible. The existential quantification is performed at the same time as conjunction with the safety condition using \textsc{Cudd\_BddAndAbstract} on line~2 of Algorithm~\ref{alg:syntcomp_cpre}. This avoids building the potentially large BDD representing the conjunction.
+I perform simultaneous conjunction and quantification wherever possible. The existential quantification is performed at the same time as conjunction with the safety condition using \textsc{Cudd\_BddAndAbstract} on line~\ref{l:andabs} of Algorithm~\ref{alg:syntcomp_cpre}. This avoids building the potentially large BDD representing the conjunction.
 
 \subsubsection{Early termination}
-I terminate early when possible. As we are computing a greatest fixed point, we start with the universal set and progressively shrink it to find the winning region. Each time we shrink the winning region, we check that is it still a superset of the initial set. If it is not, we know there is no way we can win as the winning set only shrinks as the algorithm progresses. We use the function \textsc{Cudd\_bddLeq} on line~4 of Algorithm~\ref{alg:syntcomp} for this purpose as it allows us to efficiently check that one BDD implies another without constructing the BDD of the implication.
+I terminate early when possible. As I am computing a greatest fixed point, I start with the universal set and progressively shrink it to find the winning region. Each time I shrink the winning region, I check that is it still a superset of the initial set. If it is not, I know there is no way player~1 can win as the winning set only shrinks as the algorithm progresses. I use the function \textsc{Cudd\_bddLeq} on line~\ref{l:leq} of Algorithm~\ref{alg:syntcomp} for this purpose as it efficiently checks that one BDD implies another without constructing the BDD of the implication.
 
 \subsection{Implementation}
+\label{sec:syntcomp_impl}
 I developed two implementations that incorporate all of the above optimisations. The first implementation is used by Termite inside the abstraction refinement loop in order to solve abstract games (Section~\ref{sec:abs_ref_pred_abs}). The second solver was developed for the reactive synthesis competition. 
 
 The Reactive Synthesis Competition~\cite{} is a competition for reactive synthesis tools inspired by competitions in other fields such as the SAT competition~\cite{} and the Hardware Model Checking Competition~\cite{}. The competition had four tracks: sequential realisability, parallel realisability, sequential synthesis and parallel synthesis. The tools were required to solve safety games given in an extension of the AIGER format \cite{aiger}. Entrants in the synthesis categories were required to produce an implementation of a controller that enforced the safety condition, also given in extended AIGER format. Entrants in the realisability category were only required to determine if the safety game was winnable, not to produce a strategy.
@@ -67,12 +71,12 @@ The synthesis competition solver is written in the Haskell functional programmin
 \caption{Syntcomp Controllable predecessor}
 \label{alg:syntcomp_cpre}
 
-\begin{algorithmic}
+\begin{algorithmic}[1]
 
 \Function{CPre}{$C, U, \sigma, target$}
 
-    \State $substituted \gets \Call{Cudd\_VectorCompose}{target, \delta}$
-    \State $safeSub     \gets \Call{Cudd\_bddAndAbstract}{C, \sigma, substituted}$
+\State $substituted \gets \Call{Cudd\_VectorCompose}{target, \delta}$ \label{l:vc}
+    \State $safeSub     \gets \Call{Cudd\_bddAndAbstract}{C, \sigma, substituted}$ \label{l:andabs}
     \State $winning     \gets \Call{Cudd\_bddUnivAbstract}{U, safeSub}$
     \State \Return $winning$
 
@@ -85,14 +89,14 @@ The synthesis competition solver is written in the Haskell functional programmin
 \caption{Syntcomp symbolic solver}
 \label{alg:syntcomp}
 
-\begin{algorithmic}
+\begin{algorithmic}[1]
 
 \Function{Solve}{$\sigma, init, \delta, C, U$}
 
-    \State $win \gets \Call{Cudd\_ReadZero}{}$
+    \State $win \gets \Call{Cudd\_ReadLogicOne}{}$
     \Loop
-        \State $res' \gets \Call{CPre}{C, U, \sigma, res \lor \neg \sigma}$
-        \State $win  \gets \Call{Cudd\_bddLeq}{init, res'}$
+        \State $res' \gets \Call{CPre}{C, U, \sigma, res \land \sigma}$
+        \State $win  \gets \Call{Cudd\_bddLeq}{init, res'}$ \label{l:leq}
         \If{$\neg win$} 
             \State \Return $False$
         \EndIf
@@ -120,9 +124,9 @@ The optimised algorithm is given in Algorithm~\ref{alg:syntcomp}. It calls the o
 \end{table}
 
 
-Table~\ref{tab:syntcomp_optimisations} gives the runtimes of the symbolic solver on a selection of benchmarks from the 2014 synthesis competition. Benchmarks from the AMBA category were used. These benchmarks modelled an arbiter for the AMBA AHB bus, based on an industrial specification by ARM. The benchmarks were run on an Intel Haswell laptop with 4 gigabytes of ram and a processor speed of 1.6GHz.
+Table~\ref{tab:syntcomp_optimisations} gives the runtimes of the symbolic solver on a selection of benchmarks from the 2014 synthesis competition. Benchmarks from the AMBA category were used. These benchmarks model an arbiter for the AMBA AHB bus, based on an industrial specification by ARM. The benchmarks were run on an Intel Haswell laptop with 4 gigabytes of ram and a processor speed of 1.6 GHz.
 
-The first column gives the runtimes for the symbolic solver without optimisations. Most entries are failures due to out of memory conditions. I have enabled the optimisations progressively in subsequent columns. In the next column, dynamic variable reordering is enabled. It is clear that dynamic variable reordering is crucial to the performance of the algorithm. Next, I enable partitioned transition relations. This improves performance in all but one benchmark. Next, I enable simultaneous conjunction and quantification. This also improves performance on nearly all benchmarks. Finally, in the last column, I enable early termination. This does not improve performance on many of the benchmarks. Early termination can only help when the benchmark is unsatisfiable. When the benchmark is satisfiable it only imposes the additional work of checking containment in the initial set. This optimisation does, however, improve performance substantially on some of the unsatisfiable benchmarks so I conclude that it is worthwhile.
+The first column gives the runtimes for the symbolic solver without optimisations. Most entries are failures due to out of memory conditions. I have enabled the optimisations progressively in subsequent columns. In the next column, dynamic variable reordering is enabled. It is clear that dynamic variable reordering is crucial to the performance of the algorithm. In subsequent columns, I enable BDD dereferencing, partitioned transition relations and simultaneous conjunction and quantification. These optimisations successively improve performance on nearly all benchmarks. Finally, in the last column, I enable early termination. This does not improve performance on many of the benchmarks. Early termination can only help when the benchmark is unsatisfiable. When the benchmark is satisfiable it only imposes the additional work of checking containment in the initial set. This optimisation does, however, improve performance substantially on some of the unsatisfiable benchmarks so I conclude that it is worthwhile.
 
 The benchmark runner is available online at: \url{https://github.com/adamwalker/syntcomp-benchmark}. The set of benchmarks is available online at \url{https://syntcompdb.iaik.tugraz.at/static/SyntComp.tar.gz}.
 
