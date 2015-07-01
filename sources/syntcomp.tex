@@ -1,7 +1,7 @@
 \section{Symbolic Solver}
 \label{sec:syntcomp}
 
-The starting point for the design of an efficient game solver is the standard BDD-based symbolic algorithm of Section~\ref{sec:back_symbolic_alg}. The basic algorithm admits a number of optimisations. As I will show in Section~\ref{sec:}, these optimisations significantly improve the performance of the algorithm, but not enough to synthesize even simple device drivers. Yet, this optimised symbolic algorithm is used inside the abstraction-refinement loop to solve the abstract games produced at every refinement iteration. I therefore describe each of them below.
+The starting point for the design of an efficient game solver is the standard BDD-based symbolic algorithm of Section~\ref{sec:back_symbolic_alg}. The basic algorithm admits a number of optimisations. As I will show in Section~\ref{sec:syntcomp_eval}, these optimisations significantly improve the performance of the algorithm, but not enough to synthesize even simple device drivers. Yet, this optimised symbolic algorithm is used inside the abstraction-refinement loop to solve the abstract games produced at every refinement iteration. I therefore describe each of them below.
 
 For the rest of this chapter, with the exception of Section~\ref{sec:omega_reg}, I will focus on reachability objectives. In Section~\ref{sec:omega_reg} I generalise the solution to GR(1) objectives. 
 
@@ -109,6 +109,21 @@ The synthesis competition solver is written in the Haskell functional programmin
 
 The optimised algorithm is given in Algorithm~\ref{alg:syntcomp}. It calls the optimised controllable predecessor suitable for the synthesis competition defined in Algorithm~\ref{alg:syntcomp_cpre}.
 
-\subsection{Evaluation}
-Simple BDD solver failed when the BDDs representing the winning sets, or the intermediate BDDs in the controllable predecessor computation grew too large. Additionally, it failed when a large number of iterations was required to determine the outcome, such as the benchmarks with a large counter. However, it generally performed well compared to the other solvers entered in the competition as a result of the optimisations presented above.
+\subsection{Evaluation of Optimisations}
+\label{sec:syntcomp_eval}
+
+\begin{table}
+    \begin{tabular}{l|l|l|l|l|l|l|}
+    \end{tabular}
+    \caption{Performance of various optimisations when applied to the basic symbolic solver}
+    \label{tab:syntcomp_optimisations}
+\end{table}
+
+
+Table~\ref{tab:syntcomp_optimisations} gives the runtimes of the symbolic solver on a selection of benchmarks from the 2014 synthesis competition. Benchmarks from the AMBA category were used. These benchmarks modelled an arbiter for the AMBA AHB bus, based on an industrial specification by ARM. The benchmarks were run on an Intel Haswell laptop with 4 gigabytes of ram and a processor speed of 1.6GHz.
+
+The first column gives the runtimes for the symbolic solver without optimisations. Most entries are failures due to out of memory conditions. I have enabled the optimisations progressively in subsequent columns. In the next column, dynamic variable reordering is enabled. It is clear that dynamic variable reordering is crucial to the performance of the algorithm. Next, I enable partitioned transition relations. This improves performance in all but one benchmark. Next, I enable simultaneous conjunction and quantification. This also improves performance on nearly all benchmarks. Finally, in the last column, I enable early termination. This does not improve performance on many of the benchmarks. Early termination can only help when the benchmark is unsatisfiable. When the benchmark is satisfiable it only imposes the additional work of checking containment in the initial set. This optimisation does, however, improve performance substantially on some of the unsatisfiable benchmarks so I conclude that it is worthwhile.
+
+\subsection{Conclusion}
+Simple BDD Solver performed well compared to the other solvers entered in the reactive synthesis competition as a result of the optimisations presented above. It failed when the BDDs representing the winning sets, or the intermediate BDDs in the controllable predecessor computation grew too large. Additionally, it failed when a large number of iterations was required to determine the outcome, such as the benchmarks with a large counter. 
 
