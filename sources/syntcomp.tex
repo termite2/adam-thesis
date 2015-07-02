@@ -119,11 +119,12 @@ The optimised algorithm is given in Algorithm~\ref{alg:syntcomp}. It calls the o
 \begin{sidewaystable}
     \small
     \center
-    \begin{tabular}{|l|l|l|l|l|l|l|}
+    \begin{tabular}{|l|S[table-format=2.2]|S[table-format=2.2]|S[table-format=2.2]|S[table-format=2.2]|S[table-format=2.2]|S[table-format=2.2]|}
         \hline
         \multirow{2}{*}{Benchmark} & \multicolumn{6}{c|}{Optimisation} \\ \cline{2-7} & 
         \multicolumn{1}{c|}{None}   & \multicolumn{1}{c|}{+ Reord.} & \multicolumn{1}{c|}{+ Deref.} & \multicolumn{1}{c|}{+ Partitioned} & \multicolumn{1}{c|}{+ Simult. abs.} & \multicolumn{1}{c|}{+ Early term.} \\
         \hline
+
         amba02\_new\_08n\_unreal.aag    & 34.73  & 37.00    & 1.15     & 0.63          & 0.28           & 0.22          \\
         amba02\_new\_08n\_unreal\_o.aag & 34.25  & 36.99    & 0.57     & 0.69          & 0.26           & 0.26          \\
         amba02\_new\_09n.aag            & 28.50  & 28.37    & 0.47     & 0.37          & 0.20           & 0.24          \\
