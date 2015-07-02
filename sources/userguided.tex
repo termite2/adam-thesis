@@ -262,6 +262,14 @@ Figure~\ref{f:ex_drv} shows the driver template for the running example consisti
 \section{\tsl Compiler}
 \label{sec:tsl_compiler}
 
+\hrule
+\vspace{10pt}
+\begin{center}
+This section describes work completed by Dr. Leonid Ryzhyk. It is included here for completeness.
+\end{center}
+\hrule
+\vspace{20pt}
+
 In order to compute the most general driver strategy as a solution of a two-player concurrent game (Section~\ref{sec:termite_cpre}), Termite must first convert input \tsl specifications into a game structure (Section~\ref{sec:intro_formal}). This means that we must define the set of states, labels, initial states and the transition relation. This conversion is performed by the \tsl compiler.
 
 Real driver specifications have large state spaces, which cannot be feasibly represented by explicitly enumerating states. \termite represents games symbolically (Section~\ref{sec:symbolic_games}).  The state space of the game is defined in terms of a finite set of state variables $X$, with each state $s\in S$ representing a valuation of variables in $X$.  The \tsl compiler introduces a state variable for each \tsl variable declared in one of the input templates.  In addition, auxiliary state variables are introduced to model the current control location of each \tsl process. In the initial states, these control variables are set to values representing the first location of each process. The initial values of other variables are left uninitialised unless the user explicitly specifies their initial value in TSL.
@@ -303,6 +311,14 @@ In addition to goal conditions, a \tsl specification also contains assertions, w
 
 \section{User-guided Code Generation}
 \label{s:user-guided}
+
+\hrule
+\vspace{10pt}
+\begin{center}
+This section describes work completed by Dr. Leonid Ryzhyk. It is included here for completeness.
+\end{center}
+\hrule
+\vspace{20pt}
 
 The set of input \tsl specifications is fed into the \termite synthesis engine (Chapter~\ref{ch:solving}), which then automatically computes the most general strategy (Section~\ref{sec:intro_formal}) for the driver.  Given a state of the system, the most general strategy determines the set of all valid driver actions in this state.  The most general strategy is used by the \termite code generator to produce a driver implementation in C in a user-guide fashion.
 
