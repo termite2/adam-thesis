@@ -116,12 +116,44 @@ The optimised algorithm is given in Algorithm~\ref{alg:syntcomp}. It calls the o
 \subsection{Evaluation of Optimisations}
 \label{sec:syntcomp_eval}
 
-\begin{table}
-    \begin{tabular}{l|l|l|l|l|l|l|}
+\begin{sidewaystable}
+    \small
+    \center
+    \begin{tabular}{|l|l|l|l|l|l|l|}
+        \hline
+        \multirow{2}{*}{Benchmark} & \multicolumn{6}{c|}{Optimisation} \\ \cline{2-7} & 
+        \multicolumn{1}{c|}{None}   & \multicolumn{1}{c|}{+ Reord.} & \multicolumn{1}{c|}{+ Deref.} & \multicolumn{1}{c|}{+ Partitioned} & \multicolumn{1}{c|}{+ Simult. abs.} & \multicolumn{1}{c|}{+ Early term.} \\
+        \hline
+        amba02\_new\_08n\_unreal.aag    & 34.73  & 37.00    & 1.15     & 0.63          & 0.28           & 0.22          \\
+        amba02\_new\_08n\_unreal\_o.aag & 34.25  & 36.99    & 0.57     & 0.69          & 0.26           & 0.26          \\
+        amba02\_new\_09n.aag            & 28.50  & 28.37    & 0.47     & 0.37          & 0.20           & 0.24          \\
+        amba02\_new\_09n\_o.aag         & 28.20  & 30.73    & 0.62     & 0.40          & 0.24           & 0.28          \\
+        amba03\_new\_08n\_unreal.aag    & OOM    & 391.59   & 1.94     & 0.88          & 0.94           & 0.95          \\
+        amba03\_new\_08n\_unreal\_o.aag & OOM    & 426.67   & 1.76     & 1.45          & 0.82           & 0.47          \\
+        amba03\_new\_09n.aag            & OOM    & 452.90   & 3.98     & 1.78          & 0.89           & 1.13          \\
+        amba03\_new\_09n\_o.aag         & OOM    & 453.70   & 5.51     & 2.05          & 1.13           & 1.13          \\
+        amba04\_new\_24n\_unreal.aag    & OOM    & OOM      & 28.40    & 5.48          & 4.91           & 2.54          \\
+        amba04\_new\_24n\_unreal\_o.aag & OOM    & OOM      & 11.11    & 15.73         & 3.33           & 4.65          \\
+        amba04\_new\_25n.aag            & OOM    & OOM      & 11.60    & 7.89          & 4.25           & 4.48          \\
+        amba04\_new\_25n\_o.aag         & OOM    & OOM      & 9.12     & 7.50          & 5.41           & 7.31          \\
+        amba05\_new\_16n\_unreal.aag    & OOM    & OOM      & 11.86    & 12.93         & 6.97           & 5.13          \\
+        amba05\_new\_16n\_unreal\_o.aag & OOM    & OOM      & 17.93    & 11.79         & 6.28           & 5.56          \\
+        amba05\_new\_17n.aag            & OOM    & OOM      & 31.36    & 5.47          & 7.37           & 6.53          \\
+        amba05\_new\_17n\_o.aag         & OOM    & OOM      & 15.90    & 10.61         & 5.00           & 3.87          \\
+        amba06\_new\_20n\_unreal.aag    & OOM    & OOM      & 50.89    & 32.04         & 6.15           & 5.44          \\
+        amba06\_new\_20n\_unreal\_o.aag & OOM    & OOM      & 55.96    & 31.94         & 11.04          & 7.08          \\
+        amba06\_new\_21n.aag            & OOM    & OOM      & 49.15    & 27.95         & 11.07          & 11.98         \\
+        amba06\_new\_21n\_o.aag         & OOM    & OOM      & 21.12    & 21.85         & 12.61          & 27.48         \\
+        amba07\_new\_24n\_unreal.aag    & OOM    & OOM      & 67.95    & 21.37         & 19.68          & 17.76         \\
+        amba07\_new\_24n\_unreal\_o.aag & OOM    & OOM      & 45.36    & 91.67         & 20.14          & 17.94         \\
+        amba07\_new\_25n.aag            & OOM    & OOM      & 127.04   & 53.93         & 15.90          & 18.38         \\
+        amba07\_new\_25n\_o.aag         & OOM    & OOM      & 51.00    & 51.10         & 24.50          & 18.33         \\
+
+        \hline
     \end{tabular}
     \caption{Performance of various optimisations when applied to the basic symbolic solver}
     \label{tab:syntcomp_optimisations}
-\end{table}
+\end{sidewaystable}
 
 
 Table~\ref{tab:syntcomp_optimisations} gives the runtimes of the symbolic solver on a selection of benchmarks from the 2014 synthesis competition. Benchmarks from the AMBA category were used. These benchmarks model an arbiter for the AMBA AHB bus, based on an industrial specification by ARM. The benchmarks were run on an Intel Haswell laptop with 4 gigabytes of ram and a processor speed of 1.6 GHz.
