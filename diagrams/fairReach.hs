@@ -27,6 +27,10 @@ arrowSpline = (with & arrowHead  .~ spike
                     & arrowShaft .~ splineShaft
                     & shaftStyle %~ dashingG [0.04, 0.02] 0)
 
+arrowSpline2 = (with & arrowHead  .~ spike 
+                    & headLength .~ large
+                    & arrowShaft .~ splineShaft)
+
 states = mconcat [stInit, stReq, stSending, stChecking, stDone]
 
 labels = mconcat [
@@ -40,7 +44,7 @@ labels = mconcat [
 diag'   = states # connectOutside' arrowStyleUCont "stInit"     "stReq"
                  # connectOutside' arrowStyleCont  "stReq"      "stSending"
                  # connectOutside' arrowStyleUCont "stChecking" "stDone"
-                 # connectPerim'   arrowSpline     "stSending"  "stChecking" (5/8 @@ turn) (3/8 @@ turn)
+                 # connectPerim'   arrowSpline2     "stSending"  "stChecking" (5/8 @@ turn) (3/8 @@ turn)
                  # connectPerim'   arrowSpline     "stChecking" "stSending" (1/8 @@ turn) (7/8 @@ turn)
 
 initArrow = arrowBetween (p2 (-0.3, 0)) (p2 (-0.1, 0))
