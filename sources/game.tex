@@ -138,7 +138,23 @@ In general, it is the job of the driver synthesis algorithm to figure out how to
 \label{fig:combined_spec}
 \end{figure}
 
-The device and OS specifications are combined by taking their product, which means instantiating them in parallel and synchronising them on the shared class events. If $D$ is the set of device states and $O$ is the set of OS states, then $D \times O$ is the set of states in the combined specification. If $\lambda_D$ is the set of device labels and $\lambda_O$ is the set of OS labels, then $\lambda_D \cup \lambda_O$ is the set of labels in the combined specification. The device specification is extended so that all events in $\lambda_O \setminus \lambda_D$ are self loops in all states. The OS specification is extended similarly. If the transitions $\langle s_1, \lambda, d_1 \rangle$ and $\langle s_2, \lambda, d_2 \rangle$ exist in the device and OS state machines respectively, then the transition $\langle (s_1, s_2), \lambda, (d_1, d_2) \rangle$ exists in the combined specification.
+The device and OS specifications are combined by taking their product, which means instantiating them in parallel and synchronising them on the shared class events. This is formally defined below. While the definition appears complicated, it reflects what it intuitively means to synchronise two state machines on shared events.
+
+Formally, the device state machine consists of a set of states $D$, a global set of labels $\lambda$, a set of class events $\epsilon$, a transition relation $\delta_D \subseteq D \times \lambda \times D$, and an event function $f :: D \times \lambda \rightarrow \mathcal P ({\epsilon})$, where $\mathcal P (\epsilon)$ denotes the power set of $\epsilon$. Intuitively, the $f$ function allows the device state machine may emit any set of class events on each transition.
+
+The OS state machine consists of a set of states $O$, the same set of global labels $\lambda$ and a transition relation $\delta_O \subseteq O \times (\lambda \times \mathcal P (\epsilon)) \times O$. Intuitively, the next state of the OS state machine is determined by both the label and the set of events currently being emitted by the device state machine.
+
+Both the device and OS transition relations are total, i.e. for each current state and label combination there exists some next state that satisfies the relation. Recall that throughout this chapter all transition relations have been total, however, labels which were self loops were omitted for brevity.
+
+The combined state machine consists of the set of states $C = D \times O$, the set of labels $\lambda$ and the transition relation $\delta_c \subseteq C \times \lambda \times C$.
+
+$\langle \langle d, o \rangle, \lambda, \langle d', o' \rangle \rangle \in \delta_c$ if 
+\begin{itemize}
+    \item $\langle d, \lambda, d' \rangle \in \delta_D$ and
+    \item $\langle o, \langle \lambda, f(d, \lambda) \rangle, o' \rangle \in \delta_O$ 
+\end{itemize}
+
+Intuitively, a transition exists in the combined transition relation if the transition is consistent with the device transition relation and the transition is consistent with the OS transition relation and the events emitted by the device state machine.
 
 Figure~\ref{fig:combined_spec} shows the state machine of the combined specification. This cumbersome state machine shows the size and complexity advantages of using separate state machines in parallel as the specification language. A state is a goal state if the state that it corresponds to in the OS or device state machine is a goal state. Both of the states on the right of Figure~\ref{fig:combined_spec} correspond to state \code{O2} in the OS specification, which is a goal, so they are goals. It is possible to have goals in the device specification but they are not useful in practice. Fair regions work in the same way, i.e. a state in the combined specification belongs to a fair region if at least one of the states in the two original specifications belonged to that fair region.
 
