@@ -3,11 +3,13 @@
 
 I have presented a formalism for the driver synthesis problem as a game. A practical driver synthesis tool using the game formalism must be able to solve and find strategies for these games for real device and operating system specifications in a reasonable amount of time. The principle challenge of this work is creating a synthesis algorithm that scales well enough to handle the large state machines of real device and operating system specifications. 
 
-The straightforward symbolic solver that uses BDDs as the symbolic data structure is remarkably efficient. In fact, it is the current state of the art in reactive synthesis. I will use this as the starting point for my description of Termite's game solver.  Specifically, I begin by describing my entry to the reactive synthesis competition in 2014~\cite{syntcomp_arxiv} appropriately named "Simple BDD Solver". This solver won the sequential realisability category.
+The straightforward symbolic solver that uses BDDs as the symbolic data structure is remarkably efficient. In fact, it is the current state of the art in reactive synthesis. I will use this as the starting point for my description of Termite's game solver.  Specifically, I begin by describing my entry to the reactive synthesis competition in 2014~\cite{syntcomp_arxiv} appropriately named `Simple BDD Solver'. This solver won the sequential realisability category.
 
 Next, I introduce abstraction, a technique to increase the scalability of the basic symbolic algorithm by reducing the effective size of the state space that the algorithm must operate on. The cost of reducing the size of the state space is that the abstracted game is represented with less precision and is often not precise enough to solve the original game. To counter this, the abstraction needs to be \emph{refined}, i.e.\ the precision of the abstraction needs to be increased. This is performed in an \emph{abstraction-refinement loop}. Ideally, this loop results in an abstraction just precise enough to solve the game, but coarse enough that solving it is tractable.
 
 I give an abstraction-refinement algorithm that uses \emph{variable abstraction}, a technique for reducing the state space of the game by eliminating a subset of the state variables from the game. I then build on this to arrive at the main contribution of this chapter---an abstraction-refinement algorithm that performs \emph{predicate abstraction}.  Instead of representing the state space using state variables, the algorithm represents relationships between state variables that capture key properties that have been found to be of importance in solving the game. This representation is usually far more compact than variable abstraction. 
+
+The use of abstraction influences the strategies that Termite can discover. It may miss strategies that can only be discovered with a more precise abstraction, or on the original game. However, strategies which exist on more abstract state spaces tend to be simpler. Thus, I view the loss of these likely more complex strategies as an acceptable trade-off for the large increase in solving performance that abstraction offers.
 
 To simplify the presentation, with the exception of Section~\ref{sec:syntcomp}, I assume that all games are turn based.
 
@@ -27,7 +29,7 @@ The idea is that, given an abstraction, we classify states into one of three cat
 
 At termination, either 
 \begin{itemize}
-\item all of the initial states are classified as winning (and the other states need not be classified), or
+\item all of the initial states are classified as winning (and the other states need not be classified, since this means that we can win from all initial states), or
 \item one of the initial states is classified as losing (again, no other states need to be classified)
 \end{itemize}
 
@@ -161,7 +163,7 @@ Each time a refinement is made, $\concrete{W^M}$ grows. If the concrete state sp
 \section{Variable Abstraction}
 \label{sec:variable_abstraction}
 
-Next, I apply the three valued abstraction-refinement scheme to symbolic games (Section~\ref{sec:symbolic_games}). I will describe an efficient instantiation of the three valued abstraction-refinement scheme for variable abstraction, a technique for reducing the state space of symbolic games by eliminating a subset of the state variables.
+Next, I apply the three valued abstraction-refinement scheme to symbolic games (Section~\ref{sec:symbolic_games}). I will present my efficient instantiation of the three valued abstraction-refinement scheme for variable abstraction, a technique for reducing the state space of symbolic games by eliminating a subset of the state variables.
 
 The description of three valued abstraction refinement leaves a lot unspecified. In particular
 
@@ -171,7 +173,7 @@ The description of three valued abstraction refinement leaves a lot unspecified.
     \item How is the abstraction refined?
 \end{itemize}
 
-For clarity, I have created a running example in pseudocode which I will refer to throughout the description of the symbolic algorithm. The example is given in figure~\ref{fig:running_example}. The state variables are declared in the first section, followed by the label variables. Next, expressions for the goal and initial states are given. Finally, the state transitions are specified. For simplicity, all states in this game are controlled by player~1. Each action that player~1 may play updates a state variable. Note that the action chosen by player~1 is implicitly given by a label variable that player~1 may choose which takes one of the values in $\{a_1, a_2, a_3, a_4\}$. We denote this variable the $tag$.
+For clarity, I have created a running example in pseudocode which I will refer to throughout the description of the symbolic algorithm. The example is given in Figure~\ref{fig:running_example}. The state variables are declared in the first section, followed by the label variables. Next, expressions for the goal and initial states are given. Finally, the state transitions are specified. For simplicity, all states in this game are controlled by player~1. Each action that player~1 may play updates a state variable. Note that the action chosen by player~1 is implicitly given by a label variable that player~1 may choose which takes one of the values in $\{a_1, a_2, a_3, a_4\}$. We denote this variable the $tag$.
 
 \begin{figure}
 \begin{lstlisting}[mathescape]
@@ -390,7 +392,7 @@ There are two straightforward optimisations we can perform to speed up the abstr
 
 \subsubsection{Reuse $W^M$ from the last abstraction-refinement iteration}
 
-$W^M$ is, by definition, the set of states from which we know we can win with the current abstraction. If we refine the abstraction, this set can only grow, so it must at least include $W^M$ from the last iteration. This means that, after refinement when we solve the game again, we may begin iterating the controllable predecessor from the previously found $W^M$. This effectively saves us from having to discover again that this set is winning with the new abstraction. The modified algorithm is given in algorithm~\ref{alg:three_val_reach_reuse}.
+$W^M$ is, by definition, the set of states from which we know we can win with the current abstraction. If we refine the abstraction, this set can only grow, so it must at least include $W^M$ from the last iteration. This means that, after refinement when we solve the game again, we may begin iterating the controllable predecessor from the previously found $W^M$. This effectively saves us from having to discover again that this set is winning with the new abstraction. The modified algorithm is given in Algorithm~\ref{alg:three_val_reach_reuse}.
 
 \begin{algorithm}
 \caption{Three-valued abstraction algorithm optimised to reuse previously discovered winning regions.}
@@ -426,7 +428,7 @@ that is precise for $T$, $I$, and $\tau_i$.
 
 \subsubsection{Do not compute $W^m$}
 
-If we expect the game to be winning, and we are only interested in solving the game to compute the strategy, we may avoid computing $W^m$ entirely. The purpose of computing $W^m$ is to terminate early if our abstraction is precise enough to determine that we cannot win. If we already know that we can win or we expect it is likely that we can win, then it is not worth computing. The modified algorithm is given in algorithm~\ref{alg:opt_three_val_reach}. It terminates when it discovers that the game is winning or when it finds that there are no refinements that guarantee that a new winning state will be found. The second termination condition happens when we were wrong and, in fact, the game was not winning. If we had computed a may winning set in addition, we would have discovered this much earlier so this algorithm is not a good choice when there is a reasonable possibility that the game is not winning.
+If we expect the game to be winning, and we are only interested in solving the game to compute the strategy, we may avoid computing $W^m$ entirely. The purpose of computing $W^m$ is to terminate early if our abstraction is precise enough to determine that we cannot win. If we already know that we can win or we expect it is likely that we can win, then it is not worth computing. The modified algorithm is given in Algorithm~\ref{alg:opt_three_val_reach}. It terminates when it discovers that the game is winning or when it finds that there are no refinements that guarantee that a new winning state will be found. The second termination condition happens when we were wrong and, in fact, the game was not winning. If we had computed a may winning set in addition, we would have discovered this much earlier so this algorithm is not a good choice when there is a reasonable possibility that the game is not winning.
 
 \begin{algorithm}
 \caption{Three-valued abstraction refinement for games optimised to not compute $W^m$}
@@ -468,7 +470,7 @@ In summary, the abstraction-refinement algorithm described in this section is ve
 
 \subsection{Safety games}
 
-Safety games are solved dually to reachability games and are given here for completeness. The algorithm is given in algorithm~\ref{alg:three_val_safe}. Note that \textsc{refineAbstraction} (Algorithm~\ref{alg:refineAbstractionSafe}) differs from the reachability game version as for safety games it is necessary to refine at the may-lose boundary (\cite{Alfaro_Roy_07}).
+Safety games are solved dually to reachability games and are given here for completeness. The algorithm is given in Algorithm~\ref{alg:three_val_safe}. Note that \textsc{refineAbstraction} (Algorithm~\ref{alg:refineAbstractionSafe}) differs from the reachability game version as for safety games it is necessary to refine at the may-lose boundary (\cite{Alfaro_Roy_07}).
 
 \begin{algorithm}
 \caption{Three-valued abstraction refinement for safety games.}
@@ -1339,7 +1341,7 @@ Algorithm~\ref{alg:refineCpre} has two important performance issues:
 
 \begin{itemize}
 
-    \item Every time an untracked variable is promoted, if a new label variable is created in the process, $C^{M-}$ must be reset to False.
+    \item Every time an untracked variable is promoted, if a new label variable is created in the process, $C^{M-}$ must be reset to False, throwing away all our previous progress on finding consistent labels.
 
     \item In lines~10--16 it analyses and adds to $C^{M-}$ a single abstract label $l$.  The set of all abstract labels is exponential in size in the number of label predicates and can be very large in practice, making explicit enumeration infeasible.  
 
@@ -1418,5 +1420,5 @@ Table~\ref{t:exp} summarises the experiments.  The first two rows characterise t
 
 Rows~3 and 4 show the number of iterations of the abstraction refinement loop required to solve the game.  Rows~5 through 7 show the size of the abstract game at the final iteration, when a winning strategy for the driver was obtained, in terms of the number of state, label, and untracked predicates.  These results demonstrate the dramatic reduction of the problem dimension achieved by the abstraction refinement method.  The resulting abstract games are still too complex to solve using explicit state enumeration, hence the use of symbolic techniques is essential.  In all case studies, Termite was able to find the winning strategy within 11 minutes running on a 2.9GHz Intel Core i7 laptop (row~8), with peak BDD size under one million nodes (row~9).
 
-The two final rows show the performance of the original three-valued variable abstraction refinement algorithm of de~Alfaro and Roy on these benchmarks.  As expected, the algorithm does not terminate on any of the real-world driver benchmarks within a two-hour time limit.  I therefore developed simplified versions of two of the benchmarks (SPI and I2C-2) with significantly reduced state spaces.  As shown in the last two columns of the table, the de~Alfaro and Roy algorithm terminates on these benchmarks; however it takes several orders of magnitude longer than the new algorithm, which uses predicate abstraction.  These results show that predicate abstraction is essential to solving complex real-world games.
+The two final rows show the performance of the original three-valued variable abstraction refinement algorithm of de~Alfaro and Roy on these benchmarks, i.e. without predicate abstraction.  As expected, the algorithm does not terminate on any of the real-world driver benchmarks within a two-hour time limit.  I therefore developed simplified versions of two of the benchmarks (SPI and I2C-2) with significantly reduced state spaces.  As shown in the last two columns of the table, the de~Alfaro and Roy algorithm terminates on these benchmarks; however it takes several orders of magnitude longer than the new algorithm, which uses predicate abstraction.  These results show that predicate abstraction is essential to solving complex real-world games.
 

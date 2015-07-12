@@ -255,6 +255,7 @@ Given a game and an objective there are two questions we can ask:
 I present algorithms to answer these questions in this section. I begin with the simplest game, the reachability game, and progress to GR(1) games as are used in Termite.
 
 \subsection{Controllable predecessor}
+\label{sec:back_cpre}
 
 All of the algorithms for games I will be describing use a function called the \emph{controllable predecessor} (abbreviated \cpre). \cpre\ is a function from a target set of game states ($2^S$) called the \emph{target set} to another set of game states. Given a set $T$, $CPre(T)$ returns the set of states from which player 1 can force execution into $T$ in one step. 
 
