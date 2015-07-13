@@ -18,12 +18,13 @@ To simplify the presentation, with the exception of Section~\ref{sec:syntcomp}, 
 \section{Three Valued Abstraction-Refinement}
 An abstraction is a simplification of the original transition system. An abstraction is used when the game is too large to be solved. Ideally, an abstraction is both small enough to be solved and detailed enough to gain some additional information about the properties of the system. 
 
-One common use of an abstraction is in an abstraction-refinement loop. In an abstraction refinement loop, an initial simple abstraction is found and is solved. Then, the results of the abstraction are used to refine the abstraction, ie\. to build another system model that contains slightly more detail than the original abstraction. This is repeated in a loop until the original game is solved. It is often possible to solve the original game with a far less detailed abstraction that the original system. 
+One common use of an abstraction is in an abstraction-refinement loop. In an abstraction refinement loop, an initial simple abstraction is found and is solved. Then, the results of the abstraction are used to refine the abstraction, ie\. to build another system model that contains slightly more detail than the original abstraction. This is repeated in a loop until the original game is solved. It is often possible to solve the original game with a far less detailed abstraction than the original unabstracted system. 
 
 Finding an abstraction that is simultaneously small and useful for making progress in solving the game is a difficult task and is what will be dealt with in the following sections. I begin with earlier work on three valued abstraction refinement. 
 
 \subsection{Three valued abstraction refinement}
 \label{sec:three_val_abs_ref}
+Three-valued abstraction refinement was proposed in the context of model checking by~\cite{Shoham1, Shoham2}. It was applied to reactive games by~\cite{Alfaro_GJ_04, Alfaro_Roy_07}.
 
 The idea is that, given an abstraction, we classify states into one of three categories: winning, losing, and unknown. If we discover that the entire initial set is winning, we know that the original game is winning and we can terminate. Dually, if we discover any initial state that is losing, we know that the entire initial set can never be winning, hence the game is losing and we can terminate. 
 
@@ -33,7 +34,7 @@ At termination, either
 \item one of the initial states is classified as losing (again, no other states need to be classified)
 \end{itemize}
 
-This additional imprecision often allows us to use a less precise abstraction compared to the original algorithm where all states are exactly classified. The use of a coarser abstraction is usually computationally more efficient. If none of the termination conditions are met then we need to refine the abstraction. A correct abstraction refinement scheme will guarantee that one of the termination conditions is eventually met after enough refinements are performed. A good abstraction refinement scheme will ensure that when the algorithm terminates the abstraction is not unnecessarily fine.
+This additional imprecision often allows us to use a less precise abstraction compared to the original algorithm where all states are exactly classified. The use of a coarser abstraction is usually computationally more efficient. If none of the termination conditions are met then we need to refine the abstraction. A good abstraction refinement scheme will guarantee that one of the termination conditions is eventually met after enough refinements are performed. It should also ensure that when the algorithm terminates the abstraction is not unnecessarily fine.
 
 \subsection{Abstraction}
 \label{sec:abstraction_def}
@@ -77,7 +78,7 @@ We say that an abstraction is \emph{precise} for a set $T\subseteq S$ if:
 \concrete{(\abstractm{T})} = \concrete{(\abstractM{T})}
 \end{equation}
 
-Intuitively, this means that there are no abstract states that, when concretised, contain states that within $T$ and states that are outside $T$.
+Intuitively, this means that there are no abstract states that, when concretised, contain states that are within $T$ and states that are outside $T$.
 
 Next, we define may and must versions of the abstract controllable predecessor operator:
 
@@ -150,26 +151,26 @@ At every iteration, the algorithm computes the must-winning set $W^M$ that under
 
 To expand the must-winning set we attempt to perform a refinement of the abstraction. This means that we split one or more of the abstract states in $V$ in two. 
 
-We observe that if there exists a winning concrete state $c$ then there also exists a chain of winning concrete states from $c$ to the goal. If $c$ is not part of $\concrete{W^M} \cup goal$, then, some point, this chain must enter $\concrete{W^M} \cup goal$. Therefore, if there exists some concrete winning state that is not part of $\concrete{W^M} \cup goal$ then there also exists one with a transition into $\concrete{W^M} \cup goal$. 
+We observe that if there exists a winning concrete state $c$ then there also exists a chain of winning concrete states from $c$ to the goal. If $c$ is not part of $\concrete{W^M} \cup goal$, then, at some point, this chain must enter $\concrete{W^M} \cup goal$. Therefore, if there exists some concrete winning state that is not part of $\concrete{W^M} \cup goal$ then there also exists one with a transition into $\concrete{W^M} \cup goal$. 
 
 Thus, we can narrow down our search for abstract states to split to those that have at least one concrete state with a transition into $W^M$, excluding $W^M$ as these states are already must-winning so splitting them will not achieve anything. Thus, we look in $Cpre_1^m(W^M \cup goal)\setminus W^M$, i.e.\ the set of all may-predecessors of the must-winning set. 
 
-If we find an abstract state within this set for which from a subset of concrete states it is possible to force execution into $\concrete{W^M}$ then we can partition this abstract state in two such that those winning concrete states form one partition while the remaining states for the other partition.
+If we find an abstract state within this set for which from a subset of concrete states it is possible to force execution into $\concrete{W^M}$ then we can partition this abstract state in two such that those winning concrete states form one partition while the remaining states form the other partition.
 
 The former partition, $p$, consists entirely of winning concrete states. Furthermore, it is on the boundary of the must-winning set so it will become part of $W^M$ when the game is solved again with the refined abstraction.
 
-Each time a refinement is made, $\concrete{W^M}$ grows. If the concrete state space is finite $\concrete{W^M}$ can only grow so much so it must reach a fixed point (that may contain the entire concrete state space). When $W^M$ can no longer grow it is because there are no winning states at the boundary. Thus there are no winning states that are not part of $W^M$ and $W^M$ must be the exact winning set. Furthermore, $W^m$ must be equal to $W^M$ as if there are and any potential winning states that are not in $W^M$ then there must be some at the boundary and we know that there are none of those. Therefore one of the two termination conditions (lines~\ref{alg:tvg:tc1} and~\ref{alg:tvg:tc2}) must have already happened. Therefore the algorithm terminates.
+Each time a refinement is made, $\concrete{W^M}$ grows. If the concrete state space is finite $\concrete{W^M}$ can only grow so much so it must reach a fixed point (that may contain the entire concrete state space). When $W^M$ can no longer grow it is because there are no winning states at the boundary. Thus there are no winning states that are not part of $W^M$, and $W^M$ must be the exact winning set. Furthermore, $W^m$ must be equal to $W^M$ as if there are any potential winning states that are not in $W^M$ then there must be some at the boundary and we know that there are none of those. Therefore one of the two termination conditions (lines~\ref{alg:tvg:tc1} and~\ref{alg:tvg:tc2}) must have already happened. Therefore the algorithm terminates.
 
 \section{Variable Abstraction}
 \label{sec:variable_abstraction}
 
-Next, I apply the three valued abstraction-refinement scheme to symbolic games (Section~\ref{sec:symbolic_games}). I will present my efficient instantiation of the three valued abstraction-refinement scheme for variable abstraction, a technique for reducing the state space of symbolic games by eliminating a subset of the state variables.
+Next, I apply the three valued abstraction-refinement scheme to symbolic games (Section~\ref{sec:symbolic_games}). I will present my efficient instantiation of the three valued abstraction-refinement scheme for variable abstraction. Variable abstraction is a technique for reducing the state space of symbolic games by eliminating a subset of the state variables, proposed in a game context by \cite{Alfaro_Roy_07}.
 
-The description of three valued abstraction refinement leaves a lot unspecified. In particular
+The description of three valued abstraction refinement in the previous section leaves a lot unspecified. In particular
 
 \begin{itemize}
     \item How is the initial abstraction specified?
-    \item How are the controllable predecessors computed?
+    \item How are the may and must controllable predecessors computed?
     \item How is the abstraction refined?
 \end{itemize}
 
@@ -217,7 +218,7 @@ This abstraction satisfies the two requirements for a valid abstraction (Section
 
 The initial abstraction, $V_{init}$, for a Boolean reachability game is created from only the variables that are mentioned in the goal. This ensures that the initial abstraction is \emph{precise} for the goal set.
 
-The initial abstraction of the running example is illustrated in figure~\ref{fig:abs_state_sp}. $V_{init} = \{X, Y\}$. The abstract states are illustrated by the solid squares. There is one state for each valuation of $X$ and $Y$, the variables that occur in the goal in the example. Each abstract state contains four concrete states, one for each valuation of the concrete variables that were dropped from the abstraction, $U$ and $V$. $\concrete{}$ is a function from valuations of $U$ and $V$ to the powerset of the set of valuations of all state variables. For example:
+The initial abstraction of the running example is illustrated in figure~\ref{fig:abs_state_sp}. $V_{init} = \{X, Y\}$. The abstract states are illustrated by the solid squares. There is one state for each valuation of $X$ and $Y$, the variables that occur in the goal in the example. Each abstract state contains four concrete states, one for each valuation of the concrete variables that were dropped from the abstraction, $U$ and $V$. $\concrete{}$ is a function from valuations of $X$ and $Y$ to the powerset of the set of valuations of all state variables. For example:
 
 \begin{equation}
     \concrete{\langle T, T \rangle} = \{ \langle T, T, F, F \rangle, \langle T, T, F, T \rangle, \langle T, T, T, F \rangle, \langle T, T, T, T \rangle \}
@@ -239,7 +240,7 @@ It is clear from the figure that the abstraction forms a partition of the concre
 
 The controllable predecessor is constructed using the transition relation. For efficiency, the transition relation will be constructed incrementally. As the state variables in our initial abstraction are only the variables in $G$, these are the only ones we need to compute the transition relation for initially.
 
-Assuming that the transition relation for the concrete system is given as update functions, one for each concrete variable, then computation of the abstract transition relation $\delta$ is straightforward. I just compile the update functions for only those variables that appear in $G$ and take their conjunction.
+Assuming that the transition relation for the concrete system is given as update functions, one for each concrete variable, then computation of the abstract transition relation $\delta$ is straightforward. I just compile the update functions for only those variables that appear in $G$ into BDDs and each BDD becomes a conjunct in the conjunctively partitioned transition relation (Section~\ref{sec:syntcomp_partitioned}).
 
 However, there is the complication that these update functions may depend on additional variables that are not in $G$. Consider the update function for $Y$ in the running example. The next state value of $Y$ depends on $U$ which is not part of the abstract state space.
 
@@ -292,7 +293,7 @@ Since $W^M$ is a subset of the true winning region, if $I \rightarrow W^M$ then 
 
 If none of the above termination conditions held then it is because our abstraction is not precise enough and must be refined.
 
-The may (light grey) and must (dark grey) winning regions of the example system are given in figure~\ref{fig:may_must_win}. All states are may winning, but the top states are not must winning. These are the states where $Y$ is not $True$, as prescribed by the goal expression. Intuitively, this is because $U$ is not part of the abstraction. The solving algorithm is aware that the value of $Y$ can be set to the value of $U$ but it is not aware that $U$ can be set to $True$ by action $a2$.
+The may (light grey) and must (dark grey) winning regions of the example system are given in Figure~\ref{fig:may_must_win}. All states are may winning, but the top states are not must winning. These are the states where $Y$ is not $True$, as prescribed by the goal expression. Intuitively, this is because $U$ is not part of the abstraction. The solving algorithm is aware that the value of $Y$ can be set to the value of $U$ but it is not aware that $U$ can be set to $True$ by action $a2$.
 
 After solving, the initial state is not classified as either losing or must winning. In the next section, I show how to refine the abstraction to remove the imprecision that prevented us from definitively classifying the initial state. 
 
@@ -428,7 +429,7 @@ that is precise for $T$, $I$, and $\tau_i$.
 
 \subsubsection{Do not compute $W^m$}
 
-If we expect the game to be winning, and we are only interested in solving the game to compute the strategy, we may avoid computing $W^m$ entirely. The purpose of computing $W^m$ is to terminate early if our abstraction is precise enough to determine that we cannot win. If we already know that we can win or we expect it is likely that we can win, then it is not worth computing. The modified algorithm is given in Algorithm~\ref{alg:opt_three_val_reach}. It terminates when it discovers that the game is winning or when it finds that there are no refinements that guarantee that a new winning state will be found. The second termination condition happens when we were wrong and, in fact, the game was not winning. If we had computed a may winning set in addition, we would have discovered this much earlier so this algorithm is not a good choice when there is a reasonable possibility that the game is not winning.
+If we expect the game to be winning, and we are only interested in solving the game to compute the strategy, we may avoid computing $W^m$ entirely. The purpose of computing $W^m$ is to terminate early if our abstraction is precise enough to determine that we cannot win. If we already know that we can win or we expect it is likely that we can win, then it is not worth computing. The modified algorithm is given in Algorithm~\ref{alg:opt_three_val_reach}. It terminates when it discovers that the game is winning or when it finds that there are no refinements that guarantee that a new winning state will be found. The second termination condition happens when we were wrong and, in fact, the game was not winning. If we had computed a may winning set in addition, may have been able to discover this much earlier so this algorithm is not a good choice when there is a reasonable possibility that the game is not winning.
 
 \begin{algorithm}
 \caption{Three-valued abstraction refinement for games optimised to not compute $W^m$}
@@ -470,7 +471,7 @@ In summary, the abstraction-refinement algorithm described in this section is ve
 
 \subsection{Safety games}
 
-Safety games are solved dually to reachability games and are given here for completeness. The algorithm is given in Algorithm~\ref{alg:three_val_safe}. Note that \textsc{refineAbstraction} (Algorithm~\ref{alg:refineAbstractionSafe}) differs from the reachability game version as for safety games it is necessary to refine at the may-lose boundary (\cite{Alfaro_Roy_07}).
+Safety games are solved dually to reachability games and are given here for completeness. The algorithm is given in Algorithm~\ref{alg:three_val_safe}. Note that \textsc{refineAbstraction} (Algorithm~\ref{alg:refineAbstractionSafe}) differs from the reachability game version as for safety games it is necessary to refine at the may-lose boundary (\cite{Alfaro_Roy_07}), i.e. the boundary between may-winning states and the states that are neither may- nor must-winning.
 
 \begin{algorithm}
 \caption{Three-valued abstraction refinement for safety games.}
@@ -598,7 +599,7 @@ or
 \end{algorithmic}
 \end{algorithm}
 
-The algorithm begins in the same way as for safety and reachability. We solve the game with the current abstraction to find $W^m$ and $W^M$ on lines~\ref{a:tvmc:sM} and~\ref{a:tvmc:sm} and terminate if these allow us to determine the outcome on lines~\ref{a:tvmc:Y} and~\ref{a:tvmc:N}. We then refine and solve again. Again, as in the reachability and safety cases, we aim to grow $W^M$ and shrink $W^m$ so that, if we do not terminate early, they will eventually become the same set. This guarantees termination through one of the if conditions. Predicate promotion is the same as before but operates on different boundary states. We describe the algorithm to find these boundaries. 
+The algorithm begins in the same way as for safety and reachability. We solve the game with the current abstraction to find $W^m$ and $W^M$ on lines~\ref{a:tvmc:sM} and~\ref{a:tvmc:sm} and terminate if these allow us to determine the outcome on lines~\ref{a:tvmc:Y} and~\ref{a:tvmc:N}. We then refine and solve again. Again, as in the reachability and safety cases, we aim to grow $W^M$ and shrink $W^m$ so that, if we do not terminate early, they will eventually become the same set. This guarantees termination through one of the if conditions. Variable promotion is the same as before but operates on different boundary states. We describe the algorithm to find these boundaries. 
 
 \subsubsection{Correctness}
 
@@ -628,7 +629,7 @@ Thus, the variable abstraction algorithm is correct and terminates for GR(1) gam
 
 \section{Predicate Abstraction}
 
-Predicate abstraction has proved to be a particularly successful technique in model checking~\cite{Graf_Saidi_97}. Predicate abstraction partitions the state space of the game based on a set of predicates, which capture essential properties of the system. States inside a partition are indistinguishable to the abstraction, which limits the maximal precision of solving the game achievable within the given abstraction but greatly improves the scalability of the synthesis algorithm. As with variable abstraction, if the abstraction is too coarse, it is iteratively refined by introducing new predicates.
+Predicate abstraction has proved to be a particularly successful technique in model checking~\cite{Graf_Saidi_97}. Predicate abstraction partitions the state space of the game based on a set of predicates, which capture essential properties of the system. States inside a partition are indistinguishable to the abstraction, which limits the maximal precision of solving the game achievable within the given abstraction but greatly improves the scalability of the synthesis algorithm. As with variable abstraction, if the abstraction is too coarse, it is iteratively refined by introducing new predicates. The application of predicate abstraction to games in the main contribution of this chapter.
 
 The key difficulty in applying predicate abstraction to games is to efficiently solve the abstract game arising at every iteration of the abstraction refinement loop. This requires computing the abstract \emph{controllable predecessor} operator efficiently. This involves enumerating concrete moves available to both players in each abstract state, which can be prohibitively expensive.  
 
@@ -762,10 +763,10 @@ The state space $V$ of the abstract game is defined as $V = \mathbb{B}^n$, where
 \section{Approximate Three Valued Abstraction Refinement}
 \label{sec:approx_three_val}
 
-The goal of the following sections is to apply the machinery developed in the previous sections for variable abstraction to predicate abstraction. There are several pitfalls, so we must identify these pitfalls and take them into account.
+The goal of the following sections is to adapt the machinery developed in the previous sections for variable abstraction to predicate abstraction. There are several pitfalls, so we must identify these pitfalls and take them into account.
 
 \subsection{Motivation}
-The abstraction-refinement scheme described in Section~\ref{sec:three_val_abs_ref} is very general. It makes the assumption that both of the controllable predecessors, $\cprem$ and $\cpreM$, can be computed precisely and efficiently.
+The abstraction-refinement scheme described in Section~\ref{sec:three_val_abs_ref} makes the assumption that both of the controllable predecessors, $\cprem$ and $\cpreM$, can be computed precisely and efficiently.
 
 While it was straightforward to compute them when performing variable abstraction on a Boolean game, it is not clear that they can be computed efficiently when performing predicate abstraction.
 
@@ -774,7 +775,7 @@ While it was straightforward to compute them when performing variable abstractio
     \everydisplay{\mathtt{\xdef\tmp{\fam\the\fam\relax}\aftergroup\tmp}}
     Consider the label abstraction induced by abstract label variables $\lambda_1$ and $\lambda_2$ and the corresponding label predicates $\|\lambda_1\| = (val=req)$ and $\|\lambda_2\| = (val=5)$.
 
-    When performing variable abstraction, we would have treated $\lambda_1$ and $\lambda_2$ as independent variables. Each player was able to set them to any value in any state. However, when performing predicate abstraction, they are not independent, as they share the $val$ variable. Suppose player~1 tries to set them both to true. This can only be performed when $req=5$. This additional state predicate is needed to keep track of which label predicate combinations are valid.
+    When performing variable abstraction, we would have treated $\lambda_1$ and $\lambda_2$ as independent variables. Each player was able to set them to any value in any state, providing it was their turn. However, when performing predicate abstraction, they are not independent, as they share the $val$ variable. Suppose player~1 tries to set them both to true. This can only be performed when $req=5$. This additional state predicate is needed to keep track of which label predicate combinations are valid.
     \qed
 \end{ex}
 
@@ -798,14 +799,14 @@ We require that, for all $U \subseteq V$ we have:
 
 \begin{equation}
 \label{eqn:cpre_p1}
-\cprem \subseteq \cpremp
+\cprem(U) \subseteq \cpremp(V)
 \end{equation}
 
 \noindent and
 
 \begin{equation}
 \label{eqn:cpre_p2}
-\cpreMm \subseteq \cpreM
+\cpreMm(U) \subseteq \cpreM(V)
 \end{equation}
 
 With these operators we create a new approximate abstraction-refinement scheme given in Algorithm~\ref{alg:approx_three_val}. Note that the algorithm relies on \textsc{refineCpre} and \textsc{refineAbstraction} which I will define for predicate abstraction in the following sections.
@@ -877,7 +878,7 @@ $$
 This syntactically computed transition relation contains two sources of imprecision.  
 
 \begin{itemize}
-    \item First, untracked variables $\vect{\omega}$ are not part of the abstract state space $\Sigma$ and are therefore treated as external inputs.  
+    \item First, untracked variables $\vect{\omega}$ are not part of the abstract state space $\Sigma$ and are therefore treated as external inputs, like the free variables of Section~\ref{sec:var_cpre}.
     \item Second, not all abstract labels  are available in all abstract states and hence not all transitions in $\Delta$ correspond to a feasible concrete transition.  For example, given the set of predicates shown in Figure~\ref{fig:ex_game_abstraction}, the abstract label $\lambda_1 = true, \lambda_2 = true$ is only available in concrete states that satisfy the condition $req=5$.  In general, given a state-untracked-label tuple $\langle v,u,l\rangle$, the abstract label $l$ may be available in all, some, or none of the concrete states consistent with $v$ and $u$.  
 \end{itemize}
 
@@ -1189,7 +1190,7 @@ We must be careful when refining the abstraction. Do the consistency constraints
 
     Our must consistency constraint, $C^{M-}$, is a relation over the variables $\sigma_1$ and $\lambda_1$. For example, the tuple $v=(true), l=(true)$ is must consistent because it is always possible to assert $\lambda_1=true$ when $\sigma_1=true$ by choosing $val$ appropriately.
 
-Suppose, when computing the update function for some variable that has just been promoted we introduce the abstract untracked variable $\omega_2$ with corresponding predicate $\|\omega_2\| = (req=5)$. This partitions each sub-state into two. The definition of $C^{M-}$ (Equation~\ref{eqn:cM}) ensures that if a label is must consistent in a given state before the variable promotion then it will be must consistent in each sub-state after the promotion. In this example, the tuples $v=(true), u=(false), l=(true)$ and $v=(true), u=(true), l=(true)$ are both must consistent. Notice that, if we are symbolically representing $C^{M-}$, then the new $C^{M-}$ does not depend on the newly introduced untracked variable. Thus, we may keep the same $C^{M-}$ from before the promotion.
+Suppose, when computing the update function for some variable that has just been promoted we introduce the abstract untracked variable $\omega_2$ with corresponding predicate $\|\omega_2\| = (req=5)$. This partitions each sub-state into two. The definition of $C^{M-}$ (Equation~\ref{eqn:cM}) ensures that if a label is must consistent in a given state before the variable promotion then it will be must consistent in each sub-state after the promotion. In this example, the tuples $v=(true), u=(false), l=(true)$ and $v=(true), u=(true), l=(true)$ are both must consistent. 
 
     The situation is not so good for promotions that introduce new label variables. We cannot simply reuse $C^{M-}$ from before the variable promotion as we do for untracked variables. Consider what happens when, continuing on from before, we add $\lambda_2$ with corresponding predicate $\|\lambda_2\| = (val=5)$. The tuple $v=(true), u=(true), l=(true)$ is must consistent. Extending the tuple to $v=(true), u=(true), l=(true, true)$ is fine, but $v=(true), u=(true), l=(true, false)$ is not. The latter tuple is not must-consistent. Therefore, we may not simply reuse $C^{M-}$ as in the case where an untracked variable is added. 
 
@@ -1252,7 +1253,7 @@ If it is not, I extract a witness state on line~\ref{a:init_incl:l:implicant}. I
 
 \subsection{Initial Abstraction}
 
-I obtain the initial abstraction by extracting atomic predicates from expressions $T$, and $\tau_i$, which guarantees that the abstraction is precise for $T$, and $\tau_i$. While this property is not essential for my approach, I will rely on it to simplify the presentation of the algorithm.
+I obtain the initial abstraction by extracting atomic predicates from expressions $T$ (the goal formula), and $\tau_i$ (the turn formulas), which guarantees that the abstraction is precise for $T$, and $\tau_i$. While this property is not essential for my approach, I will rely on it to simplify the presentation of the algorithm.
 
 The initial state and label predicates are those that are created during compilation of the update functions for these predicates.
 
@@ -1260,9 +1261,9 @@ Finally, I assign $C^{m+}=\top$ and $C^{M-}=\bot$ initially.
 
 \subsection{Putting it Together}
 
-The Algorithm for three valued predicate abstraction-refinement is given in Algorithm~\ref{alg:final}. In lines~\ref{a:final:l:must} and~\ref{a:final:l:may} I compute the must and may winning sets. I then check if the initial set is a subset of the must winning set using the procedure described in Section~\ref{sec:init_containment} on line~\ref{a:final:l:term1}. If it is, I terminate as the game is winning. I then check if the initial set is a subset of the may winning set using the same procedure on line~\ref{a:final:l:term2}. If it is not, I terminate as the game is losing. Finally, if none of the termination conditions are met, I refine. First, I attempt to refine the consistency constraints on line~\ref{a:final:l:refcpre} using the procedure described in Section~\ref{sec:cons_refinement}. If that fails, I refine he abstraction on line~\ref{a:final:l:refabs} using the procedure described in Section~\ref{sec:cons_refinement}.
+The Algorithm for three valued predicate abstraction-refinement is given in Algorithm~\ref{alg:final}. In lines~\ref{a:final:l:must} and~\ref{a:final:l:may} I compute the must and may winning sets. I then check if the initial set is a subset of the must winning set using the procedure described in Section~\ref{sec:init_containment} on line~\ref{a:final:l:term1}. If it is, I terminate as the game is winning. I then check if the initial set is a subset of the may winning set using the same procedure on line~\ref{a:final:l:term2}. If it is not, I terminate as the game is losing. Finally, if none of the termination conditions are met, I refine. First, I attempt to refine the consistency constraints on line~\ref{a:final:l:refcpre} using the procedure described in Section~\ref{sec:cons_refinement}. If that fails, I refine the abstraction on line~\ref{a:final:l:refabs} using the procedure described in Section~\ref{sec:cons_refinement}.
 
-Finally, to arrive at the Termite game solver, I extend the algorithm to GR(1) games in the same way I did for variable abstraction.
+Finally, to arrive at the Termite game solver, I extend the algorithm to GR(1) games in the same way that I did for variable abstraction in Section~\ref{sec:omega_reg}.
 
 \begin{algorithm}
 \caption{Three-valued abstraction refinement for games.}
@@ -1347,7 +1348,7 @@ Algorithm~\ref{alg:refineCpre} has two important performance issues:
 
 \end{itemize}
 
-To address the first issue, I modify the algorithm to handle a set of abstract labels at every iteration.  To this end, in line~7, instead of choosing a complete assignment to state, untracked, and label predicates, I compute a \emph{prime implicant} of set $T$, i.e., an assignment to a subset of variables in $\vect{\sigma}\cup\vect{\omega}\cup\vect{\lambda}$ such that any extension of this assignment to the remaining variables satisfies $T$: 
+To address the second issue, I modify the algorithm to handle a set of abstract labels at every iteration.  To this end, in line~7, instead of choosing a complete assignment to state, untracked, and label predicates, I compute a \emph{prime implicant} of set $T$, i.e., an assignment to a subset of variables in $\vect{\sigma}\cup\vect{\omega}\cup\vect{\lambda}$ such that any extension of this assignment to the remaining variables satisfies $T$: 
 $$
 \langle v,u,l\rangle \gets \textsc{primeImplicant}(T),
 $$ 
@@ -1374,7 +1375,7 @@ I implemented this abstraction refinement algorithm as part of Termite. Termite 
 
 I extended the abstraction-refinement algorithm to handle GR(1) games as outlined in Section~\ref{sec:omega_reg}.
 
-Termite currently supports input specifications over the concrete domain of fixed-size bit vectors and arrays.  I use the Z3 SMT solver to check satisfiability and retrieve unsatisfiable cores of formulas over concrete variables (lines~\ref{a:refineCpre:sat} and~\ref{a:refineCpre:core} of Algorithm~\ref{alg:refineCpre}).  Quantifier elimination (line~\ref{a:refineCpre:quant}) over bit vector formulas is performed using a custom implementation of the decision procedure for bit vectors by Barrett et al.~\cite{Barrett_DL_98}.  Termite interacts with the theory solver through a well-defined interface and hence can be readily extended with additional theories.  All computations over the abstract domain are performed symbolically using the CUDD BDD package.  
+Termite currently supports input specifications over the concrete domain of fixed-size bit vectors and arrays.  I use the Z3 SMT solver to check satisfiability and retrieve unsatisfiable cores of formulas over concrete variables (lines~\ref{a:refineCpre:sat} and~\ref{a:refineCpre:core} of Algorithm~\ref{alg:refineCpre}).  Quantifier elimination (line~\ref{a:refineCpre:quant}) over bit vector formulas is performed using a custom implementation of the decision procedure for bit vectors by~\cite{Barrett_DL_98}. The quantifier elimination algorithm was written by Dr.\ Leonid Ryzhyk. Termite interacts with the theory solver through a well-defined interface and hence can be readily extended with additional theories.  All computations over the abstract domain are performed symbolically using the CUDD BDD package.  
 
 In addition to the techniques described for variable and predicate abstraction implemented the optimisations described in Section~\ref{sec:syntcomp_optimisations}.
 
