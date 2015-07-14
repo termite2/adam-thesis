@@ -18,7 +18,7 @@ To simplify the presentation, with the exception of Section~\ref{sec:syntcomp}, 
 \section{Three Valued Abstraction-Refinement}
 An abstraction is a simplification of the original transition system. An abstraction is used when the game is too large to be solved. Ideally, an abstraction is both small enough to be solved and detailed enough to gain some additional information about the properties of the system. 
 
-One common use of an abstraction is in an abstraction-refinement loop. In an abstraction refinement loop, an initial simple abstraction is found and is solved. Then, the results of the abstraction are used to refine the abstraction, ie\. to build another system model that contains slightly more detail than the original abstraction. This is repeated in a loop until the original game is solved. It is often possible to solve the original game with a far less detailed abstraction than the original unabstracted system. 
+One common use of an abstraction is in an abstraction-refinement loop. In an abstraction refinement loop, an initial simple abstraction is found and is solved. Then, the results of the abstraction are used to refine the abstraction, ie.\ to build another system model that contains slightly more detail than the original abstraction. This is repeated in a loop until the original game is solved. It is often possible to solve the original game with a far less detailed abstraction than the original unabstracted system. 
 
 Finding an abstraction that is simultaneously small and useful for making progress in solving the game is a difficult task and is what will be dealt with in the following sections. I begin with earlier work on three valued abstraction refinement. 
 
@@ -34,7 +34,7 @@ At termination, either
 \item one of the initial states is classified as losing (again, no other states need to be classified)
 \end{itemize}
 
-This additional imprecision often allows us to use a less precise abstraction compared to the original algorithm where all states are exactly classified. The use of a coarser abstraction is usually computationally more efficient. If none of the termination conditions are met then we need to refine the abstraction. A good abstraction refinement scheme will guarantee that one of the termination conditions is eventually met after enough refinements are performed. It should also ensure that when the algorithm terminates the abstraction is not unnecessarily fine.
+The flexibility to categorize the game outcome for certain states as unknown allows us to use a coarse abstraction in contrast to the algorithm of Section~\ref{sec:syntcomp} where all states must be exactly classified. The use of a coarse abstraction is usually computationally efficient. If none of the termination conditions are met then we need to refine the abstraction. A good abstraction refinement scheme will guarantee that one of the termination conditions is eventually met after enough refinements are performed. It should also ensure that when the algorithm terminates the abstraction is not unnecessarily fine.
 
 \subsection{Abstraction}
 \label{sec:abstraction_def}
@@ -246,21 +246,21 @@ However, there is the complication that these update functions may depend on add
 
 To handle this, I introduce an additional set of variables, denoted $F$ (for \emph{free}, for reasons that will become apparent) for variables that are needed when computing the update functions but are not part of the abstract state space. In the running example, at this stage, $F=\{U\}$.
 
-Additionally, these update functions may depend on a subset of the label variables. In the running example, it is possible to set $U$ to the value of $L$, a label variable, and, each variable also implicitly depends on the $tag$ variable. These Boolean label variables that the update functions for state variables in $V_\alpha$ depend on are denoted $\Lambda$. Note that in the running example $U \notin V_\alpha$ initially, so initially $\Lambda$ is just $\{tag\}$.
+Additionally, these update functions may depend on a subset of the label variables. In the running example, it is possible to set $U$ to the value of $L$, a label variable, and, each variable also implicitly depends on the $tag$ variable. These Boolean label variables that the update functions for state variables in $V_\alpha$ depend on are denoted $\Lambda$. Note that in the running example $U \notin V_\alpha$ initially, i.e.\ it is not part of the abstraction. So, initially $\Lambda$ is just $\{tag\}$ because $tag$ is the only label variable that the variables in $V_\alpha$ depend on.
 
 I define the two controllable predecessors:
 
 \begin{equation}
     \label{eqn:symb_cpre_M}
-    Cpre_1^M(X) = \forall F. \exists \Lambda. \forall V_\alpha'. \delta \rightarrow X'
+    Cpre_1^M(\Sigma) = \forall F. \exists \Lambda. \forall V_\alpha'. \delta \rightarrow \Sigma'
 \end{equation}
 
 \begin{equation}
     \label{eqn:symb_cpre_m}
-    Cpre_1^m(X) = \exists F. \exists \Lambda. \forall V_\alpha'. \delta \rightarrow X'
+    Cpre_1^m(\Sigma) = \exists F. \exists \Lambda. \forall V_\alpha'. \delta \rightarrow \Sigma'
 \end{equation}
 
-\noindent where $V_\alpha'$ is the next state copy of $V_\alpha$ and $X'$ is $X$ with all variables in $V_\alpha$ renamed to the corresponding variable in $V_\alpha'$.
+\noindent where $V_\alpha'$ is the next state copy of $V_\alpha$ and $\Sigma'$ is $\Sigma'$ with all variables in $V_\alpha$ renamed to the corresponding variable in $V_\alpha'$.
 
 Though the $F$ variables are really part of the state, I treat them as free input variables. Intuitively, their values are chosen by player~2 when computing $Cpre_1^M$ and by player~1 when computing $Cpre_1^m$. This makes it more difficult, and respectively, easier for player~1 to control execution into the target set.
 
@@ -287,13 +287,13 @@ In the running example the goal is $\langle X=True \land Y=True \rangle$. Consid
 
 \subsection{Solving the game}
 
-Now that we have an abstraction and a definition of the controllable predecessor we can solve the game. We first solve the game using $Cpre_1^M$ and denote the winning region $W^M$, or the \emph{must} winning region. We also solve the game using $Cpre_1^m$ and denote the winning region $W^m$ or the \emph{may} winning region.
+Now that we have an abstraction and a definition of the controllable predecessor we can solve the game. We first solve the game using $Cpre_1^M$ and denote the winning region $W^M$, or the \emph{must} winning region. We also solve the game using $Cpre_1^m$ and denote the winning region $W^m$ or the \emph{may} winning region. This is performed on lines~\ref{a:varabs:must} and \ref{a:varabs:may} of Algorithm~\ref{alg:three_val_abs_ref}.
 
-Since $W^M$ is a subset of the true winning region, if $I \rightarrow W^M$ then we may terminate as the game is surely winnable. As $W^m$ is a superset of the true winning region, if $I \centernot\rightarrow W^m$ then we may terminate as the game is surely not winnable.
+Since $W^M$ is a subset of the true winning region, if $I \rightarrow W^M$ then we may terminate as the game is surely winnable (line~\ref{a:varabs:yes}). As $W^m$ is a superset of the true winning region, if $I \centernot\rightarrow W^m$ then we may terminate as the game is surely not winnable (line~\ref{a:varabs:no}).
 
-If none of the above termination conditions held then it is because our abstraction is not precise enough and must be refined.
+If none of the above termination conditions held then it is because our abstraction is not precise enough and must be refined (line~\ref{a:varabs:ref}).
 
-The may (light grey) and must (dark grey) winning regions of the example system are given in Figure~\ref{fig:may_must_win}. All states are may winning, but the top states are not must winning. These are the states where $Y$ is not $True$, as prescribed by the goal expression. Intuitively, this is because $U$ is not part of the abstraction. The solving algorithm is aware that the value of $Y$ can be set to the value of $U$ but it is not aware that $U$ can be set to $True$ by action $a2$.
+The may (light grey) and must (dark grey) winning regions of the example system are given in Figure~\ref{fig:may_must_win}. All states are may winning, but the top states are not must winning. These are the states where $Y$ is not $True$, as prescribed by the goal expression. Intuitively, this is because $U$ is not part of the abstraction. As $Y$ is part of the abstract state space, the algorithm is aware that the value of $Y$ can be set to the value of $U$ but it is not aware that $U$ can be set to $True$ by action $a2$ as $U$ is not part of the abstraction. This is an example of the precision that is lost when using abstraction.
 
 After solving, the initial state is not classified as either losing or must winning. In the next section, I show how to refine the abstraction to remove the imprecision that prevented us from definitively classifying the initial state. 
 
@@ -306,26 +306,12 @@ After solving, the initial state is not classified as either losing or must winn
 
 \subsection{Refinement}
 
-\begin{algorithm}
-
-\caption{Pseudocode of \textsc{refineAbstraction}}
-\label{alg:refineAbstractionVar}
-
-\begin{algorithmic}[1]
-\Function{refineAbstraction}{$W^M$}
-    \State $U^M \gets CpreU_1^M(W^M) \land \overline{W^M}$
-    \State $toPromote \gets \vec{\omega}~\cap~$\Call{support}{\textsc{shortPrime}($U^M$)} \label{a:ra:extract_prime}
-    \State $\Call{promote}{toPromote}$ \label{a:ra:promote}
-\EndFunction
-\end{algorithmic}
-\end{algorithm}
-
 The algorithm for refining the abstraction is given in Algorithm~\ref{alg:refineAbstractionVar}. As explained in Section~\ref{sec:threeval_generic}, when refining the abstraction of a reachability game, we can limit our search for states to split to the \emph{may-must boundary}. We split an abstract state in two such that from one of the new states $a$ it is possible to force execution into $W^M$ from every state in $\concrete{a}$. Instead of searching each state at the boundary in turn for a candidate state to split as was implied in section~\ref{sec:threeval_generic}, we find a candidate state using an efficient symbolic calculation.
 
 We define the function $Cpre_1^F$ that returns the set of sub-states in the partition induced by the variables in $V_{\alpha} \cup F$ that are winning:
 
 \begin{equation}
-    Cpre_1^F(X) = \exists \Lambda. \forall V_\alpha'. \delta \rightarrow X'
+    Cpre_1^F(\Sigma) = \exists \Lambda. \forall V_\alpha'. \delta \rightarrow \Sigma'
 \end{equation}
 
 Note that this differs from Equations~\ref{eqn:symb_cpre_M} and~\ref{eqn:symb_cpre_m} in that it never quantifies out $F$. 
@@ -355,7 +341,21 @@ Returning to the example, one implicant of Equation~\ref{eqn:edge} is $\{X=1, Y=
 \end{figure}
 
 \subsection{Putting it together}
-The three valued variable abstraction refinement algorithm is given in Algorithm~\ref{alg:three_val_abs_ref}.
+The three valued variable abstraction refinement loop is given in Algorithm~\ref{alg:three_val_abs_ref} and the procedure to refine the abstraction is given in Algorithm~\ref{alg:refineAbstractionVar}.
+
+\begin{algorithm}
+
+\caption{Pseudocode of \textsc{refineAbstraction}}
+\label{alg:refineAbstractionVar}
+
+\begin{algorithmic}[1]
+\Function{refineAbstraction}{$W^M$}
+    \State $U^M \gets CpreU_1^M(W^M) \land \overline{W^M}$
+    \State $toPromote \gets \vec{\omega}~\cap~$\Call{support}{\textsc{shortPrime}($U^M$)} \label{a:ra:extract_prime}
+    \State $\Call{promote}{toPromote}$ \label{a:ra:promote}
+\EndFunction
+\end{algorithmic}
+\end{algorithm}
 
 \begin{algorithm}
 \caption{Three-valued abstraction refinement algorithm}
@@ -372,14 +372,14 @@ that is precise for $T$, $I$, and $\tau_i$.
 \Function{Solve}{$transitionRelation$, $goal$}
 
     \Loop
-        \State $W^M \gets \reach(\abstractM{T}, Cpre_1^M)$
-        \State $W^m \gets \reach(\abstractm{T}, Cpre_1^m)$
+        \State $W^M \gets \reach(\abstractM{T}, Cpre_1^M)$ \label{a:varabs:must}
+        \State $W^m \gets \reach(\abstractm{T}, Cpre_1^m)$ \label{a:varabs:may}
         \If{$\abstractM{I} \subseteq W^M$} 
-            \State\Return Yes
+            \State\Return Yes \label{a:varabs:yes}
         \ElsIf{$\abstractM{I} \nsubseteq W^m$} 
-            \State\Return No
+            \State\Return No \label{a:varabs:no}
         \Else       
-            \State$\Call{refineAbstraction}{W^M}$
+            \State$\Call{refineAbstraction}{W^M}$ \label{a:varabs:ref}
         \EndIf
     \EndLoop
 \EndFunction
@@ -533,7 +533,7 @@ or
 \mu X. \nu Y. \ldots \phi(X, Y, \ldots)
 \end{equation}
 
-\noindent where the fixed point quantifiers strictly alternate. The algorithm is given in Algorithm~\ref{alg:generic_mu_calc}.
+\noindent where the fixed point quantifiers strictly alternate. The algorithm is given in Algorithm~\ref{alg:generic_mu_calc} and the refinement procedure is given in Algorithm~\ref{alg:muRefineAbstraction}.
 
 \begin{algorithm}
 \caption{Three-valued abstraction refinement for $\mu$-calculus games}
@@ -565,28 +565,28 @@ or
 \begin{algorithm}
 
 \caption{Pseudocode of \textsc{refineAbstraction} for $\mu$-calculus games}
-\label{alg:refineAbstraction}
+\label{alg:muRefineAbstraction}
 
 \begin{algorithmic}[1]
 \Function{refineAbstraction}{$\phi$}
 
-    \If{$\phi = \nu X. \psi$}
+\If{$\phi = \nu X. \psi$} \label{a:mu:nu}
 
-        \State $W^m \gets \textsc{Solve}(\phi, Cpre_1^m)$
+\State $W^m \gets \textsc{Solve}(\phi, Cpre_1^m)$ \label{a:mu:win}
 
-        \State $U^m \gets \overline{CpreU_1^{m}(W^m)} \land W^m$
-        \If{$U^m \neq False$}
+    \State $U^m \gets \overline{CpreU_1^{m}(W^m)} \land W^m$ \label{a:mu:cpre}
+    \If{$U^m \neq False$} \label{a:mu:pri}
             \State $toPromote \gets \vec{\omega}~\cap~$\Call{support}{\textsc{shortPrime}($U^m$)}
             \State $\Call{promote}{toPromote}$
         \Else
-            \State \Call{refineAbstraction}{$\psi [X = W^m]$}
+            \State \Call{refineAbstraction}{$\psi [X = W^m]$} \label{a:mu:recurse}
         \EndIf
 
     \ElsIf{$\phi = \mu X. \psi$}
 
         \State $W^M \gets \textsc{Solve}(\phi, Cpre_1^M)$
 
-        \State $U^M \gets CpreU_1^{M-}(W^M) \land \overline{W^M}$
+        \State $U^M \gets CpreU_1^{M}(W^M) \land \overline{W^M}$
         \If{$U^m \neq False$}
             \State $toPromote \gets \vec{\omega}~\cap~$\Call{support}{\textsc{shortPrime}($U^M$)}
             \State $\Call{promote}{toPromote}$
@@ -607,15 +607,15 @@ Assuming correctness of the $Solve$ function, $W^m$ and $W^M$ will always contai
 
 \subsubsection{Termination}
 
-Suppose the specification formula is of the form $\nu X. \psi$, ie.\ it has a greatest fixed point at its outermost level. We have already calculated the may winning region and we denote this $X^m$ as it is the final value that the $X$ variable takes when solving the may game. We attempt to directly shrink $X^m$ by reconsidering the last application of $Cpre^m$ that yielded $X^m$ and looking for refinements that cause some of the may winning states found by this last iteration to become losing. This amounts to checking the $X^m$-lose boundary for additional losing states, in the same way safety games are refined, which also happens to be specified with a greatest fixed point.
+Suppose the specification formula is of the form $\nu X. \psi$, ie.\ it has a greatest fixed point at its outermost level (line~\ref{a:mu:nu} of Algorithm\ref{alg:muRefineAbstraction}). We calculate the may winning region and we denote this $X^m$ as it is the final value that the $X$ variable takes when solving the may game (line~\ref{a:mu:win}). We attempt to directly shrink $X^m$ by reconsidering the last application of $Cpre^m$ that yielded $X^m$ and looking for refinements that cause some of the may winning states found by this last iteration to become losing (line~\ref{a:mu:cpre}). This amounts to checking the $X^m$-lose boundary for additional losing states, in the same way safety games are refined, which also happens to be specified with a greatest fixed point.
 
-We redo the last $CPre$ application as follows. We evaluate $\phi(X, Y, Z, \ldots)$ with each fixed-point-quantifier variable substituted as $X^m$, ie.\ $X=X^m$, $Y=X^m$, \ldots \ as these are the values that the fixed point variables had in the last iteration when the game was solved. This happens because the $mu$-calculus formula is in prefix normal form. We then use this value as the target and refine states and consistency relations as described previously. We re-solve if we succeed.
+We redo the last $CPre$ application as follows. We evaluate $\phi(X, Y, Z, \ldots)$ with each fixed-point-quantifier variable substituted as $X^m$, ie.\ $X=X^m$, $Y=X^m$, \ldots \ as these are the values that the fixed point variables had in the last iteration when the game was solved. The substitution is performed in the recursive call on line~\ref{a:mu:recurse}. This happens because the $mu$-calculus formula is in prefix normal form. We then use this value as the target and refine states and consistency relations as described previously. We re-solve if we succeed.
 
 Making refinements only as described above does not guarantee that eventually $W^m = W^M$. We refine recursively as follows. We define a new objective: $\mu Y., \ldots, cpre(\phi(X=X^m, Y, \ldots))$, ie.\ we drop the $\nu X.$ quantifier and replace $X$ by $X^m$ and refine recursively with this. Note that $Y^m \neq Y^M$ as otherwise $X^m$ would equal $X^M$ and we would have terminated. Conceptually, we are trying to either grow $Y^M$ to $X^m$ ($=Y^m$) through repeated refinement, proving that $X^M = X^m$ (and terminating with an answer somewhere along the way), or find a reason why $Y^M$ does not equal $X^m$ (finding this is equivalent to shrinking $Y^m$, and hence $X^m$) and continue, having achieved our goal of bringing $X^m$ closer to $X^M$. One of the two outcomes (growing $Y^M$ to $X^m$ or shrinking $Y^m = X^m$) must happen because they are not equal initially and (by structural induction on the $mu$-calculus formula, assuming the algorithm is correct for shorter formulas, with safety and reachability as the base cases) must meet somewhere in the middle.
 
-Note, that any refinements found in some step would have been found in a subsequent step had that step been skipped. We find that giving priority to the outermost fixed point results in better abstractions and as refinements for outer fixed points are cheaper to compute it makes sense to prioritise them.
+Note, that any refinements found in some step would have been found in a subsequent step had that step been skipped. We find that giving priority to the outermost fixed point results in better abstractions and as refinements for outer fixed points are cheaper to compute it makes sense to prioritise them (line~\ref{a:mu:pri}).
 
-Every recursive call drops one fixed point quantifier, so eventually we reach a formula of the form $Q X. \phi(X)$ where $X$ is either $\mu$ or $\nu$ and proceed as in the safety or reachability case. Termination is guaranteed for these, and, by induction for the rest of the specification.
+Every recursive call drops one fixed point quantifier, so eventually we reach a formula of the form $Q X. \phi(X)$ where $Q$ is either $\mu$ or $\nu$ and proceed as in the safety or reachability case. Termination is guaranteed for these, and, by induction for the rest of the specification.
 
 \subsection{GR(1) games}
 
@@ -779,7 +779,7 @@ While it was straightforward to compute them when performing variable abstractio
     \qed
 \end{ex}
 
-This is just one of the potential pitfalls of handling predicate abstraction in the same way as variable abstraction. 
+This is an example of a potential pitfall of handling predicate abstraction in the same way as variable abstraction and not considering which combinations of predicates are possible in the underlying theory. 
 
 \subsection{Algorithm}
 
@@ -1107,18 +1107,18 @@ Line~9 picks a single refinement candidate $\langle v,u,l \rangle$ from the set.
     \If{$T = \bot$}
         \Return $false$ \Comment{no refinement is possible}
     \Else
-        \State choose $\langle v,u,l\rangle \in T$
+    \State choose $\langle v,u,l\rangle \in T$ \label{a:refineCpre:pickSat}
         \State $F \gets (\|\vect{\sigma}\|=v \land \|\vect{\omega}\|=u \land \|\vect{\lambda}\|=l)$
         \If{\Call{satisfiable}{$F$}} \label{a:refineCpre:sat}
-            \State $A             \gets $ \Call{eliminateQuantifiers}{$\exists Y.\|\vect{\lambda}\|=l$} \label{a:refineCpre:quant}
-            \State $A             \gets $ \Call{massage}{$A$}
+        \State $A             \gets $ \Call{eliminateQuantifiers}{$\exists Y.\|\vect{\lambda}\|=l$} \label{a:refineCpre:quant} \label{a:refineCpre:addLabel_start}
+            \State $A             \gets $ \Call{massage}{$A$} \label{a:refineCpre:a_end}
             \State $P             \gets \text{atomic predicates in }A$
             \State $\vect{\omega} \gets \vect{\omega} \cup (\text{fresh variables for predicates in } P\setminus\Omega)$
             \State $\Omega        \gets \Omega \cup P$
             \State $\hat{A}       \gets A[\|x\|\mid x, \text{for all } x\in\Omega \cup \Sigma ]$
             \State $\hat{A}       \gets$ replace atomic predicates in $A$ with Boolean
             \Statex  ~~~~~~~~~~~~~~~~~~~~vars, introducing fresh vars when necessary
-            \State $C^{M-}        \gets C^{M-} \lor (\hat{A}\land \vect{\lambda}=l)$% \Comment{add consistent transition}
+            \State $C^{M-}        \gets C^{M-} \lor (\hat{A}\land \vect{\lambda}=l)$ \label{a:refineCpre:addLabel_end}
         \Else
 %            \State $(\bigwedge\|\alpha_i\|=c_i) \gets$ \Call{unsatCore}{$F$}
             \State $C^{m+}\gets C^{m+} \land \overline{\textsc{unsatCore}(F)}$ \label{a:refineCpre:core}%\Comment{eliminate spurious transitions} 
@@ -1344,17 +1344,17 @@ Algorithm~\ref{alg:refineCpre} has two important performance issues:
 
     \item Every time an untracked variable is promoted, if a new label variable is created in the process, $C^{M-}$ must be reset to False, throwing away all our previous progress on finding consistent labels.
 
-    \item In lines~10--16 it analyses and adds to $C^{M-}$ a single abstract label $l$.  The set of all abstract labels is exponential in size in the number of label predicates and can be very large in practice, making explicit enumeration infeasible.  
+    \item In lines~\ref{a:refineCpre:addLabel_start}--\ref{a:refineCpre:addLabel_end} it analyses and adds to $C^{M-}$ a single abstract label $l$.  The set of all abstract labels is exponential in size in the number of label predicates and can be very large in practice, making explicit enumeration infeasible.  
 
 \end{itemize}
 
-To address the second issue, I modify the algorithm to handle a set of abstract labels at every iteration.  To this end, in line~7, instead of choosing a complete assignment to state, untracked, and label predicates, I compute a \emph{prime implicant} of set $T$, i.e., an assignment to a subset of variables in $\vect{\sigma}\cup\vect{\omega}\cup\vect{\lambda}$ such that any extension of this assignment to the remaining variables satisfies $T$: 
+To address the second issue, I modify the algorithm to handle a set of abstract labels at every iteration.  To this end, in line~\ref{a:refineCpre:pickSat}, instead of choosing a complete assignment to state, untracked, and label predicates, I compute a \emph{prime implicant} of set $T$, i.e., an assignment to a subset of variables in $\vect{\sigma}\cup\vect{\omega}\cup\vect{\lambda}$ such that any extension of this assignment to the remaining variables satisfies $T$: 
 $$
 \langle v,u,l\rangle \gets \textsc{primeImplicant}(T),
 $$ 
 where $v$, $u$, and $l$ are partial valuations of abstract variables, which compactly represent a potentially large set of abstract transitions.  In practice, we typically discover prime implicants that only constrain few of the abstract variables, meaning that other predicates are irrelevant for the outcome of the transition.  
 
-Given this modification, the $C^{m+}$ refinement case of the algorithm (lines~18--19) is still correct and does not require any changes.  However, changes are needed in the $C^{M-}$ refinement logic.  The set $A$ computed in lines~10--1 contains all concrete states where \emph{at least one} abstract label from the set characterised by the partial assignment $l$ of label predicates is available.  It does not guarantee the availability of any particular label from this set.  To model this constraint, we would have to change $C^{M-}$ to be a relation over sets of labels.  Every element of the relation would describe a set of labels, one of which is guaranteed to be available for the given state and untracked predicate assignment.  
+Given this modification, the $C^{m+}$ refinement case of the algorithm (line~\ref{a:refineCpre:core}) is still correct and does not require any changes.  However, changes are needed in the $C^{M-}$ refinement logic.  The set $A$ computed in lines~\ref{a:refineCpre:addLabel_start}--\ref{a:refineCpre:a_end} contains all concrete states where \emph{at least one} abstract label from the set characterised by the partial assignment $l$ of label predicates is available.  It does not guarantee the availability of any particular label from this set.  To model this constraint, we would have to change $C^{M-}$ to be a relation over sets of labels.  Every element of the relation would describe a set of labels, one of which is guaranteed to be available for the given state and untracked predicate assignment.  
 
 This introduces a new form of imprecision to the consistency relation: rather than categorising each abstract label as available or unavailable in the given state, we record a set of labels, one of which is available.  However, such a relation would be hard to represent and manipulate efficiently in the symbolic form.  Therefore, I propose a different approach that allows symbolic implementation.  
 
@@ -1364,7 +1364,7 @@ $$
 $$
 When $\varepsilon_i=true$, $\Delta$ behaves exactly as before.  In case $\varepsilon_i=false$, the value of $\lambda_i$ chosen by the player is ignored and the environment non-deterministically selects next-state variables assignment that is consistent with \emph{some} assignment of $\lambda_i$. 
 
-I can now modify line~16 of Algorithm~\ref{alg:refineCpre} as follows:
+I can now modify line~\ref{a:refineCpre:addLabel_end} of Algorithm~\ref{alg:refineCpre} as follows:
 $$
 C^{M-} \gets C^{M-} \lor (\hat{A}\land \bigwedge_{i\in{j_1\ldots j_p}}\lambda_i=l_i \land \bigwedge_{i\not\in{j_1\ldots j_p}}\varepsilon_i=false),
 $$
