@@ -264,10 +264,10 @@ I define the two controllable predecessors:
 
 Though the $F$ variables are really part of the state, I treat them as free input variables. Intuitively, their values are chosen by player~2 when computing $Cpre_1^M$ and by player~1 when computing $Cpre_1^m$. This makes it more difficult, and respectively, easier for player~1 to control execution into the target set.
 
-Given a valuation of a subset of the concrete state variables $V \subseteq C$ we say that the valuation \emph{agrees} with a concrete state $c$ if the value assigned to each of the variables in $V$ equals the value assigned to the same variable by $c$. A subset of concrete state variables defines a partitioning of the concrete state space: 
+Given a valuation of a subset of the concrete state variables $Vars \subseteq C$ we say that the valuation \emph{agrees} with a concrete state $c$ if the value assigned to each of the variables in $Vars$ equals the value assigned to the same variable by $c$. A subset of concrete state variables defines a partitioning of the concrete state space: 
 
 \begin{equation}
-    \{ s \in 2^C | \exists v \in Valuations(V). \forall c \in s. \text{ $c$ agrees with $v$} \}
+    \{ s \in 2^C | \exists v \in Valuations(Vars). \forall c \in s. \text{ $c$ agrees with $v$} \}
 \end{equation}
 
 \begin{figure}
@@ -277,7 +277,7 @@ Given a valuation of a subset of the concrete state variables $V \subseteq C$ we
 \label{fig:f_partitioning}
 \end{figure}
 
-Each set of states in the partitioning is referred to as a \emph{sub-state}. Figure~\ref{fig:f_partitioning} shows the partitioning induced by $F=\{U\} \cup V_{init}=\{X, Y\}$ in the running example.
+Each set of states in the partitioning, that is a subset of at least one other set of states in the partitioning, is referred to as a \emph{sub-state}. Figure~\ref{fig:f_partitioning} shows the partitioning induced by $F=\{U\} \cup V_{init}=\{X, Y\}$ in the running example.
 
 $Cpre_1^M$, by Equation~\ref{eqn:symb_cpre_M}, is the set of abstract states from which we can force execution into the target set from all sub-states induced by $F$. Since no variables in $C \setminus (V \cup F)$ can influence the next state of variables in $V$ \emph{we can ignore them} and conclude that $Cpre_1^M$ computes the set of abstract states such that for all concrete states within the abstract state, player~1 can force execution into the concretisation of the target set. This agrees with the definition of the abstract must controllable predecessor in Equation~\ref{eqn:def_cpre_M}.
 
@@ -293,7 +293,7 @@ Since $W^M$ is a subset of the true winning region, if $I \rightarrow W^M$ then 
 
 If none of the above termination conditions held then it is because our abstraction is not precise enough and must be refined (line~\ref{a:varabs:ref}).
 
-The may (light grey) and must (dark grey) winning regions of the example system are given in Figure~\ref{fig:may_must_win}. All states are may winning, but the top states are not must winning. These are the states where $Y$ is not $True$, as prescribed by the goal expression. Intuitively, this is because $U$ is not part of the abstraction. As $Y$ is part of the abstract state space, the algorithm is aware that the value of $Y$ can be set to the value of $U$ but it is not aware that $U$ can be set to $True$ by action $a2$ as $U$ is not part of the abstraction. This is an example of the precision that is lost when using abstraction.
+The may (light grey) and must (dark grey) winning regions of the example system are given in Figure~\ref{fig:may_must_win}. All states are may winning, but the top states are not must winning. These are the states where $Y$ is not $True$, as prescribed by the goal expression. Intuitively, this is because $U$ is not part of the abstraction. As $Y$ is part of the abstract state space, the algorithm is aware that the value of $Y$ can be set to the value of $U$ but it is not aware that $U$ can be set to $True$ by action $a2$ as $U$ is not part of the abstraction. This is an example of the loss of precision that occurs when using abstraction.
 
 After solving, the initial state is not classified as either losing or must winning. In the next section, I show how to refine the abstraction to remove the imprecision that prevented us from definitively classifying the initial state. 
 
@@ -306,7 +306,7 @@ After solving, the initial state is not classified as either losing or must winn
 
 \subsection{Refinement}
 
-The algorithm for refining the abstraction is given in Algorithm~\ref{alg:refineAbstractionVar}. As explained in Section~\ref{sec:threeval_generic}, when refining the abstraction of a reachability game, we can limit our search for states to split to the \emph{may-must boundary}. We split an abstract state in two such that from one of the new states $a$ it is possible to force execution into $W^M$ from every state in $\concrete{a}$. Instead of searching each state at the boundary in turn for a candidate state to split as was implied in section~\ref{sec:threeval_generic}, we find a candidate state using an efficient symbolic calculation.
+The algorithm for refining the abstraction is given in Algorithm~\ref{alg:refineAbstractionVar}. As explained in Section~\ref{sec:threeval_generic}, when refining the abstraction of a reachability game, we can limit our search for states to split to the \emph{may-must boundary}. We split an abstract state in two such that from one of the new states $a$ it is possible to force execution into $W^M$ from every state in $\concrete{a}$. Instead of searching each state at the boundary in turn for a candidate state to split as was implied in section~\ref{sec:threeval_generic}, we find a candidate state using an efficient symbolic calculation. This calculation is described below.
 
 We define the function $Cpre_1^F$ that returns the set of sub-states in the partition induced by the variables in $V_{\alpha} \cup F$ that are winning:
 
@@ -327,11 +327,11 @@ We compute:
 
 $Cpre_1^F(W^M)$ for the running example is illustrated as the dark states in Figure~\ref{fig:var_refinement}. The sub-states in the top half satisfy Equation~\ref{eqn:edge}.
 
-We extract a large prime implicant from this characteristic function in line~\ref{a:ra:extract_prime}, an efficient operation with BDDs. We also extract the variables that occur in this prime that are not in $V_\alpha$ and call them $V_{pi} \subseteq F$. 
+In order to extract a single sub-state on the may-must boundary that is winning, we extract a large prime implicant from this characteristic formula in line~\ref{a:ra:extract_prime}. This is an efficient operation with BDDs. We also extract the variables that occur in this prime that are not in $V_\alpha$ and call them $V_{pi} \subseteq F$. 
 
-Notice that if we add the variables in $V_{pi}$ to $V_\alpha$, the abstraction induced by $V_\alpha$ is now precise enough to exactly represent the states in the implicant. These states are winning. This means that if we iterate the controllable predecessor one more time, we will at least discover that this implicant is winning, in addition to $W^M$. Thus, our refinement has grown the must winning set. In practice, refining the abstraction in this way usually discovers many more winning states than just the implicant. Adding a variable to $V_\alpha$ is called \emph{promoting} the variable. We promote each variable in $V_{pi}$ on line~\ref{a:ra:promote}.
+Notice that if we add the variables in $V_{pi}$ to $V_\alpha$, the abstraction induced by $V_\alpha$ is now precise enough to exactly represent the states in the implicant. These states are winning. This means that if we iterate the controllable predecessor one more time, we will at least discover that this implicant is winning, in addition to $W^M$. Thus, our refinement has grown the must winning set. In practice, refining the abstraction in this way usually discovers many more winning states than just the implicant. Adding a variable to $V_\alpha$ is called \emph{promoting} the variable. We promote each variable in $V_{pi}$ on line~\ref{a:ra:promote} of Algorithm~\ref{alg:refineAbstractionVar}.
 
-Returning to the example, one implicant of Equation~\ref{eqn:edge} is $\{X=1, Y=0, U=1\}$. $V_{pi}$ for this implicant is $\{U\}$. If we add $U$ to $V_\alpha$ we arrive at an abstraction that allows us to classify the initial state as must winning next time the game is solved. Thus, the game is winning. Notice that this algorithm allowed us to determine the game outcome without adding the variable $V$ to the abstraction. 
+Returning to the example, one implicant of Equation~\ref{eqn:edge} is $\{X=1, Y=0, U=1\}$. $V_{pi}$ for this implicant is $\{U\}$. If we add $U$ to $V_\alpha$ we arrive at the abstraction in Figure~\ref{fig:var_refinement}. If we re-solve using this abstraction, it is precise enough to allow us to classify the initial state as must winning. Thus, the game is winning. Notice that this algorithm allowed us to determine the game outcome without adding the variable $V$ to the abstraction. 
 
 \begin{figure}[t]
 \centering
@@ -341,7 +341,7 @@ Returning to the example, one implicant of Equation~\ref{eqn:edge} is $\{X=1, Y=
 \end{figure}
 
 \subsection{Putting it together}
-The three valued variable abstraction refinement loop is given in Algorithm~\ref{alg:three_val_abs_ref} and the procedure to refine the abstraction is given in Algorithm~\ref{alg:refineAbstractionVar}.
+The three valued variable abstraction refinement loop that uses the controllable predecessors of Section~\ref{sec:var_cpre} and the refinement procedure of Algorithm~\ref{alg:refineAbstractionVar} is given in Algorithm~\ref{alg:three_val_abs_ref}.
 
 \begin{algorithm}
 
@@ -521,7 +521,7 @@ that is precise for $T$, $I$, and $\tau_i$.
 \subsection{Arbitrary $\omega$-regular games}
 \label{sec:omega_reg}
 
-In this section, I generalise the algorithm to games specified by $\mu$-calculus formulas in prefix normal form, i.e.\ formulas of the form:
+In this section, I follow~\cite{Alfaro_Roy_07} and generalise the algorithm to games specified by $\mu$-calculus formulas in prefix normal form, i.e.\ formulas of the form:
 
 \begin{equation}
 \nu X. \mu Y. \ldots \phi(X, Y, \ldots)
@@ -599,7 +599,7 @@ or
 \end{algorithmic}
 \end{algorithm}
 
-The algorithm begins in the same way as for safety and reachability. We solve the game with the current abstraction to find $W^m$ and $W^M$ on lines~\ref{a:tvmc:sM} and~\ref{a:tvmc:sm} and terminate if these allow us to determine the outcome on lines~\ref{a:tvmc:Y} and~\ref{a:tvmc:N}. We then refine and solve again. Again, as in the reachability and safety cases, we aim to grow $W^M$ and shrink $W^m$ so that, if we do not terminate early, they will eventually become the same set. This guarantees termination through one of the if conditions. Variable promotion is the same as before but operates on different boundary states. We describe the algorithm to find these boundaries. 
+The algorithm begins in the same way as for safety and reachability. We solve the game with the current abstraction to find $W^m$ and $W^M$ on lines~\ref{a:tvmc:sM} and~\ref{a:tvmc:sm} and terminate if these allow us to determine the outcome on lines~\ref{a:tvmc:Y} and~\ref{a:tvmc:N}. We then refine and solve again. Again, as in the reachability and safety cases, we aim to grow $W^M$ and shrink $W^m$ so that, if we do not terminate early, they will eventually become the same set. This guarantees termination through one of the if conditions. Variable promotion is the same as before but operates on different boundary states. We describe the algorithm to find these boundaries in the Termination section below. 
 
 \subsubsection{Correctness}
 
