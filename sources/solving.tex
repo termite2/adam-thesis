@@ -3,11 +3,13 @@
 
 I have presented a formalism for the driver synthesis problem as a game. A practical driver synthesis tool using the game formalism must be able to solve and find strategies for these games for real device and operating system specifications in a reasonable amount of time. The principle challenge of this work is creating a synthesis algorithm that scales well enough to handle the large state machines of real device and operating system specifications. 
 
-The straightforward symbolic solver that uses BDDs as the symbolic data structure is remarkably efficient. In fact, it is the current state of the art in reactive synthesis. I will use this as the starting point for my description of Termite's game solver.  Specifically, I begin by describing my entry to the reactive synthesis competition in 2014~\cite{syntcomp_arxiv} appropriately named `Simple BDD Solver'. This solver won the sequential realisability category.
+The straightforward symbolic solver that uses BDDs as the symbolic data structure is remarkably efficient. In fact, it is the state of the art in reactive synthesis. I will use this as the starting point for my description of Termite's game solver.  Specifically, I begin by describing my entry to the Reactive Synthesis Competition in 2014~\cite{syntcomp_arxiv} appropriately named `Simple BDD Solver'. This solver won the sequential realisability category in 2014 and placed third in 2015.
 
 Next, I introduce abstraction, a technique to increase the scalability of the basic symbolic algorithm by reducing the effective size of the state space that the algorithm must operate on. The cost of reducing the size of the state space is that the abstracted game is represented with less precision and is often not precise enough to solve the original game. To counter this, the abstraction needs to be \emph{refined}, i.e.\ the precision of the abstraction needs to be increased. This is performed in an \emph{abstraction-refinement loop}. Ideally, this loop results in an abstraction just precise enough to solve the game, but coarse enough that solving it is tractable.
 
-I give an abstraction-refinement algorithm that uses \emph{variable abstraction}, a technique for reducing the state space of the game by eliminating a subset of the state variables from the game. I then build on this to arrive at the main contribution of this chapter---an abstraction-refinement algorithm that performs \emph{predicate abstraction}.  Instead of representing the state space using state variables, the algorithm represents relationships between state variables that capture key properties that have been found to be of importance in solving the game. This representation is usually far more compact than variable abstraction. 
+I give an abstraction-refinement algorithm that uses \emph{variable abstraction}, a technique for reducing the state space of the game by eliminating a subset of the state variables from the game in Section~\ref{sec:variable_abstraction}. I submitted a solver that performs variable abstraction to the Reactive Synthesis Competition in 2015. It won the sequential realisability track and also outperformed all of the solvers in the parallel realisability track. The results are given in Section~\ref{sec:threevaleval}.
+
+I then build on variable-abstraction-refinement to arrive at the main contribution of this chapter---an abstraction-refinement algorithm that performs \emph{predicate abstraction}.  Instead of representing the state space using state variables, the algorithm represents relationships between state variables that capture key properties that have been found to be of importance in solving the game. This representation is usually far more compact than variable abstraction. 
 
 The use of abstraction influences the strategies that Termite can discover. It may miss strategies that can only be discovered with a more precise abstraction, or on the original game. However, strategies which exist on more abstract state spaces tend to be simpler. Thus, I view the loss of these likely more complex strategies as an acceptable trade-off for the large increase in solving performance that abstraction offers.
 
@@ -626,6 +628,32 @@ GR(1) games are a specific case of the above where the formula is:
 \end{equation}
 
 Thus, the variable abstraction algorithm is correct and terminates for GR(1) games.
+
+\subsection{Evaluation}
+\label{sec:threevaleval}
+
+I submitted a solver that performs variable abstraction as described above to the reactive synthesis competition in 2015. It won the sequential realisability track and also outperformed all solvers in the parallel realisability track. In addition to variable abstraction, it performs all of the optimisations of Section~\ref{sec:syntcomp}. The results of the competition are given in Table~\ref{tab:syntcomp_res}. My solvers are `Simple BDD Solver' and `Simple BDD Solver 2'. `Simple BDD Solver' is the solver described in Section~\ref{sec:syntcomp} and `Simple BDD Solver 2' is that solver modified to perform variable abstraction. 
+
+The results for individual benchmarks are not given here because, interestingly, `Simple BDD Solver 2' performed worse than `Simple BDD Solver' on all benchmarks that the latter was able to solve within the time limit. This is because additional work must be performed promoting variables to arrive at the final abstraction and in most cases the final abstraction included all variables, so variable abstraction bought us nothing. However, there was a subset of benchmarks that could be solved using only a subset of the state variables which `Simple BDD Solver 2' was able to find and thus solve much more easily. This explains the higher number of benchmarks that `Simple BDD Solver 2' was able to solve.
+
+\begin{table}
+\centering
+\begin{tabular}{| l | l | l |}
+    \hline
+    Place & Solver & Instances Solved \\
+    \hline
+    1  & Simple BDD Solver 2 & 195 \\
+    2  & AbsSynthe seq2      & 186 \\
+    3  & Simple BDD Solver   & 185 \\
+    4= & AbsSynthe seq3      & 179 \\
+    4= & Realizer            & 179 \\
+    6  & AbsSynthe seq1      & 173 \\
+    7  & Demiurge D1real     & 139 \\
+    \hline
+\end{tabular}
+\caption{Reactive Synthesis Competition 2015 sequential realizability track results}
+\label{tab:syntcomp_res}
+\end{table}
 
 \section{Predicate Abstraction}
 
