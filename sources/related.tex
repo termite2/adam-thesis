@@ -35,7 +35,7 @@ In case of a fault in a driver, the kernel stops the malfunctioning driver and r
 
 Futhermore, the device usually has access to the system bus. A faulty, or even malicious driver may program the device to access protected memory that the driver itself does not have access to, subverting the protection provided by encapsulating drivers at user level. This may be prevented with a hardware device like an IOMMU~\cite{BenYehuda_MKXVMN_06}.
 
-User level drivers were pioneered in the Michigan Terminal System~\cite{Boettner_Alexander_75} and were used in Mach 3~\cite{Accetta_BBGRTY_86, Forin_GB_91}, L3~\cite{Liedtke_BBHRS_91, Liedtke_93}, and other microkernel-based OSs, as well as in Linux~\cite{}.
+User level drivers were pioneered in the Michigan Terminal System~\cite{Boettner_Alexander_75} and were used in Mach 3~\cite{Accetta_BBGRTY_86, Forin_GB_91}, L3~\cite{Liedtke_BBHRS_91, Liedtke_93}, and other microkernel-based OSs, as well as in Linux~\cite{Leslie_CFGGMPSEH_05}.
 
 \subsubsection{Monolithic systems}
 The ideas behind user level device drivers in microkernel based systems have also been applied to monolithic systems such as Linux. One example is Nooks~\cite{Swift_BL_03}. Nooks encapsulates device drivers inside a protection domain called a nook. Drivers encapsulated in a nook use the kernel address space, so addresses can be used without translation, but are within a separate protection domain where all kernel memory and data structures are marked read only. Each nook has access to a private heap and device memory mapped registers. 
