@@ -1,7 +1,7 @@
 \chapter{User Guided Synthesis of an \iic\ Driver}
 \label{ch:worked_example}
 
-In this appendix we will step through synthesis of the driver for a simple but real device. The device we are targeting is an \iic\ controller on a Samsung Exynos~5 system on ship. We assume the there is no operating system i.e.\ the driver runs on bare metal.
+In this appendix we will step through synthesis of the driver for a simple but real device. The device we are targeting is an \iic\ controller on a Samsung Exynos~5 system on chip. We assume the there is no operating system i.e.\ the driver runs on bare metal.
 
 We start with the operating system specification. This gives us the interface that the driver is expected to provide. \iic\ is a bus protocol typically used to attach low speed devices to a processor. \iic\ transactions take place between a master device and a slave device. They are always initiated by the master, which may request a read or a write. Each device on an \iic\ bus has an address which is used by the master to identify the slave that it wants to communicate with. In this walkthrough, we will synthesise the driver code necessary to perform a write in master mode. 
 
@@ -47,7 +47,7 @@ The OS specification, given in Listing~\ref{lst:os_spec}, describes when these d
 
 The main TSL process (Section~\ref{s:o:execmodel}) is on line~\ref{l:os_pos}. The first thing it does is call \code{configure} (line~\ref{l:drv_configure}) in the driver. This is followed by a call to the procedure \code{configured} (line~\ref{l:os_configured}). It is the job of \code{configured} to check that \code{configure} in the driver did its job. It obtains various configuration parameters from the device specification (Section~\ref{a:sec:dev_spec}) and asserts that they are all initialised. 
         
-Of course, it makes no sense for the OS to call functions in the device hardware, and this does not happen in reality. These are \emph{virtual functions} that are provided by the device specification to query its current state to enforce correct driver behaviour. 
+Of course, it makes no sense for the OS to call functions in the device hardware, and this does not happen in reality. These are \emph{virtual functions} (Section~\ref{s:virt}) that are provided by the device specification to query its current state to enforce correct driver behaviour. 
 
 \subsection{Device specification}
 \label{a:sec:dev_spec}
@@ -111,7 +111,7 @@ This is actually Termite's rather cryptic way of saying that the correct action 
 
 $$\code{wait(dev.master\_transmit\_st} == \code{addr\_transmitted\_t})$$.
 
-This is a manifestation of the white box assumption that Termite makes. It assumes that the driver can access all of the system's state variables. To remedy this, manual intervention is needed. Consultation of the device manual tells us that after the address is sent the device sets bit 4 of \code{i2ccon} to one. So, we manually write code to loop while this bit is zero (line~\ref{l:drv_manual_loop}). We then re-run Termite with the amended driver and Termite checks that the manually written code is correct. Synthesis with the manually written code succeeds and, again, Termite creates the window shown in Figure~\ref{fig:driver_tab_addr_man}, verifying that the code is correct. So, while we were forced to write code manually, Termite was able to verify that is was correct.
+This is a manifestation of the white box assumption that Termite makes (Section~\ref{sec:lim_white_box}). It assumes that the driver can access all of the system's state variables. To remedy this, manual intervention is needed. Consultation of the device manual tells us that after the address is sent the device sets bit 4 of \code{i2ccon} to one. So, we manually write code to loop while this bit is zero (line~\ref{l:drv_manual_loop}). We then re-run Termite with the amended driver and Termite checks that the manually written code is correct. Synthesis with the manually written code succeeds and, again, Termite creates the window shown in Figure~\ref{fig:driver_tab_addr_man}, verifying that the code is correct. So, while we were forced to write code manually, Termite was able to verify that is was correct.
 
 \begin{figure}
     \center
