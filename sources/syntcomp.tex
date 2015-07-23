@@ -1,7 +1,7 @@
 \section{Symbolic Solver}
 \label{sec:syntcomp}
 
-The starting point for the design of an efficient game solver is the standard BDD-based symbolic algorithm of Section~\ref{sec:back_symbolic_alg}. This standard symbolic algorithm forms the basis of my entry to the Reactive Synthesis competition, named `Simple BDD Solver'. The basic algorithm admits a number of optimisations. As I will show in Section~\ref{sec:syntcomp_eval}, these optimisations significantly improve the performance of the algorithm, but not enough to synthesize even simple device drivers. Yet, this optimised symbolic algorithm is used inside the abstraction-refinement loop of Termite to solve the abstract games produced at every refinement iteration. I therefore describe each of them below.
+The starting point for the design of an efficient game solver is the standard BDD-based symbolic algorithm of Section~\ref{sec:back_symbolic_alg}. This standard symbolic algorithm forms the basis of my entry to the Reactive Synthesis competition, named `Simple BDD Solver'. The basic algorithm admits a number of optimisations. As I will show in Section~\ref{sec:syntcomp_eval}, these optimisations significantly improve the performance of the algorithm, but not enough to synthesize even simple device drivers on its own. Yet, this optimised symbolic algorithm is used inside the abstraction-refinement loop of Termite to solve the abstract games produced at every refinement iteration. I therefore describe each of them below.
 
 This section focuses on safety games, as required for the synthesis competition. However, all of the optimisations presented here apply equally to reachability games and to the GR(1) games used in Termite. 
 
@@ -164,5 +164,5 @@ The first column gives the runtimes for the symbolic solver without optimisation
 The benchmark runner is available online at: \url{https://github.com/adamwalker/syntcomp-benchmark}. The set of benchmarks is available online at \url{https://syntcompdb.iaik.tugraz.at/static/SyntComp.tar.gz}.
 
 \subsection{Conclusion}
-Simple BDD Solver performed well compared to the other solvers entered in the reactive synthesis competition as a result of the optimisations presented above. It failed when the BDDs representing the winning sets, or the intermediate BDDs in the controllable predecessor computation grew too large. Additionally, it failed when a large number of iterations was required to determine the outcome, such as the benchmarks with a large counter. 
+Simple BDD Solver performed well compared to the other solvers entered in the reactive synthesis competition as a result of the optimisations presented above. It failed when the BDDs representing the winning sets, or the intermediate BDDs in the controllable predecessor computation grew too large. Additionally, it failed when a large number of iterations were required to determine the outcome, such as the benchmarks with a large counter. 
 

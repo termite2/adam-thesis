@@ -35,7 +35,7 @@ labels = mconcat [
         text "evt_send"      # fontSize fs # moveTo (p2 (2.5, 0.1)),
         text "send_ack"      # fontSize fs # moveTo (p2 (1.5, 0.53)),
         text "evt_send"      # fontSize fs # moveTo (p2 (2.5, -0.4)),
-        text "self_destruct" # fontSize fs # moveTo (p2 (1.2, -0.32))
+        text "halt" # fontSize fs # moveTo (p2 (1.3, -0.32))
     ]
 
 diag'   = states # connectOutside' arrowStyleUCont "stInit"    "stReq"

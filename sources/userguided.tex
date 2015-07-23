@@ -494,7 +494,7 @@ Note that even though execution is guaranteed to reach the goal, the label picke
 
 \subsection{Splitting states}
 
-Lastly, suppose that there is no action found by the first two heuristics. In this case I recursively split $stateSet$ by finding a subset $a \subset stateSet$ from which there is a winning action for all of $a$ and splitting this out in C code using an \emph{if-statement}. What remains of $stateSet$ is recursively split enough times that there is a suitable label to play from each partition. This is guaranteed to eventually happen because $stateSet$ in finite and in practice only one or two splits are needed.
+Lastly, suppose that there is no action found by the first two heuristics. In this case I recursively split $stateSet$ by finding a subset $a \subset stateSet$ from which there is a winning action for all of $a$ and splitting this out in C code using an \emph{if-statement}. What remains of $stateSet$ is recursively split enough times that there is a suitable label to play from each partition. This is guaranteed to eventually happen because $stateSet$ is finite and in practice only one or two splits are needed.
 
 I now describe how the condition for this if-statement is computed. There exists at least one winning label from each state in the current set, as they are all winning. However, there does not exist a single label which is winning for all states in the current set. My heuristic to find a large subset of $stateSet$ for which there does exist a single winning label is as follows:
 
