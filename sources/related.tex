@@ -71,7 +71,7 @@ Despite these considerable limitations, Termite-1 did do some things right. As a
 
 Devil~\cite{Merillon_RCMM_00}, NDL~\cite{Conway_Edwards_04} and HAIL~\cite{Sun_YKI_05} are tools for generating the low level device access functions of the driver. They each provide a domain specific language for expressing device register and memory layout. Additionally, they provide a mechanism to define valid sequences of memory and register accesses through either temporal logic or state machines. 
 
-These tools generate low level device access functions in C. The functions enforce correct device access ordering through the structure of the functions and runtime checks. This approach tends to be quite effective in practice as these low level hardware manipulation functions, when handwritten, usually contain a large proportion of driver defects.
+These tools generate low level device access functions in C. The functions enforce correct device access ordering through the structure of the functions and runtime checks. This approach tends to be quite effective in practice as these low level hardware manipulation functions, when handwritten, usually contain a large proportion of driver defects~\cite{Merillon_RCMM_00}.
 
 \subsection{Automatic reverse engineering}
 
