@@ -327,6 +327,11 @@
 
 % Title page
 \thispagestyle{empty}
+
+\calccentering{\unitlength}                         % Calculate center length and stores in unitlength
+\begin{adjustwidth*}{\unitlength}{-\unitlength}     % Adjust center
+        \begin{adjustwidth}{-1cm}{-1cm}                 % Extra lage front page
+
 \mbox{}
 \vfill
 \begin{center}
@@ -341,6 +346,10 @@ Faculty of Engineering \\[1.5cm]
 \end{center}
 \par
 \vfill
+
+    \end{adjustwidth}
+\end{adjustwidth*}
+
 \clearpage
 
 \includepdf{thesisdissertation_0.pdf}
