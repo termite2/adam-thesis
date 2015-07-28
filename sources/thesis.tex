@@ -363,7 +363,7 @@ conception or in style, presentation and linguistic expression is
 acknowledged.'\\[0.5cm]
 Signed\hspace{0.5cm}\dotfill\hfill\\[0.5cm]
 Date\hspace{0.5cm}\dotfill\hfill\\
-\vfil\newpage
+\vfil\clearpage
 
 %% Copyright statement
 %\thispagestyle{plain}
@@ -396,18 +396,6 @@ Date\hspace{0.5cm}\dotfill\hfill\\
 %Date\hspace{0.5cm}\dotfill\hfill\\
 %\vfil\newpage
 
-\begin{abstract}
-
-Device drivers are tedious to write and they are notoriously unreliable. Automatic device driver synthesis is a radical approach to creating drivers faster and with fewer defects by generating them automatically from operating system and hardware device specifications. This thesis addresses the two fundamental challenges in driver synthesis: (1) usability and (2) scalability.
-
-The usability challenge is to enable developers to create drivers through a well-defined, predictable sequence of steps.  It falls into the following three design objectives: (1) ease of developing specifications for driver synthesis, (2) ease of debugging synthesis errors due to incorrect specifications, and (3) enabling the benefits of automation without sacrificing the flexibility of conventional driver development.  In this thesis I develop a new driver synthesis methodology that addresses the first objective through a modular high-level specification language whose syntax and semantics are close to those of familiar imperative programming languages like C.  I address the second objective by developing powerful debugging techniques that help the developer identify and fix specification defects through a well-defined process.  Finally, the proposed methodology strikes the balance between automation and flexibility by generating driver code in a user-guided fashion, where the user can interactively alter or amend automatically generated code, while the synthesis tool verifies user changes.
-
-The scalability challenge is to create a synthesis algorithm that is capable of handling real-world device specifications.  I address this challenge with a new scalable synthesis engine based on predicate-based abstraction refinement.  Solutions are developed to the three key problems involved in the implementation of efficient predicate abstraction, which have not been addressed previously in a synthesis setting: (1) keeping abstractions concise, (2) solving abstract games efficiently, (3) and computing abstractions symbolically. 
-
-The proposed techniques are implemented in a new tool called Termite-2 and evaluated by synthesising drivers for a number of I/O devices representative of a typical embedded platform. Termite-2 is the first tool to combine the power of automation with the flexibility of conventional development. It is also the first practical synthesis tool based on abstraction refinement. Finally, it is the first synthesis tool to support automated debugging of input specifications.
-
-\end{abstract}
-
 \chapter{Publications}
 \begin{itemize}
     \item \bibentry{Ryzhyk_WKLRSV_14}
@@ -422,6 +410,20 @@ The proposed techniques are implemented in a new tool called Termite-2 and evalu
     \item Kurt G{\"o}del Medal in Silver. My solver placed first in the sequential realisability track Reactive Synthesis Competition 2014. 
     \item My solver placed first in the realisability track Reactive Synthesis Competition 2015. 
 \end{itemize}
+
+\clearpage
+
+\begin{abstract}
+
+Device drivers are tedious to write and they are notoriously unreliable. Automatic device driver synthesis is a radical approach to creating drivers faster and with fewer defects by generating them automatically from operating system and hardware device specifications. This thesis addresses the two fundamental challenges in driver synthesis: (1) usability and (2) scalability.
+
+The usability challenge is to enable developers to create drivers through a well-defined, predictable sequence of steps.  It falls into the following three design objectives: (1) ease of developing specifications for driver synthesis, (2) ease of debugging synthesis errors due to incorrect specifications, and (3) enabling the benefits of automation without sacrificing the flexibility of conventional driver development.  In this thesis I develop a new driver synthesis methodology that addresses the first objective through a modular high-level specification language whose syntax and semantics are close to those of familiar imperative programming languages like C.  I address the second objective by developing powerful debugging techniques that help the developer identify and fix specification defects through a well-defined process.  Finally, the proposed methodology strikes the balance between automation and flexibility by generating driver code in a user-guided fashion, where the user can interactively alter or amend automatically generated code, while the synthesis tool verifies user changes.
+
+The scalability challenge is to create a synthesis algorithm that is capable of handling real-world device specifications.  I address this challenge with a new scalable synthesis engine based on predicate-based abstraction refinement.  Solutions are developed to the three key problems involved in the implementation of efficient predicate abstraction, which have not been addressed previously in a synthesis setting: (1) keeping abstractions concise, (2) solving abstract games efficiently, (3) and computing abstractions symbolically. 
+
+The proposed techniques are implemented in a new tool called Termite-2 and evaluated by synthesising drivers for a number of I/O devices representative of a typical embedded platform. Termite-2 is the first tool to combine the power of automation with the flexibility of conventional development. It is also the first practical synthesis tool based on abstraction refinement. Finally, it is the first synthesis tool to support automated debugging of input specifications.
+
+\end{abstract}
 
 \clearpage
 
