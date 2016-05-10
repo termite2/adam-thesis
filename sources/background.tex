@@ -170,11 +170,11 @@ Again, in the case of generalised \buchi\ and GR(1) games, the counterexample st
 
 Defining and solving games requires representing sets of states (Section~\ref{sec:intro_formal}). Some of the games that have been solved with Termite have upwards of $2^{80}$ states, even after abstraction (Chapter~\ref{ch:solving}). Clearly, explicitly representing the state space will never succeed. Identical problems are encountered in model checking. The breakthrough that revolutionised model checking was to represent state sets and transition relations implicitly as a characteristic equation over state variables \cite{Burch_symbolic,McMillan_thesis}.
 
-Symbolic games are defined over a finite set of state variables, $\symStateVars$, and a finite set of label variables $\symLabelVars$. A \emph{valuation} for a set of variables $V$ is a function from each of those variables to an element of its domain. $S$, the set of states, is redefined to be the set of possible valuations of each state variable in $\symStateVars$. That is, each state $s \in S$ is given by a valuation of all of the state variables in $\symStateVars$. Similarly, $L$, the set of labels, is redefined to be the set of possible valuations of each label variable in $\symLabelVars$.
+Symbolic games are defined over a finite set of state variables, $\symStateVars$, a finite set of label variables $\symLabelVars$. A \emph{valuation} for a set of variables $V$ is a function from each of those variables to an element of its domain. $S$, the set of states, is redefined to be the set of possible valuations of each state variable in $\symStateVars$. That is, each state $s \in S$ is given by a valuation of all of the state variables in $\symStateVars$. Similarly, $L$, the set of labels, is redefined to be the set of possible valuations of each label variable in $\symLabelVars$.
 
 For a set $Z$ of variables, $\forms(Z)$ denotes the set of propositional formulas constructed from the variables in $Z$. The characteristic formula of a set of states $T$ is a function $f \in \forms(\symStateVars)$ that evaluates to true for the valuation corresponding to a state $s \in T$ and false otherwise. Characteristic formulas are used to represent sets of states without explicitly listing each member of the set. This is called a symbolic representation. 
 
-Likewise, $\delta$ is specified by a formula in $\forms(\symStateVars \bigcup \symLabelVars \bigcup \symStateVars')$, where $\symStateVars' = \{\sigma' \mid \sigma \in \symStateVars \}$ is the set of next state variables.
+Likewise, $\delta$ is specified by a formula in $\forms(\symStateVars \bigcup \symLabelVars \bigcup \symStateVars')$, where $\symStateVars' = \{\sigma' \mid \sigma \in \symStateVars \}$ is a copy of the variables in $\Sigma$ whose valuations represent allowable next state valuations of $\Sigma$.
 
 Sometimes, the variables that a characteristic formula depends on are made explicit. For example, the transition relation may be written as $\delta(\Sigma, \Lambda, \Sigma')$.
 
@@ -304,7 +304,7 @@ CPre(X) = \tau_1 \wedge \exists \symLabelVars. \forall \symStateVars'. \delta \r
 \label{eqn:cpre_symb}
 \end{equation}
 
-\noindent where $X'$ with the variables in $\Sigma$ renamed to the corresponding variable in $\Sigma'$ and $\tau_1$, $\tau_2$ and $\delta$ are given symbolically.
+\noindent where $X'$ is $X$ with the variables in $\Sigma$ renamed to the corresponding variable in $\Sigma'$ and $\tau_1$, $\tau_2$ and $\delta$ are given symbolically. Additionally, quantifiers are extended to set of variables e.g. $\forall \symStateVars$ means `for all values of all variables in $\symStateVars$'.
 
 \subsubsection{Termite's controllable predecessor}
 \label{sec:termite_cpre}
