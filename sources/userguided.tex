@@ -166,7 +166,7 @@ Internally, the transmitter circuit consists of a shift register and a baud rate
 
 \subsection{OS model}\label{s:os}
 
-The OS model specifies the API mandated by the OS for all drivers of the given type.  For example, any Ethernet driver must implement the interface for sending and receiving Ethernet packets.  A separate specification is needed for each supported OS, as different OSs define different interfaces for device drivers.
+The OS model specifies the API mandated by the OS for all drivers of the given type.  For example, any Ethernet driver must implement the interface for sending and receiving Ethernet packets.  A separate specification is needed for each supported OS, as different OSs define different interfaces for device drivers. OS specifications must be written by hand. They may be derived from the documentation or implementation of the relevant OS subsystem. Since this specification is reusable, this manual effort may be amortized over several drivers which utilise the same OS subsystem.
 
 Additionally, each particular device can support non-standard features, e.g., device-specific configuration options or transfer modes.  These features must be added as extensions to the generic OS specification in order to synthesise support for them in the driver.  \tsl supports such extensions in a systematic way via the template inheritance mechanism.  This is described in Appendix~\ref{ch:tsl_ref}.
 
