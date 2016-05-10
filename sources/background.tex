@@ -19,6 +19,9 @@ The key functions of a device driver are:
 \end{itemize}
 
 \subsection{Device driver organisation}
+
+A device driver is typically dynamically linked in to the running operating system kernel, as is commonly the case with monolithic designs. Or, it may be contained within its own address space as a standalone process, as is common in microkernel designs. Either way, once it starts up it registers the services it provides with the operating system and, possibly in response to an OS request, it detects and initialises the device. From then on, until the device or the driver are removed, it is responsible for translating requests between the OS and the hardware device.
+
 \subsubsection{I/O buses}
 
 Device drivers communicate with devices over an I/O bus such as the \emph{Peripheral Component Interconnect} (PCI) or \emph{Universal Serial Bus} (USB). Modern operating systems contain drivers that operate these buses and provide low-level access to devices over them. In this thesis I assume that these-bus level drivers already exist. 
