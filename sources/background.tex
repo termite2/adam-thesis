@@ -39,7 +39,7 @@ On a Linux system, when an interrupt is raised, the currently executing task is 
 
 \subsubsection{Concurrency}
 
-Most operating systems are multithreaded, including the device drivers. Driver entry points and interrupt handlers may be invoked concurrently and recursively. Careful use of synchronisation primitives are required to avoid race conditions and deadlock. In this work, I assume that only one driver entry point is invoked at a time, removing all concurrency. This can be achieved by using an event based framework such as Dingo \cite{Ryzhyk_CKH_09}, writing a wrapper to translate the concurrent interface required by the operating system to the single threaded interface of the generated drivers, or by post processing the generated driver as described by \cite{Cerny_HRRT_13, sched-cav, scheduling-cav15}
+Most operating systems are multithreaded, including the device drivers. Driver entry points and interrupt handlers may be invoked concurrently and recursively. Careful use of synchronisation primitives are required to avoid race conditions and deadlock. In this work, I assume that only one driver entry point is invoked at a time, removing all concurrency. This includes interrupts, which are queued until after any currently executing entry point completes. This can be achieved by using an event based framework such as Dingo \cite{Ryzhyk_CKH_09}, writing a wrapper to translate the concurrent interface required by the operating system to the single threaded interface of the generated drivers, or by post processing the generated driver as described by \cite{Cerny_HRRT_13, sched-cav, scheduling-cav15}
 
 \subsubsection{Operating system services}
 
