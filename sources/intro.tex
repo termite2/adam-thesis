@@ -19,7 +19,7 @@ However, the formal model used in Termite-1 had several important shortcomings t
 
 Objectives, defined using goals, are insufficient for two reasons. First, they do not capture recurring properties. Termite-1 considered a driver to be correct if it could force execution into the goal once. Real drivers, however, are reactive systems that need to continuously satisfy requests. Second, such objectives do not allow the driver to make realistic assumptions about how the environment behaves. Termite-1 drivers could not rely on simple properties like the fact that timeouts eventually time out. This is discussed further in Section~\ref{sec:game_fairness}. 
 
-The new tool called Termite-2 (hereafter referred to as Termite) overcomes these shortcomings by using generalised reactive (1), or GR(1) objectives \cite{Piterman_PS_06}.
+The new tool called Termite-2 (hereafter referred to as Termite) overcomes these shortcomings by using generalised reactive (1), or GR(1) objectives~\cite{Piterman_PS_06}.
 
 In addition, Termite-1 did not handle the concurrency between the driver and its environment properly, resulting in subtly incorrect drivers. I handle this in a robust way using concurrent games. 
 
@@ -62,7 +62,7 @@ I evaluated \termite by synthesising drivers for several I/O devices representat
 \end{itemize}
 I conclude that for typical embedded devices automatic driver synthesis is practical. 
 
-Device driver synthesis technology is still in its early days and, as such, has several important limitations.  Most notably, \termite does not currently support synthesis or verification of code for managing direct memory access (DMA) queues.  This code must be written manually and is treated by \termite as an external API invoked by the driver. This limitation makes the use of Termite less appealing for devices such as Gigabit Ethernet controllers where the majority of driver writing effort goes into handling DMA. As another example, in certain situations, explained in Chapter~\ref{ch:userguided} Section~\ref{s:user-guided}, \termite is unable to produce correct code without user assistance; however it is able to verify the correctness of user-provided code.  We discuss limitations of \termite in more detail in Chapter~\ref{ch:userguided} Section~\ref{s:limitations}.
+Device driver synthesis technology is still in its early days and, as such, has several important limitations.  Most notably, \termite does not currently support synthesis or verification of code for managing direct memory access (DMA) queues.  This code must be written manually and is treated by \termite as an external API invoked by the driver. This limitation makes the use of Termite less appealing for devices such as Gigabit Ethernet controllers where the majority of driver writing effort goes into handling DMA\@. As another example, in certain situations, explained in Chapter~\ref{ch:userguided} Section~\ref{s:user-guided}, \termite is unable to produce correct code without user assistance; however it is able to verify the correctness of user-provided code.  We discuss limitations of \termite in more detail in Chapter~\ref{ch:userguided} Section~\ref{s:limitations}.
 
 This dissertation makes two contributions in the field of practical device driver synthesis:
 \begin{enumerate}
@@ -96,4 +96,4 @@ This dissertation makes three contributions in the field of reactive synthesis:
 
 \section{Chapter Outline}
 
-The rest of this dissertation is structured as follows. Chapter~\ref{ch:background} provides the necessary background information on game solving. Chapter ~\ref{ch:related} presents work related to driver reliability and synthesis. Chapter~\ref{ch:game_formalism} formalises the driver synthesis problem as a game. Chapter~\ref{ch:userguided} presents our user guided device driver synthesis tool and methodology and, finally, Chapter~\ref{ch:solving} presents my scalable synthesis algorithm.
+The rest of this dissertation is structured as follows. Chapter~\ref{ch:background} provides the necessary background information on game solving. Chapter~\ref{ch:related} presents work related to driver reliability and synthesis. Chapter~\ref{ch:game_formalism} formalises the driver synthesis problem as a game. Chapter~\ref{ch:userguided} presents our user guided device driver synthesis tool and methodology and, finally, Chapter~\ref{ch:solving} presents my scalable synthesis algorithm.

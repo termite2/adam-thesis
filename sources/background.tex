@@ -5,9 +5,9 @@
 
 A device driver provides an interface for the operating system (OS) to use a hardware device that is attached to the computer. It translates requests between the OS and the hardware. It allows the operating system to use the device without knowing the exact details of the hardware. As an example, a network interface driver may provide functions to send and receive packets from the network. It performs the low-level device register and memory writes necessary to perform these operations while presenting a high level interface to the OS.
 
-Writing a device driver requires in depth knowledge of both the device to be controlled and the interface to the OS. This makes writing a device driver a tedious and error prone process. Additionally, a device driver usually operates in a privileged part of the OS so that it can access the hardware. As a result, errors often lead to failures of the system.
+Writing a device driver requires in depth knowledge of both the device to be controlled and the interface to the OS\@. This makes writing a device driver a tedious and error prone process. Additionally, a device driver usually operates in a privileged part of the OS so that it can access the hardware. As a result, errors often lead to failures of the system.
 
-Device drivers are usually developed by the hardware vendor as they have the best access to information about the design of the hardware. This includes hardware documentation as well as the actual description of the hardware in a hardware description language. If is common for the documentation to never be released to the public.
+Device drivers are usually developed by the hardware vendor as they have the best access to information about the design of the hardware. This includes hardware documentation as well as the actual description of the hardware in a hardware description language. It is common for the documentation to never be released to the public.
 
 \subsection{Device driver functions}
 
@@ -29,7 +29,7 @@ Device registers and data buffers can be mapped into the system's memory space b
 
 \subsubsection{Direct Memory Access}
 
-It is also possible for the device to initiate a transaction to transfer data to or from main memory. The CPU is not involved in such a transfer. This is known as \emph{Direct Memory Access} or DMA. DMA is necessary for efficient I/O with devices that transfer large amounts of data as otherwise the CPU would be required to copy all of the data to and from the device word by word.
+It is also possible for the device to initiate a transaction to transfer data to or from main memory. The CPU is not involved in such a transfer. This is known as \emph{Direct Memory Access} or DMA\@. DMA is necessary for efficient I/O with devices that transfer large amounts of data as otherwise the CPU would be required to copy all of the data to and from the device word by word.
 
 \subsubsection{Interrupts}
 
@@ -43,17 +43,17 @@ Most operating systems are multithreaded, including the device drivers. Driver e
 
 \subsubsection{Operating system services}
 
-In addition to bus-level drivers, the OS provides various services to device drivers. These include memory management, timing and synchronisation. Memory management includes allocating memory and support for memory mapped IO and DMA. Timer functionality includes both synchronous (thread delays) and asynchronous (callback) timers. Various synchronization primitives are also provided, but, given that Termite does not make any use of them, I do not discuss them further.
+In addition to bus-level drivers, the OS provides various services to device drivers. These include memory management, timing and synchronisation. Memory management includes allocating memory and support for memory mapped IO and DMA\@. Timer functionality includes both synchronous (thread delays) and asynchronous (callback) timers. Various synchronization primitives are also provided, but, given that Termite does not make any use of them, I do not discuss them further.
 
 \section{Introduction to Game Formalisms}
 
-Termite's game formalism and synthesis algorithm build on considerable pre-existing work in the field of reactive synthesis which is presented in the following sections. I begin, in Sections~\ref{sec:omega_regular} and \ref{sec:two_player} by introducing the notion of $\omega$-regular games.  Section~\ref{sec:omega_regular} introduces $\omega$-regular languages and $\omega$-regular expressions offer a natural formalism for reasoning about reactive systems, i.e., systems that continuously interact with their environment, such as device drivers.  
+Termite's game formalism and synthesis algorithm build on considerable pre-existing work in the field of reactive synthesis which is presented in the following sections. I begin, in Sections~\ref{sec:omega_regular} and~\ref{sec:two_player} by introducing the notion of $\omega$-regular games.  Section~\ref{sec:omega_regular} introduces $\omega$-regular languages and $\omega$-regular expressions offer a natural formalism for reasoning about reactive systems, i.e., systems that continuously interact with their environment, such as device drivers.  
 %In Termite, $\omega$-regular languages are used to specify requirements for correct driver behaviour.
 Section~\ref{sec:two_player} defines two player $\omega$-regular games, i.e., games whose objectives are expressed using $\omega$-regular languages.  Starting from the simplest kinds of games, it eventually builds up to GR(1) games - the kind of games used by Termite. Definitions for this and the following sections are given in \cite{Gradel} and \cite{Thomas_95}. GR(1) games are discussed in depth in \cite{Piterman_PS_06}.
 
 Section~\ref{sec:symbolic_games} introduces symbolic techniques. The idea of symbolic game solving is to represent sets of states using characteristic equations over state variables rather than by enumerating them explicitly. This technique allows game solvers to scale well beyond what was possible previously. The description of the data structure that is used to represent these characteristic equations is delayed to Section~\ref{sec:back_bdd}.
 
-Sections~\ref{sec:fixed_points} and \ref{sec:intro_solving} introduce algorithms for solving two-player games, i.e., determining whether one of the players can meet its objective.  I first define a logic for describing fixed points of functions in Section~\ref{sec:fixed_points}.  Next, in Section~\ref{sec:intro_solving}, I introduce the controllable predecessor operator, the fundamental building block of all game solving algorithms used in this thesis.  I then put the two together by presenting translations of $\omega$-regular game objectives to fixed point formulas over the controllable predecessor operator. The solution of a game can then be obtained by evaluating the fixed point formula.
+Sections~\ref{sec:fixed_points} and~\ref{sec:intro_solving} introduce algorithms for solving two-player games, i.e., determining whether one of the players can meet its objective.  I first define a logic for describing fixed points of functions in Section~\ref{sec:fixed_points}.  Next, in Section~\ref{sec:intro_solving}, I introduce the controllable predecessor operator, the fundamental building block of all game solving algorithms used in this thesis.  I then put the two together by presenting translations of $\omega$-regular game objectives to fixed point formulas over the controllable predecessor operator. The solution of a game can then be obtained by evaluating the fixed point formula.
 
 %This, in turn, gives us algorithms for solving games, since a fixed point formula can be mechanically translates from a fixed point formula to an algorithm that evaluates it, .
 
@@ -277,7 +277,7 @@ All of the algorithms for games I will be describing use a function called the \
 
 The exact details of \cpre\ depend on the type of game being solved. Here it is considered to be a parameter to the game solving algorithms. The only property of $CPre$ that the game solving algorithms require is that it is monotonic, i.e.\ if $X \subseteq Y$ then $CPre(X) \subseteq CPre(Y)$. Clearly, any reasonable \cpre\ function will have this property.
 
-In the following sections I describe the controllable predecessor for turn based games as well as the more complicated type of games used in Termite's.
+In the following sections I describe the controllable predecessor for turn based games as well as the more complicated type of games used in Termite.
 
 \subsubsection{Turn based controllable predecessor}
 

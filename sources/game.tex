@@ -3,7 +3,7 @@
 
 In the following sections I formalise the device driver synthesis problem using games. I show that GR(1) games are sufficient to capture the required properties of drivers.
 
-Following Termite-1, the driver synthesis problem is formalised as a \emph{two-player game}~\cite{Thomas_95} between the driver and its environment. The game is played over a finite automaton that represents all possible states and behaviours of the system. Transitions of the automaton are classified into \emph{controllable} transitions triggered by the driver and \emph{uncontrollable} transitions triggered by the device or OS. A winning strategy for the driver in the game corresponds to a correct driver implementation. If, on the other hand, a winning strategy does not exist, this means that there exists no specification-conforming driver implementation.
+Following Termite-1, the driver synthesis problem is formalised as a \emph{two-player game}~\cite{Thomas_95} between the driver and its environment. The game is played over a finite automaton that represents all possible states and behaviours of the system. Transitions of the automaton are classified into \emph{controllable} transitions triggered by the driver and \emph{uncontrollable} transitions triggered by the device or OS\@. A winning strategy for the driver in the game corresponds to a correct driver implementation. If, on the other hand, a winning strategy does not exist, this means that there exists no specification-conforming driver implementation.
 
 Two-player games naturally capture the essence of the driver synthesis problem: the driver must enforce a certain subset of system behaviours while having only partial control over the system. The game-based approach leads to a precise mathematical formulation of the problem and enables us to apply theoretical results and algorithms from game theory to driver synthesis. Before diving into the details of our game-based approach to drivers, I illustrate it using simple example.
 
@@ -144,7 +144,7 @@ Formally, the device state machine consists of a set of states $D$, a global set
 
 The OS state machine consists of a set of states $O$, the same set of global labels $\lambda$ and a transition relation $\delta_O \subseteq O \times (\lambda \times \mathcal P (\epsilon)) \times O$. Intuitively, the next state of the OS state machine is determined by both the label and the set of events currently being emitted by the device state machine.
 
-Both the device and OS transition relations are total, i.e. for each current state and label combination there exists some next state that satisfies the relation. Recall that throughout this chapter all transition relations have been total, however, labels which were self loops were omitted for brevity.
+Both the device and OS transition relations are total, i.e.\ for each current state and label combination there exists some next state that satisfies the relation. Recall that throughout this chapter all transition relations have been total, however, labels which were self loops were omitted for brevity.
 
 The combined state machine consists of the set of states $C = D \times O$, the set of labels $\lambda$ and the transition relation $\delta_c \subseteq C \times \lambda \times C$.
 
@@ -156,7 +156,7 @@ $\langle \langle d, o \rangle, \lambda, \langle d', o' \rangle \rangle \in \delt
 
 Intuitively, a transition exists in the combined transition relation if the transition is consistent with the device transition relation and the transition is consistent with the OS transition relation and the events emitted by the device state machine.
 
-Figure~\ref{fig:combined_spec} shows the state machine of the combined specification. This cumbersome state machine shows the size and complexity advantages of using separate state machines in parallel as the specification language. A state is a goal state if the state that it corresponds to in the OS or device state machine is a goal state. I use reachability games in this example for simplicity. Both of the states on the right of Figure~\ref{fig:combined_spec} correspond to state \code{O2} in the OS specification, which is a goal, so they are goals. It is possible to have goals in the device specification but they are not useful in practice. Fair regions work in the same way, i.e. a state in the combined specification belongs to a fair region if at least one of the states in the two original specifications belonged to that fair region.
+Figure~\ref{fig:combined_spec} shows the state machine of the combined specification. This cumbersome state machine shows the size and complexity advantages of using separate state machines in parallel as the specification language. A state is a goal state if the state that it corresponds to in the OS or device state machine is a goal state. I use reachability games in this example for simplicity. Both of the states on the right of Figure~\ref{fig:combined_spec} correspond to state \code{O2} in the OS specification, which is a goal, so they are goals. It is possible to have goals in the device specification but they are not useful in practice. Fair regions work in the same way, i.e.\ a state in the combined specification belongs to a fair region if at least one of the states in the two original specifications belonged to that fair region.
 
 \section{Conclusion}
 
